@@ -1,0 +1,85 @@
+# Dependências
+node_modules/
+package-lock.json
+yarn.lock
+
+# Ambiente
+.env
+.env.local
+.env.production
+.env.staging
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Uploads (arquivos enviados pelos usuários)
+uploads/
+!uploads/.gitkeep
+
+# Banco de dados
+*.sqlite
+*.sqlite3
+database/*.sqlite
+
+# Backups
+backups/
+*.backup
+*.dump
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Sistema operacional
+Thumbs.db
+Desktop.ini
+
+# Build
+dist/
+build/
+out/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+.eslintcache
+.parcel-cache/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Documentação gerada
+docs/_build/
+
+# Chaves e certificados
+*.pem
+*.key
+*.crt
+*.csr
+*.pfx
+*.p12
+
+# Variáveis de ambiente
+.env.*
+!.env.example
+
+# Arquivos de configuração locais
+config/local.json
+config/local.js
+
+# Dados sensíveis
+secrets/
+private/
