@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coleção | Velvet Atelier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #8B7355;
+            --primary-dark: #6B5340;
+            --primary-light: #A0896C;
+            --secondary: #D4C4B7;
+            --accent: #C9A690;
+            --dark: #1A1817;
+            --light: #FDFCFB;
+            --gray: #8B8581;
+            --border-light: #E8E4E0;
+            --shadow-sm: 0 4px 20px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 30px rgba(0,0,0,0.06);
+            --shadow-lg: 0 20px 50px rgba(0,0,0,0.08);
+            --shadow-xl: 0 30px 60px rgba(0,0,0,0.12);
+            --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; color: var(--dark); background: var(--light); line-height: 1.7; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 40px; }
+        
+        /* Header */
+        .header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: rgba(253, 252, 251, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-light); }
+        .header.scrolled { box-shadow: var(--shadow-sm); }
+        .header-top { background: var(--dark); color: white; text-align: center; padding: 8px 0; font-size: 13px; font-weight: 500; letter-spacing: 1px; }
+        .header-main { padding: 20px 0; }
+        .header-wrapper { display: flex; align-items: center; justify-content: space-between; }
+        .logo { text-align: center; text-decoration: none; }
+        .logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 600; letter-spacing: 6px; color: var(--dark); line-height: 1; }
+        .logo span { font-size: 11px; text-transform: uppercase; letter-spacing: 4px; color: var(--primary); font-weight: 500; }
+        .nav-menu ul { display: flex; list-style: none; gap: 48px; }
+        .nav-menu a { text-decoration: none; color: var(--dark); font-weight: 500; font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; padding: 8px 0; position: relative; transition: var(--transition); }
+        .nav-menu a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 1.5px; background: var(--primary); transition: var(--transition); }
+        .nav-menu a:hover { color: var(--primary); }
+        .nav-menu a:hover::after, .nav-menu a.active::after { width: 100%; }
+        .header-actions { display: flex; align-items: center; gap: 24px; }
+        .header-actions button, .header-actions a { background: none; border: none; font-size: 20px; color: var(--dark); cursor: pointer; transition: var(--transition); }
+        .header-actions button:hover, .header-actions a:hover { color: var(--primary); transform: translateY(-2px); }
+        .cart-btn { position: relative; }
+        .cart-count { position: absolute; top: -8px; right: -8px; background: var(--primary); color: white; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .mobile-menu-btn { display: none; }
+        
+        /* User Menu */
+        .user-menu { position: relative; display: inline-block; }
+        .user-menu-btn { display: flex; align-items: center; gap: 8px; background: none; border: none; font-size: 16px; color: var(--dark); cursor: pointer; padding: 8px 12px; transition: var(--transition); }
+        .user-menu-btn:hover { color: var(--primary); }
+        .user-dropdown { position: absolute; top: 100%; right: 0; background: white; border-radius: 4px; box-shadow: var(--shadow-xl); min-width: 220px; padding: 12px 0; margin-top: 15px; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: var(--transition); z-index: 1000; }
+        .user-menu:hover .user-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+        .user-dropdown a { display: flex; align-items: center; gap: 14px; padding: 14px 20px; color: var(--dark); text-decoration: none; font-size: 14px; transition: var(--transition); }
+        .user-dropdown a:hover { background: var(--light); color: var(--primary); padding-left: 25px; }
+        .user-dropdown .divider { height: 1px; background: var(--border-light); margin: 8px 0; }
+        
+        /* Page Header */
+        .page-header { margin-top: 120px; padding: 60px 0 40px; text-align: center; background: linear-gradient(135deg, #FDF8F5 0%, #F5EDE8 100%); }
+        .page-header h1 { font-family: 'Cormorant Garamond', serif; font-size: 56px; font-weight: 600; color: var(--dark); margin-bottom: 12px; letter-spacing: 3px; }
+        .page-header p { color: var(--gray); font-size: 16px; text-transform: uppercase; letter-spacing: 3px; }
+        
+        /* Products Layout */
+        .products-layout { display: flex; gap: 40px; padding: 60px 0; }
+        .filters-sidebar { width: 280px; flex-shrink: 0; }
+        .filter-section { background: white; border-radius: 4px; padding: 30px; margin-bottom: 30px; box-shadow: var(--shadow-sm); }
+        .filter-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; margin-bottom: 24px; color: var(--dark); }
+        .category-list { list-style: none; }
+        .category-list li { margin-bottom: 14px; }
+        .category-list a { color: var(--gray); text-decoration: none; font-size: 15px; transition: var(--transition); display: block; padding: 4px 0; }
+        .category-list a:hover, .category-list a.active { color: var(--primary); padding-left: 8px; }
+        .products-main { flex: 1; }
+        .products-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border-light); }
+        .products-count { color: var(--gray); font-size: 14px; }
+        .sort-select { padding: 10px 16px; border: 1px solid var(--border-light); border-radius: 2px; font-family: 'Montserrat', sans-serif; font-size: 14px; color: var(--dark); background: white; cursor: pointer; }
+        .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .product-card { background: white; border-radius: 4px; overflow: hidden; transition: var(--transition); position: relative; }
+        .product-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-xl); }
+        .product-image { position: relative; aspect-ratio: 3/4; overflow: hidden; background: #F5F3F1; }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; }
+        .product-card:hover .product-image img { transform: scale(1.08); }
+        .product-badge { position: absolute; top: 20px; left: 20px; padding: 6px 14px; background: var(--primary); color: white; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; z-index: 2; }
+        .product-badge.sale { background: #C45C5C; }
+        .product-actions { position: absolute; bottom: 20px; left: 20px; right: 20px; display: flex; gap: 10px; opacity: 0; transition: var(--transition); }
+        .product-card:hover .product-actions { opacity: 1; }
+        .product-actions button { flex: 1; padding: 12px; background: white; border: none; border-radius: 2px; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: var(--transition); box-shadow: var(--shadow-md); }
+        .product-actions button:hover { background: var(--primary); color: white; }
+        .product-info { padding: 24px 16px; text-align: center; }
+        .product-info h3 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+        .product-info a { color: var(--dark); text-decoration: none; transition: var(--transition); }
+        .product-info a:hover { color: var(--primary); }
+        .product-price { display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .old-price { color: var(--gray); text-decoration: line-through; font-size: 15px; }
+        .current-price { color: var(--dark); font-weight: 600; font-size: 18px; }
+        .pagination { display: flex; justify-content: center; gap: 12px; margin-top: 60px; }
+        .pagination button { padding: 12px 18px; border: 1px solid var(--border-light); background: white; border-radius: 2px; cursor: pointer; font-size: 14px; transition: var(--transition); }
+        .pagination button:hover, .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .no-products { text-align: center; padding: 60px; color: var(--gray); }
+        
+        /* Footer */
+        .footer { background: var(--dark); color: white; }
+        .footer-main { padding: 60px 0 40px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 50px; }
+        .footer-logo h3 { font-family: 'Cormorant Garamond', serif; font-size: 32px; letter-spacing: 5px; margin-bottom: 5px; }
+        .footer-logo span { font-size: 10px; text-transform: uppercase; letter-spacing: 3px; opacity: 0.6; }
+        .footer-col p { margin: 24px 0; opacity: 0.7; font-size: 14px; }
+        .social-links { display: flex; gap: 16px; }
+        .social-links a { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: var(--transition); }
+        .social-links a:hover { background: var(--primary); transform: translateY(-3px); }
+        .footer-col h4 { font-family: 'Cormorant Garamond', serif; font-size: 20px; margin-bottom: 24px; font-weight: 600; }
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 14px; }
+        .footer-col ul li a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px; transition: var(--transition); }
+        .footer-col ul li a:hover { color: white; padding-left: 5px; }
+        .footer-col ul li i { margin-right: 12px; width: 20px; color: var(--primary); }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding: 24px 0; }
+        .footer-bottom .container { display: flex; justify-content: space-between; align-items: center; }
+        .footer-bottom p { opacity: 0.6; font-size: 13px; }
+        .payment-methods { display: flex; gap: 20px; font-size: 28px; opacity: 0.6; }
+        
+        @media (max-width: 1024px) {
+            .container { padding: 0 24px; }
+            .nav-menu { display: none; }
+            .mobile-menu-btn { display: block; }
+            .products-grid { grid-template-columns: repeat(2, 1fr); }
+            .products-layout { flex-direction: column; }
+            .filters-sidebar { width: 100%; }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 40px; }
+            .products-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="header-top">
+            <div class="container">
+                <p>FRETE GRÁTIS PARA TODO BRASIL EM COMPRAS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p>
+            </div>
+        </div>
+        <div class="header-main">
+            <div class="container">
+                <div class="header-wrapper">
+                    <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+                    <a href="/" class="logo">
+                        <h1>VELVET</h1>
+                        <span>ATELIER</span>
+                    </a>
+                    <nav class="nav-menu">
+                        <ul>
+                            <li><a href="/">Home</a></li>
+                            <li><a href="/products" class="active">Coleção</a></li>
+                            <li><a href="/products?category=vestidos">Vestidos</a></li>
+                            <li><a href="/products?category=blusas">Blusas</a></li>
+                            <li><a href="/products?category=calcas">Calças</a></li>
+                            <li><a href="/products?category=saias">Saias</a></li>
+                        </ul>
+                    </nav>
+                    <div class="header-actions">
+                        <button><i class="fas fa-search"></i></button>
+                        <div id="userMenuContainer">
+                            <a href="/login"><i class="fas fa-user"></i></a>
+                        </div>
+                        <a href="/cart" class="cart-btn">
+                            <i class="fas fa-shopping-bag"></i>
+                            <span class="cart-count" id="cartCount">0</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-header">
+        <div class="container">
+            <h1 id="pageTitle">Nossa Coleção</h1>
+            <p id="productCount">Descubra peças exclusivas</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="products-layout">
+            <aside class="filters-sidebar">
+                <div class="filter-section">
+                    <h3 class="filter-title">Categorias</h3>
+                    <ul class="category-list" id="categoryList">
+                        <li><a href="/products" class="active">Todas</a></li>
+                    </ul>
+                </div>
+            </aside>
+            <div class="products-main">
+                <div class="products-toolbar">
+                    <div class="products-count" id="showingCount">Carregando...</div>
+                    <select class="sort-select" id="sortSelect">
+                        <option value="newest">Mais Recentes</option>
+                        <option value="price-asc">Menor Preço</option>
+                        <option value="price-desc">Maior Preço</option>
+                    </select>
+                </div>
+                <div class="products-grid" id="productsGrid"></div>
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-main">
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-col">
+                        <div class="footer-logo"><h3>VELVET</h3><span>ATELIER</span></div>
+                        <p>Moda feminina de luxo que celebra a individualidade.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-pinterest-p"></i></a>
+                        </div>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Explorar</h4>
+                        <ul>
+                            <li><a href="/products">Nova Coleção</a></li>
+                            <li><a href="/products">Mais Vendidos</a></li>
+                            <li><a href="/products">Exclusivos</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Suporte</h4>
+                        <ul>
+                            <li><a href="#">Central de Ajuda</a></li>
+                            <li><a href="#">Trocas e Devoluções</a></li>
+                            <li><a href="#">Política de Privacidade</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Contato</h4>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> contato@velvetatelier.com</li>
+                            <li><i class="fas fa-phone-alt"></i> (11) 3456-7890</li>
+                            <li><i class="fab fa-whatsapp"></i> (11) 98765-4321</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2024 Velvet Atelier. Todos os direitos reservados.</p>
+                <div class="payment-methods">
+                    <i class="fab fa-cc-visa"></i>
+                    <i class="fab fa-cc-mastercard"></i>
+                    <i class="fab fa-cc-amex"></i>
+                    <i class="fas fa-barcode"></i>
+                    <i class="fab fa-pix"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/cart.js"></script>
+    <script>
+        let currentPage = 1, totalPages = 1, currentCategory = '', currentSort = 'newest';
+        const urlParams = new URLSearchParams(window.location.search);
+        currentCategory = urlParams.get('category') || '';
+
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const result = await response.json();
+                if (result.success) {
+                    const list = document.getElementById('categoryList');
+                    result.data.forEach(cat => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<a href="/products?category=${cat.slug}" ${cat.slug === currentCategory ? 'class="active"' : ''}>${cat.name}</a>`;
+                        list.appendChild(li);
+                    });
+                    if (currentCategory) {
+                        const cat = result.data.find(c => c.slug === currentCategory);
+                        if (cat) document.getElementById('pageTitle').textContent = cat.name;
+                    }
+                }
+            } catch (error) { console.error('Erro ao carregar categorias:', error); }
+        }
+
+        async function loadProducts() {
+            try {
+                let url = `/api/products?page=${currentPage}`;
+                if (currentCategory) url += `&category=${currentCategory}`;
+                const response = await fetch(url);
+                const result = await response.json();
+                if (result.success) {
+                    totalPages = result.totalPages;
+                    renderProducts(result.data);
+                    updatePagination();
+                    document.getElementById('productCount').textContent = `${result.total} produtos`;
+                    document.getElementById('showingCount').textContent = `Mostrando ${(currentPage-1)*12+1}-${Math.min(currentPage*12, result.total)} de ${result.total}`;
+                }
+            } catch (error) { console.error('Erro ao carregar produtos:', error); }
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('productsGrid');
+            if (!products.length) { grid.innerHTML = '<div class="no-products">Nenhum produto encontrado</div>'; return; }
+            let sorted = [...products];
+            if (currentSort === 'price-asc') sorted.sort((a,b) => (a.promotional_price||a.price) - (b.promotional_price||b.price));
+            if (currentSort === 'price-desc') sorted.sort((a,b) => (b.promotional_price||b.price) - (a.promotional_price||a.price));
+            
+            grid.innerHTML = sorted.map(p => {
+                const price = parseFloat(p.price) || 0;
+                const promo = p.promotional_price ? parseFloat(p.promotional_price) : null;
+                const img = p.main_image || (p.images?.[0]) || 'https://via.placeholder.com/600';
+                return `
+                    <div class="product-card">
+                        <div class="product-image">
+                            <a href="/product?id=${p.id}"><img src="${img}" alt="${p.name}"></a>
+                            ${promo ? `<span class="product-badge sale">-${Math.round((1-promo/price)*100)}%</span>` : ''}
+                            <div class="product-actions">
+                                <button onclick="location.href='/product?id=${p.id}'"><i class="fas fa-eye"></i> Ver</button>
+                                <button onclick="addToCart(${p.id})"><i class="fas fa-shopping-bag"></i> Comprar</button>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <h3><a href="/product?id=${p.id}">${p.name}</a></h3>
+                            <div class="product-price">
+                                ${promo ? `<span class="old-price">R$ ${price.toFixed(2)}</span><span class="current-price">R$ ${promo.toFixed(2)}</span>` : `<span class="current-price">R$ ${price.toFixed(2)}</span>`}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updatePagination() {
+            const pag = document.getElementById('pagination');
+            let html = `<button ${currentPage===1?'disabled':''} onclick="goToPage(${currentPage-1})">Anterior</button>`;
+            for (let i=1; i<=totalPages; i++) {
+                if (i===1||i===totalPages||(i>=currentPage-2&&i<=currentPage+2)) {
+                    html += `<button class="${i===currentPage?'active':''}" onclick="goToPage(${i})">${i}</button>`;
+                } else if (i===currentPage-3||i===currentPage+3) {
+                    html += '<span>...</span>';
+                }
+            }
+            html += `<button ${currentPage===totalPages?'disabled':''} onclick="goToPage(${currentPage+1})">Próximo</button>`;
+            pag.innerHTML = html;
+        }
+
+        window.goToPage = (p) => { currentPage = p; loadProducts(); window.scrollTo({top:0,behavior:'smooth'}); };
+        window.addToCart = (id) => console.log('Add cart:', id);
+        
+        document.getElementById('sortSelect').addEventListener('change', e => { currentSort = e.target.value; loadProducts(); });
+        window.addEventListener('scroll', () => document.getElementById('header').classList.toggle('scrolled', window.scrollY>50));
+        
+        loadCategories();
+        loadProducts();
+    </script>
+</body>
+</html>

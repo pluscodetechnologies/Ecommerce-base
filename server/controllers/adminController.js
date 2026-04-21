@@ -1,5 +1,4 @@
 const { getDB } = require('../config/database');
-const bcrypt = require('bcrypt');
 
 class AdminController {
     async getDashboardStats(req, res) {
@@ -42,7 +41,10 @@ class AdminController {
     async getOrders(req, res) {
         try {
             const db = getDB();
-            const { status, page = 1, limit = 20 } = req.query;
+            const status = req.query.status || null;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 20;
+            const offset = (page - 1) * limit;
             
             let query = 'SELECT * FROM orders';
             const params = [];
@@ -52,8 +54,7 @@ class AdminController {
                 params.push(status);
             }
             
-            query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-            params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
+            query += ' ORDER BY created_at DESC LIMIT ' + limit + ' OFFSET ' + offset;
             
             const [orders] = await db.execute(query, params);
             const [total] = await db.execute('SELECT COUNT(*) as count FROM orders' + (status ? ' WHERE status = ?' : ''), status ? [status] : []);
@@ -63,7 +64,7 @@ class AdminController {
                 data: {
                     orders,
                     total: total[0].count,
-                    page: parseInt(page),
+                    page: page,
                     totalPages: Math.ceil(total[0].count / limit)
                 }
             });
@@ -79,7 +80,7 @@ class AdminController {
             const { status } = req.body;
             const db = getDB();
             
-            await db.execute('UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?', [status, id]);
+            await db.execute('UPDATE orders SET status = ? WHERE id = ?', [status, id]);
             
             res.json({ success: true, message: 'Status atualizado com sucesso' });
         } catch (error) {
@@ -91,7 +92,11 @@ class AdminController {
     async getProducts(req, res) {
         try {
             const db = getDB();
-            const { category, search, page = 1, limit = 20 } = req.query;
+            const category = req.query.category || null;
+            const search = req.query.search || null;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 20;
+            const offset = (page - 1) * limit;
             
             let query = `
                 SELECT p.*, c.name as category_name,
@@ -112,8 +117,7 @@ class AdminController {
                 params.push(`%${search}%`, `%${search}%`);
             }
             
-            query += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
-            params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
+            query += ' ORDER BY p.created_at DESC LIMIT ' + limit + ' OFFSET ' + offset;
             
             const [products] = await db.execute(query, params);
             const [total] = await db.execute('SELECT COUNT(*) as count FROM products');
@@ -123,7 +127,7 @@ class AdminController {
                 data: {
                     products,
                     total: total[0].count,
-                    page: parseInt(page),
+                    page: page,
                     totalPages: Math.ceil(total[0].count / limit)
                 }
             });
@@ -134,49 +138,69 @@ class AdminController {
     }
 
     async createProduct(req, res) {
-        try {
-            const db = getDB();
-            const { name, description, price, promotional_price, sku, stock, category_id, status } = req.body;
-            
-            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-            
-            const [result] = await db.execute(
-                `INSERT INTO products (name, slug, description, price, promotional_price, sku, stock, category_id, status, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-                [name, slug, description, price, promotional_price, sku, stock, category_id, status || 'active']
-            );
-            
-            res.status(201).json({
-                success: true,
-                message: 'Produto criado com sucesso',
-                data: { id: result.insertId }
-            });
-        } catch (error) {
-            console.error('Erro ao criar produto:', error);
-            res.status(500).json({ success: false, message: 'Erro ao criar produto' });
+    try {
+        const db = getDB();
+        const { name, description, price, promotional_price, sku, stock, category_id, status, is_featured, images } = req.body;
+        
+        if (!name || !price) {
+            return res.status(400).json({ success: false, message: 'Nome e preço são obrigatórios' });
         }
+        
+        const slug = name.toLowerCase()
+            .replace(/[áàãâä]/g, 'a')
+            .replace(/[éèêë]/g, 'e')
+            .replace(/[íìîï]/g, 'i')
+            .replace(/[óòõôö]/g, 'o')
+            .replace(/[úùûü]/g, 'u')
+            .replace(/[ç]/g, 'c')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+        
+        const [result] = await db.execute(
+            `INSERT INTO products (name, slug, description, price, promotional_price, sku, stock, category_id, status, is_featured, images, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+            [name, slug, description || null, price, promotional_price || null, sku || null, stock || 0, category_id || null, status || 'active', is_featured || false, JSON.stringify(images || [])]
+        );
+        
+        res.status(201).json({
+            success: true,
+            message: 'Produto criado com sucesso',
+            data: { id: result.insertId }
+        });
+    } catch (error) {
+        console.error('Erro ao criar produto:', error);
+        res.status(500).json({ success: false, message: 'Erro ao criar produto' });
     }
+}
 
-    async updateProduct(req, res) {
-        try {
-            const { id } = req.params;
-            const { name, description, price, promotional_price, sku, stock, category_id, status } = req.body;
-            const db = getDB();
-            
-            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-            
-            await db.execute(
-                `UPDATE products SET name = ?, slug = ?, description = ?, price = ?, promotional_price = ?,
-                 sku = ?, stock = ?, category_id = ?, status = ?, updated_at = NOW() WHERE id = ?`,
-                [name, slug, description, price, promotional_price, sku, stock, category_id, status, id]
-            );
-            
-            res.json({ success: true, message: 'Produto atualizado com sucesso' });
-        } catch (error) {
-            console.error('Erro ao atualizar produto:', error);
-            res.status(500).json({ success: false, message: 'Erro ao atualizar produto' });
-        }
+async updateProduct(req, res) {
+    try {
+        const { id } = req.params;
+        const { name, description, price, promotional_price, sku, stock, category_id, status, is_featured, images } = req.body;
+        const db = getDB();
+        
+        const slug = name.toLowerCase()
+            .replace(/[áàãâä]/g, 'a')
+            .replace(/[éèêë]/g, 'e')
+            .replace(/[íìîï]/g, 'i')
+            .replace(/[óòõôö]/g, 'o')
+            .replace(/[úùûü]/g, 'u')
+            .replace(/[ç]/g, 'c')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+        
+        await db.execute(
+            `UPDATE products SET name = ?, slug = ?, description = ?, price = ?, promotional_price = ?,
+             sku = ?, stock = ?, category_id = ?, status = ?, is_featured = ?, images = ? WHERE id = ?`,
+            [name, slug, description || null, price, promotional_price || null, sku || null, stock || 0, category_id || null, status, is_featured || false, JSON.stringify(images || []), id]
+        );
+        
+        res.json({ success: true, message: 'Produto atualizado com sucesso' });
+    } catch (error) {
+        console.error('Erro ao atualizar produto:', error);
+        res.status(500).json({ success: false, message: 'Erro ao atualizar produto' });
     }
+}
 
     async deleteProduct(req, res) {
         try {
@@ -205,47 +229,41 @@ class AdminController {
     }
 
     async createCategory(req, res) {
-        try {
-            const db = getDB();
-            const { name, description, parent_id, sort_order, status } = req.body;
-            
-            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-            
-            const [result] = await db.execute(
-                'INSERT INTO categories (name, slug, description, parent_id, sort_order, status) VALUES (?, ?, ?, ?, ?, ?)',
-                [name, slug, description, parent_id || null, sort_order || 0, status || 'active']
-            );
-            
-            res.status(201).json({
-                success: true,
-                message: 'Categoria criada com sucesso',
-                data: { id: result.insertId }
-            });
-        } catch (error) {
-            console.error('Erro ao criar categoria:', error);
-            res.status(500).json({ success: false, message: 'Erro ao criar categoria' });
-        }
+    try {
+        const db = getDB();
+        const { name, description, image_url, sort_order, status } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: 'Nome é obrigatório' });
+        
+        const slug = name.toLowerCase().replace(/[áàãâä]/g,'a').replace(/[éèêë]/g,'e').replace(/[íìîï]/g,'i').replace(/[óòõôö]/g,'o').replace(/[úùûü]/g,'u').replace(/[ç]/g,'c').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+        
+        const [result] = await db.execute(
+            'INSERT INTO categories (name, slug, description, image_url, sort_order, status) VALUES (?, ?, ?, ?, ?, ?)',
+            [name, slug, description || null, image_url || null, sort_order || 0, status || 'active']
+        );
+        res.status(201).json({ success: true, message: 'Categoria criada com sucesso', data: { id: result.insertId } });
+    } catch (error) {
+        console.error('Erro ao criar categoria:', error);
+        res.status(500).json({ success: false, message: 'Erro ao criar categoria' });
     }
+}
 
-    async updateCategory(req, res) {
-        try {
-            const { id } = req.params;
-            const { name, description, parent_id, sort_order, status } = req.body;
-            const db = getDB();
-            
-            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-            
-            await db.execute(
-                'UPDATE categories SET name = ?, slug = ?, description = ?, parent_id = ?, sort_order = ?, status = ? WHERE id = ?',
-                [name, slug, description, parent_id || null, sort_order || 0, status, id]
-            );
-            
-            res.json({ success: true, message: 'Categoria atualizada com sucesso' });
-        } catch (error) {
-            console.error('Erro ao atualizar categoria:', error);
-            res.status(500).json({ success: false, message: 'Erro ao atualizar categoria' });
-        }
+async updateCategory(req, res) {
+    try {
+        const { id } = req.params;
+        const { name, description, image_url, sort_order, status } = req.body;
+        const db = getDB();
+        const slug = name.toLowerCase().replace(/[áàãâä]/g,'a').replace(/[éèêë]/g,'e').replace(/[íìîï]/g,'i').replace(/[óòõôö]/g,'o').replace(/[úùûü]/g,'u').replace(/[ç]/g,'c').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+        
+        await db.execute(
+            'UPDATE categories SET name = ?, slug = ?, description = ?, image_url = ?, sort_order = ?, status = ? WHERE id = ?',
+            [name, slug, description || null, image_url || null, sort_order || 0, status, id]
+        );
+        res.json({ success: true, message: 'Categoria atualizada com sucesso' });
+    } catch (error) {
+        console.error('Erro ao atualizar categoria:', error);
+        res.status(500).json({ success: false, message: 'Erro ao atualizar categoria' });
     }
+}
 
     async deleteCategory(req, res) {
         try {
@@ -273,7 +291,10 @@ class AdminController {
     async getCustomers(req, res) {
         try {
             const db = getDB();
-            const { search, page = 1, limit = 20 } = req.query;
+            const search = req.query.search || null;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 20;
+            const offset = (page - 1) * limit;
             
             let query = 'SELECT id, name, email, phone, cpf, role, created_at FROM users WHERE role = "user"';
             const params = [];
@@ -283,8 +304,7 @@ class AdminController {
                 params.push(`%${search}%`, `%${search}%`);
             }
             
-            query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-            params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
+            query += ' ORDER BY created_at DESC LIMIT ' + limit + ' OFFSET ' + offset;
             
             const [customers] = await db.execute(query, params);
             const [total] = await db.execute('SELECT COUNT(*) as count FROM users WHERE role = "user"');
@@ -294,7 +314,7 @@ class AdminController {
                 data: {
                     customers,
                     total: total[0].count,
-                    page: parseInt(page),
+                    page: page,
                     totalPages: Math.ceil(total[0].count / limit)
                 }
             });
@@ -319,11 +339,11 @@ class AdminController {
     async createBanner(req, res) {
         try {
             const db = getDB();
-            const { title, subtitle, image_url, link, position, sort_order } = req.body;
+            const { title, subtitle, image_url, link, position, sort_order, is_active } = req.body;
             
             const [result] = await db.execute(
-                'INSERT INTO banners (title, subtitle, image_url, link, position, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
-                [title, subtitle, image_url, link, position, sort_order || 0]
+                'INSERT INTO banners (title, subtitle, image_url, link, position, sort_order, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [title, subtitle || null, image_url, link || null, position || 'hero', sort_order || 0, is_active !== false ? 1 : 0]
             );
             
             res.status(201).json({
@@ -345,7 +365,7 @@ class AdminController {
             
             await db.execute(
                 'UPDATE banners SET title = ?, subtitle = ?, image_url = ?, link = ?, position = ?, sort_order = ?, is_active = ? WHERE id = ?',
-                [title, subtitle, image_url, link, position, sort_order, is_active, id]
+                [title, subtitle || null, image_url, link || null, position, sort_order || 0, is_active !== false ? 1 : 0, id]
             );
             
             res.json({ success: true, message: 'Banner atualizado com sucesso' });
@@ -389,7 +409,7 @@ class AdminController {
             const [result] = await db.execute(
                 `INSERT INTO coupons (code, description, discount_type, discount_value, min_purchase, max_uses, starts_at, expires_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                [code, description, discount_type, discount_value, min_purchase || 0, max_uses, starts_at, expires_at]
+                [code, description || null, discount_type, discount_value, min_purchase || 0, max_uses || null, starts_at || null, expires_at || null]
             );
             
             res.status(201).json({
@@ -420,7 +440,8 @@ class AdminController {
     async getSalesReport(req, res) {
         try {
             const db = getDB();
-            const { start_date, end_date } = req.query;
+            const start_date = req.query.start_date || null;
+            const end_date = req.query.end_date || null;
             
             let query = `
                 SELECT DATE(created_at) as date, COUNT(*) as orders, SUM(total_amount) as revenue
@@ -469,8 +490,8 @@ class AdminController {
             
             for (const [key, value] of Object.entries(settings)) {
                 await db.execute(
-                    'UPDATE store_settings SET setting_value = ?, updated_at = NOW() WHERE setting_key = ?',
-                    [value, key]
+                    'UPDATE store_settings SET setting_value = ? WHERE setting_key = ?',
+                    [String(value), key]
                 );
             }
             

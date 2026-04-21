@@ -16,6 +16,7 @@ app.use(helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
@@ -27,6 +28,195 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
+
+const adminRoutes = require('./routes/admin');
+app.use('/api/admin', adminRoutes);
+
+app.get('/api/products/featured', async (req, res) => {
+    try {
+        const db = require('./config/database').getDB();
+        const [products] = await db.execute(`
+            SELECT p.*, c.name as category_name, 
+                   COALESCE(p.images, '[]') as images
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.status = 'active' AND p.is_featured = 1
+            ORDER BY p.created_at DESC
+            LIMIT 8
+        `);
+        
+        products.forEach(p => {
+            try {
+                p.images = JSON.parse(p.images || '[]');
+            } catch {
+                p.images = [];
+            }
+            p.main_image = p.images[0] || 'https://via.placeholder.com/600';
+            p.price = parseFloat(p.price) || 0;
+            p.promotional_price = p.promotional_price ? parseFloat(p.promotional_price) : null;
+        });
+        
+        res.json({ success: true, data: products });
+    } catch (error) {
+        console.error('Erro ao buscar produtos em destaque:', error);
+        res.json({ success: true, data: [] });
+    }
+});
+
+app.get('/api/products/new-arrivals', async (req, res) => {
+    try {
+        const db = require('./config/database').getDB();
+        const [products] = await db.execute(`
+            SELECT p.*, c.name as category_name, 
+                   COALESCE(p.images, '[]') as images
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.status = 'active'
+            ORDER BY p.created_at DESC
+            LIMIT 8
+        `);
+        
+        products.forEach(p => {
+            try {
+                p.images = JSON.parse(p.images || '[]');
+            } catch {
+                p.images = [];
+            }
+            p.main_image = p.images[0] || 'https://via.placeholder.com/600';
+            p.price = parseFloat(p.price) || 0;
+            p.promotional_price = p.promotional_price ? parseFloat(p.promotional_price) : null;
+        });
+        
+        res.json({ success: true, data: products });
+    } catch (error) {
+        console.error('Erro ao buscar novidades:', error);
+        res.json({ success: true, data: [] });
+    }
+});
+
+app.get('/api/products', async (req, res) => {
+    try {
+        const db = require('./config/database').getDB();
+        const category = req.query.category || null;
+        const search = req.query.search || null;
+        const page = parseInt(req.query.page) || 1;
+        const limit = 12;
+        const offset = (page - 1) * limit;
+        
+        let query = `
+            SELECT p.*, c.name as category_name, 
+                   COALESCE(p.images, '[]') as images
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.status = 'active'
+        `;
+        const params = [];
+        
+        if (category) {
+            query += ' AND c.slug = ?';
+            params.push(category);
+        }
+        
+        if (search) {
+            query += ' AND p.name LIKE ?';
+            params.push(`%${search}%`);
+        }
+        
+        query += ' ORDER BY p.created_at DESC LIMIT ' + limit + ' OFFSET ' + offset;
+        
+        const [products] = await db.execute(query, params);
+        const [total] = await db.execute('SELECT COUNT(*) as count FROM products WHERE status = "active"');
+        
+        products.forEach(p => {
+            try {
+                p.images = JSON.parse(p.images || '[]');
+            } catch {
+                p.images = [];
+            }
+            p.main_image = p.images[0] || 'https://via.placeholder.com/600';
+            p.price = parseFloat(p.price) || 0;
+            p.promotional_price = p.promotional_price ? parseFloat(p.promotional_price) : null;
+        });
+        
+        res.json({
+            success: true,
+            data: products,
+            total: total[0].count,
+            page,
+            totalPages: Math.ceil(total[0].count / limit)
+        });
+    } catch (error) {
+        console.error('Erro ao buscar produtos:', error);
+        res.json({ success: true, data: [], total: 0, page: 1, totalPages: 0 });
+    }
+});
+
+app.get('/api/product/:id', async (req, res) => {
+    try {
+        const db = require('./config/database').getDB();
+        const [products] = await db.execute(`
+            SELECT p.*, c.name as category_name, p.images
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.id = ? AND p.status = 'active'
+        `, [req.params.id]);
+        
+        if (products.length === 0) {
+            return res.status(404).json({ success: false, message: 'Produto não encontrado' });
+        }
+        
+        const product = products[0];
+        product.images = JSON.parse(product.images || '[]');
+        
+        res.json({ success: true, data: product });
+    } catch (error) {
+        console.error('Erro ao buscar produto:', error);
+        res.status(500).json({ success: false, message: 'Erro ao buscar produto' });
+    }
+});
+
+app.get('/api/categories', async (req, res) => {
+    try {
+        const db = require('./config/database').getDB();
+        const [categories] = await db.execute('SELECT * FROM categories WHERE status = "active" ORDER BY sort_order, name');
+        res.json({ success: true, data: categories });
+    } catch (error) {
+        console.error('Erro ao buscar categorias:', error);
+        res.status(500).json({ success: false, data: [] });
+    }
+});
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/index.html'));
+});
+
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/login.html'));
+});
+
+app.get('/products', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/products.html'));
+});
+
+app.get('/product', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/product-detail.html'));
+});
+
+app.get('/cart', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/cart.html'));
+});
+
+app.get('/checkout', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/checkout.html'));
+});
+
+app.get('/account', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/account.html'));
+});
 
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/views/admin/login.html'));
@@ -66,66 +256,6 @@ app.get('/admin/relatorios', (req, res) => {
 
 app.get('/admin/configuracoes', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/views/admin/configuracoes.html'));
-});
-
-app.get('/api/products/featured', (req, res) => {
-    res.json({ 
-        success: true, 
-        data: [
-            { id: 1, name: "Vestido Floral", price: 189.90, promotional_price: 149.90, main_image: "https://images.pexels.com/photos/985635/pexels-photo-985635.jpeg?auto=compress&cs=tinysrgb&w=600" },
-            { id: 2, name: "Blusa de Seda", price: 129.90, promotional_price: null, main_image: "https://images.pexels.com/photos/325876/pexels-photo-325876.jpeg?auto=compress&cs=tinysrgb&w=600" },
-            { id: 3, name: "Calça Pantalona", price: 199.90, promotional_price: 169.90, main_image: "https://images.pexels.com/photos/1082529/pexels-photo-1082529.jpeg?auto=compress&cs=tinysrgb&w=600" },
-            { id: 4, name: "Saia Midi", price: 149.90, promotional_price: null, main_image: "https://images.pexels.com/photos/1457983/pexels-photo-1457983.jpeg?auto=compress&cs=tinysrgb&w=600" }
-        ]
-    });
-});
-
-app.get('/api/products/new-arrivals', (req, res) => {
-    res.json({ 
-        success: true, 
-        data: [
-            { id: 5, name: "Conjunto Linho", price: 299.90, promotional_price: 249.90, main_image: "https://images.pexels.com/photos/1485031/pexels-photo-1485031.jpeg?auto=compress&cs=tinysrgb&w=600" },
-            { id: 6, name: "Vestido Longo", price: 259.90, promotional_price: null, main_image: "https://images.pexels.com/photos/972995/pexels-photo-972995.jpeg?auto=compress&cs=tinysrgb&w=600" },
-            { id: 7, name: "Blazer Feminino", price: 229.90, promotional_price: 189.90, main_image: "https://images.pexels.com/photos/325876/pexels-photo-325876.jpeg?auto=compress&cs=tinysrgb&w=600" },
-            { id: 8, name: "Macacão", price: 219.90, promotional_price: null, main_image: "https://images.pexels.com/photos/1082529/pexels-photo-1082529.jpeg?auto=compress&cs=tinysrgb&w=600" }
-        ]
-    });
-});
-
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/views/index.html'));
-});
-
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/views/login.html'));
-});
-
-app.get('/products', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/views/products.html'));
-});
-
-app.get('/product', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/views/product-detail.html'));
-});
-
-app.get('/cart', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/views/cart.html'));
-});
-
-app.get('/checkout', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/views/checkout.html'));
-});
-
-app.get('/account', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/views/account.html'));
-});
-
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/views/admin/dashboard.html'));
 });
 
 app.use((err, req, res, next) => {

@@ -3,54 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Velvet Store - Moda Feminina Elegante</title>
-    <meta name="description" content="Descubra as últimas tendências da moda feminina na Velvet Store. Roupas elegantes com qualidade premium.">
+    <title>Velvet Store | Moda Feminina de Luxo</title>
+    <meta name="description" content="Descubra a elegância atemporal na Velvet Store. Roupas femininas exclusivas com design sofisticado e qualidade premium.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #8B7355;
+            --primary-dark: #6B5340;
+            --primary-light: #A0896C;
+            --secondary: #D4C4B7;
+            --accent: #C9A690;
+            --dark: #1A1817;
+            --light: #FDFCFB;
+            --gray: #8B8581;
+            --border-light: #E8E4E0;
+            --shadow-sm: 0 4px 20px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 30px rgba(0,0,0,0.06);
+            --shadow-lg: 0 20px 50px rgba(0,0,0,0.08);
+            --shadow-xl: 0 30px 60px rgba(0,0,0,0.12);
+            --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; color: var(--dark); background: var(--light); line-height: 1.7; overflow-x: hidden; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 40px; }
+        
+        /* Header */
+        .header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: rgba(253, 252, 251, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-light); transition: var(--transition); }
+        .header.scrolled { box-shadow: var(--shadow-sm); }
+        .header-top { background: var(--dark); color: white; text-align: center; padding: 8px 0; font-size: 13px; font-weight: 500; letter-spacing: 1px; }
+        .header-main { padding: 20px 0; }
+        .header-wrapper { display: flex; align-items: center; justify-content: space-between; }
+        .logo { text-align: center; text-decoration: none; }
+        .logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 600; letter-spacing: 6px; color: var(--dark); line-height: 1; }
+        .logo span { font-size: 11px; text-transform: uppercase; letter-spacing: 4px; color: var(--primary); font-weight: 500; }
+        .nav-menu ul { display: flex; list-style: none; gap: 48px; }
+        .nav-menu a { text-decoration: none; color: var(--dark); font-weight: 500; font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; padding: 8px 0; position: relative; transition: var(--transition); }
+        .nav-menu a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 1.5px; background: var(--primary); transition: var(--transition); }
+        .nav-menu a:hover { color: var(--primary); }
+        .nav-menu a:hover::after, .nav-menu a.active::after { width: 100%; }
+        .header-actions { display: flex; align-items: center; gap: 24px; }
+        .header-actions button, .header-actions a { background: none; border: none; font-size: 20px; color: var(--dark); cursor: pointer; transition: var(--transition); }
+        .header-actions button:hover, .header-actions a:hover { color: var(--primary); transform: translateY(-2px); }
+        .cart-btn { position: relative; }
+        .cart-count { position: absolute; top: -8px; right: -8px; background: var(--primary); color: white; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .mobile-menu-btn { display: none; }
+        
+        /* Hero */
+        .hero { margin-top: 120px; height: 85vh; position: relative; overflow: hidden; }
+        .hero-slider { height: 100%; position: relative; }
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1s ease; }
+        .slide.active { opacity: 1; }
+        .slide img { width: 100%; height: 100%; object-fit: cover; }
+        .slide-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, rgba(0,0,0,0.2) 0%, transparent 50%); }
+        .slide-content { position: absolute; top: 50%; left: 10%; transform: translateY(-50%); max-width: 600px; color: white; animation: fadeInUp 1s ease; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(-50%); } }
+        .slide-subtitle { font-size: 16px; text-transform: uppercase; letter-spacing: 6px; display: block; margin-bottom: 20px; font-weight: 400; }
+        .slide-title { font-family: 'Cormorant Garamond', serif; font-size: 72px; font-weight: 600; margin-bottom: 24px; line-height: 1.1; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .slide-description { font-size: 18px; margin-bottom: 40px; opacity: 0.9; font-weight: 300; }
+        .btn { display: inline-block; padding: 16px 40px; border-radius: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 2px; font-size: 14px; transition: var(--transition); cursor: pointer; text-decoration: none; }
+        .btn-primary { background: white; color: var(--dark); border: none; }
+        .btn-primary:hover { background: var(--primary); color: white; transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+        .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        .slider-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 50px; height: 50px; background: white; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-md); transition: var(--transition); z-index: 10; }
+        .slider-arrow:hover { background: var(--primary); color: white; }
+        .slider-arrow.prev { left: 40px; }
+        .slider-arrow.next { right: 40px; }
+        .slider-dots { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 10; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: var(--transition); }
+        .dot.active { background: white; width: 30px; border-radius: 4px; }
+        
+        /* Categories Carousel */
+        .categories { padding: 100px 0; background: var(--light); }
+        .section-title { font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 600; text-align: center; margin-bottom: 20px; color: var(--dark); letter-spacing: 2px; }
+        .section-subtitle { text-align: center; color: var(--gray); font-size: 16px; margin-bottom: 60px; font-weight: 300; text-transform: uppercase; letter-spacing: 3px; }
+        .categories-carousel-container { position: relative; overflow: hidden; margin: 0 -20px; padding: 0 20px; }
+        .categories-grid { display: flex; gap: 30px; transition: transform 0.5s ease; }
+        .category-card { flex: 0 0 calc(20% - 24px); min-width: calc(20% - 24px); position: relative; overflow: hidden; border-radius: 4px; text-decoration: none; box-shadow: var(--shadow-sm); transition: var(--transition); }
+        .category-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-xl); }
+        .category-card img { width: 100%; height: 450px; object-fit: cover; transition: transform 0.8s ease; }
+        .category-card:hover img { transform: scale(1.05); }
+        .category-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 40px 20px; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%); color: white; text-align: center; }
+        .category-overlay h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+        .category-overlay span { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; }
+        .carousel-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 45px; height: 45px; background: white; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-lg); z-index: 10; transition: var(--transition); }
+        .carousel-arrow:hover { background: var(--primary); color: white; }
+        .carousel-arrow.prev { left: 0; }
+        .carousel-arrow.next { right: 0; }
+        .carousel-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+        .carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
+        .carousel-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-light); cursor: pointer; transition: var(--transition); }
+        .carousel-dot.active { background: var(--primary); width: 24px; border-radius: 4px; }
+        
+        /* Featured Products */
+        .featured-products { padding: 80px 0; background: white; }
+        .products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; }
+        .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px solid var(--border-light); transition: var(--transition); position: relative; }
+        .product-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-xl); border-color: transparent; }
+        .product-image { position: relative; aspect-ratio: 3/4; overflow: hidden; background: #F5F3F1; }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; }
+        .product-card:hover .product-image img { transform: scale(1.08); }
+        .product-badge { position: absolute; top: 20px; left: 20px; padding: 6px 14px; background: var(--primary); color: white; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; z-index: 2; }
+        .product-badge.sale { background: #C45C5C; }
+        .product-actions { position: absolute; bottom: 20px; left: 20px; right: 20px; display: flex; gap: 10px; opacity: 0; transition: var(--transition); }
+        .product-card:hover .product-actions { opacity: 1; }
+        .product-actions button { flex: 1; padding: 12px; background: white; border: none; border-radius: 2px; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: var(--transition); box-shadow: var(--shadow-md); }
+        .product-actions button:hover { background: var(--primary); color: white; }
+        .product-info { padding: 24px 16px; text-align: center; }
+        .product-info h3 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+        .product-info a { color: var(--dark); text-decoration: none; transition: var(--transition); }
+        .product-info a:hover { color: var(--primary); }
+        .product-price { display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .old-price { color: var(--gray); text-decoration: line-through; font-size: 15px; }
+        .current-price { color: var(--dark); font-weight: 600; font-size: 18px; }
+        .section-footer { text-align: center; margin-top: 60px; }
+        
+        /* Promo Banner */
+        .promo-banner { padding: 100px 0; background: linear-gradient(135deg, #FDF8F5 0%, #F5EDE8 100%); position: relative; overflow: hidden; }
+        .promo-banner::before { content: ''; position: absolute; top: -50%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(139,115,85,0.05) 0%, transparent 70%); border-radius: 50%; }
+        .promo-content { text-align: center; position: relative; z-index: 2; }
+        .promo-label { display: inline-block; padding: 8px 24px; background: var(--primary); color: white; font-size: 13px; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 30px; }
+        .promo-content h2 { font-family: 'Cormorant Garamond', serif; font-size: 56px; font-weight: 600; margin-bottom: 20px; color: var(--dark); }
+        .promo-content h2 strong { color: var(--primary); font-weight: 700; }
+        .promo-content p { font-size: 18px; color: var(--gray); margin-bottom: 40px; }
+        .btn-light { background: var(--dark); color: white; }
+        .btn-light:hover { background: var(--primary); }
+        
+        /* Benefits */
+        .benefits { padding: 80px 0; background: white; border-top: 1px solid var(--border-light); }
+        .benefits-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; }
+        .benefit-item { text-align: center; }
+        .benefit-icon { width: 70px; height: 70px; margin: 0 auto 24px; background: var(--light); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 28px; transition: var(--transition); }
+        .benefit-item:hover .benefit-icon { background: var(--primary); color: white; transform: translateY(-5px); }
+        .benefit-item h3 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+        .benefit-item p { color: var(--gray); font-size: 14px; }
+        
+        /* Footer */
+        .footer { background: var(--dark); color: white; }
+        .footer-main { padding: 80px 0 50px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 50px; }
+        .footer-logo h3 { font-family: 'Cormorant Garamond', serif; font-size: 32px; letter-spacing: 5px; margin-bottom: 5px; }
+        .footer-logo span { font-size: 10px; text-transform: uppercase; letter-spacing: 3px; opacity: 0.6; }
+        .footer-col p { margin: 24px 0; opacity: 0.7; font-size: 14px; line-height: 1.8; }
+        .social-links { display: flex; gap: 16px; }
+        .social-links a { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: var(--transition); }
+        .social-links a:hover { background: var(--primary); transform: translateY(-3px); }
+        .footer-col h4 { font-family: 'Cormorant Garamond', serif; font-size: 20px; margin-bottom: 24px; font-weight: 600; }
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 14px; }
+        .footer-col ul li a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px; transition: var(--transition); }
+        .footer-col ul li a:hover { color: white; padding-left: 5px; }
+        .footer-col ul li i { margin-right: 12px; width: 20px; color: var(--primary); }
+        .newsletter-form { display: flex; margin-top: 24px; }
+        .newsletter-form input { flex: 1; padding: 14px 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none; font-family: 'Montserrat', sans-serif; }
+        .newsletter-form input::placeholder { color: rgba(255,255,255,0.5); }
+        .newsletter-form button { padding: 14px 24px; background: var(--primary); color: white; border: none; cursor: pointer; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; font-weight: 500; transition: var(--transition); }
+        .newsletter-form button:hover { background: var(--primary-dark); }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding: 24px 0; }
+        .footer-bottom .container { display: flex; justify-content: space-between; align-items: center; }
+        .footer-bottom p { opacity: 0.6; font-size: 13px; }
+        .payment-methods { display: flex; gap: 20px; font-size: 28px; opacity: 0.6; }
+        
+        /* User Menu */
+        .user-menu { position: relative; display: inline-block; }
+        .user-menu-btn { display: flex; align-items: center; gap: 8px; background: none; border: none; font-size: 16px; color: var(--dark); cursor: pointer; padding: 8px 12px; transition: var(--transition); }
+        .user-menu-btn:hover { color: var(--primary); }
+        .user-dropdown { position: absolute; top: 100%; right: 0; background: white; border-radius: 4px; box-shadow: var(--shadow-xl); min-width: 220px; padding: 12px 0; margin-top: 15px; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: var(--transition); z-index: 1000; }
+        .user-menu:hover .user-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+        .user-dropdown a { display: flex; align-items: center; gap: 14px; padding: 14px 20px; color: var(--dark); text-decoration: none; font-size: 14px; transition: var(--transition); }
+        .user-dropdown a:hover { background: var(--light); color: var(--primary); padding-left: 25px; }
+        .user-dropdown .divider { height: 1px; background: var(--border-light); margin: 8px 0; }
+        
+        /* Search Overlay */
+        .search-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 2000; display: none; align-items: center; justify-content: center; }
+        .search-overlay.active { display: flex; }
+        .search-wrapper { width: 600px; display: flex; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 15px; }
+        .search-wrapper input { flex: 1; border: none; font-size: 24px; padding: 10px 0; outline: none; font-family: 'Montserrat', sans-serif; }
+        .close-search { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--gray); }
+        
+        /* Mobile */
+        @media (max-width: 1024px) {
+            .container { padding: 0 24px; }
+            .nav-menu { display: none; }
+            .mobile-menu-btn { display: block; font-size: 24px; background: none; border: none; cursor: pointer; }
+            .category-card { flex: 0 0 calc(33.333% - 20px); min-width: calc(33.333% - 20px); }
+            .products-grid { grid-template-columns: repeat(3, 1fr); }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .slide-title { font-size: 42px; }
+            .slide-content { left: 5%; right: 5%; }
+            .category-card { flex: 0 0 calc(50% - 15px); min-width: calc(50% - 15px); }
+            .products-grid { grid-template-columns: repeat(2, 1fr); }
+            .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: 1fr; }
+            .footer-bottom .container { flex-direction: column; gap: 16px; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            .category-card { flex: 0 0 100%; min-width: 100%; }
+            .products-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
+    <header class="header" id="header">
         <div class="header-top">
             <div class="container">
-                <p>Frete Grátis para todo Brasil em compras acima de R$ 299 ✨</p>
+                <p>FRETE GRÁTIS PARA TODO BRASIL EM COMPRAS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p>
             </div>
         </div>
-        
         <div class="header-main">
             <div class="container">
                 <div class="header-wrapper">
                     <button class="mobile-menu-btn" id="mobileMenuBtn">
                         <i class="fas fa-bars"></i>
                     </button>
-                    
                     <a href="/" class="logo">
                         <h1>VELVET</h1>
-                        <span>store</span>
+                        <span>ATELIER</span>
                     </a>
-                    
                     <nav class="nav-menu" id="navMenu">
                         <ul>
                             <li><a href="/" class="active">Home</a></li>
-                            <li><a href="/products">Novidades</a></li>
+                            <li><a href="/products">Coleção</a></li>
                             <li><a href="/products?category=vestidos">Vestidos</a></li>
                             <li><a href="/products?category=blusas">Blusas</a></li>
                             <li><a href="/products?category=calcas">Calças</a></li>
                             <li><a href="/products?category=saias">Saias</a></li>
-                            <li><a href="/products?category=acessorios">Acessórios</a></li>
                         </ul>
                     </nav>
-                    
                     <div class="header-actions">
                         <button class="search-btn" id="searchBtn">
                             <i class="fas fa-search"></i>
                         </button>
                         <div id="userMenuContainer">
-                            <!-- Será preenchido via JavaScript -->
                             <a href="/login" class="user-btn">
                                 <i class="fas fa-user"></i>
                             </a>
@@ -63,42 +254,36 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Search Overlay -->
-        <div class="search-overlay" id="searchOverlay">
-            <div class="container">
-                <div class="search-wrapper">
-                    <input type="text" placeholder="O que você está procurando?" id="searchInput">
-                    <button class="close-search" id="closeSearch">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="search-results" id="searchResults"></div>
-            </div>
-        </div>
     </header>
 
-    <!-- Main Content -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-wrapper">
+            <input type="text" placeholder="O que você procura?" id="searchInput">
+            <button class="close-search" id="closeSearch"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
     <main>
-        <!-- Hero Banner -->
         <section class="hero">
             <div class="hero-slider" id="heroSlider">
                 <div class="slide active">
-                    <img src="https://images.pexels.com/photos/972995/pexels-photo-972995.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=1" alt="Nova Coleção">
+                    <img src="https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=1" alt="Nova Coleção Outono">
+                    <div class="slide-overlay"></div>
                     <div class="slide-content">
-                        <span class="slide-subtitle">Nova Coleção</span>
-                        <h2 class="slide-title">Elegância em Cada Detalhe</h2>
-                        <p class="slide-description">Descubra peças exclusivas que valorizam sua beleza</p>
-                        <a href="/products" class="btn btn-primary">Comprar Agora</a>
+                        <span class="slide-subtitle">Coleção Outono-Inverno 2024</span>
+                        <h2 class="slide-title">Elegância<br>Atemporal</h2>
+                        <p class="slide-description">Peças exclusivas que transcendem tendências</p>
+                        <a href="/products" class="btn btn-primary">Explorar Coleção</a>
                     </div>
                 </div>
                 <div class="slide">
-                    <img src="https://images.pexels.com/photos/1485031/pexels-photo-1485031.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=1" alt="Promoção Especial">
+                    <img src="https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=1" alt="Promoção Especial">
+                    <div class="slide-overlay"></div>
                     <div class="slide-content">
-                        <span class="slide-subtitle">Oferta Especial</span>
+                        <span class="slide-subtitle">Oferta Exclusiva</span>
                         <h2 class="slide-title">Até 40% OFF</h2>
-                        <p class="slide-description">Em produtos selecionados da nova coleção</p>
-                        <a href="/products" class="btn btn-primary">Ver Ofertas</a>
+                        <p class="slide-description">Em itens selecionados da nova coleção</p>
+                        <a href="/products" class="btn btn-primary">Aproveitar</a>
                     </div>
                 </div>
             </div>
@@ -107,115 +292,79 @@
             <div class="slider-dots" id="sliderDots"></div>
         </section>
 
-        <!-- Categories -->
         <section class="categories">
             <div class="container">
-                <h2 class="section-title">Compre por Categoria</h2>
-                <div class="categories-grid">
-                    <a href="/products?category=vestidos" class="category-card">
-                        <img src="https://images.pexels.com/photos/985635/pexels-photo-985635.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Vestidos">
-                        <div class="category-info">
-                            <h3>Vestidos</h3>
-                            <span>Ver coleção</span>
-                        </div>
-                    </a>
-                    <a href="/products?category=blusas" class="category-card">
-                        <img src="https://images.pexels.com/photos/325876/pexels-photo-325876.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Blusas">
-                        <div class="category-info">
-                            <h3>Blusas</h3>
-                            <span>Ver coleção</span>
-                        </div>
-                    </a>
-                    <a href="/products?category=calcas" class="category-card">
-                        <img src="https://images.pexels.com/photos/1082529/pexels-photo-1082529.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Calças">
-                        <div class="category-info">
-                            <h3>Calças</h3>
-                            <span>Ver coleção</span>
-                        </div>
-                    </a>
-                    <a href="/products?category=saias" class="category-card">
-                        <img src="https://images.pexels.com/photos/1457983/pexels-photo-1457983.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Saias">
-                        <div class="category-info">
-                            <h3>Saias</h3>
-                            <span>Ver coleção</span>
-                        </div>
-                    </a>
-                    <a href="/products?category=acessorios" class="category-card">
-                        <img src="https://images.pexels.com/photos/1202402/pexels-photo-1202402.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Acessórios">
-                        <div class="category-info">
-                            <h3>Acessórios</h3>
-                            <span>Ver coleção</span>
-                        </div>
-                    </a>
+                <h2 class="section-title">Nossas Categorias</h2>
+                <p class="section-subtitle">Descubra por estilo</p>
+                
+                <div class="categories-carousel-container">
+                    <button class="carousel-arrow prev" id="categoriesPrev"><i class="fas fa-chevron-left"></i></button>
+                    <div class="categories-grid" id="categoriesGrid"></div>
+                    <button class="carousel-arrow next" id="categoriesNext"><i class="fas fa-chevron-right"></i></button>
                 </div>
+                
+                <div class="carousel-dots" id="categoriesDots"></div>
             </div>
         </section>
 
-        <!-- Featured Products -->
         <section class="featured-products">
             <div class="container">
-                <h2 class="section-title">Produtos em Destaque</h2>
-                <div class="products-grid" id="featuredProducts">
-                    <!-- Carregado via JavaScript -->
-                </div>
+                <h2 class="section-title">Destaques da Semana</h2>
+                <p class="section-subtitle">Curadoria especial para você</p>
+                <div class="products-grid" id="featuredProducts"></div>
                 <div class="section-footer">
-                    <a href="/products" class="btn btn-outline">Ver Todos os Produtos</a>
+                    <a href="/products" class="btn btn-outline">Ver Toda Coleção</a>
                 </div>
             </div>
         </section>
 
-        <!-- Promo Banner -->
         <section class="promo-banner">
             <div class="container">
                 <div class="promo-content">
-                    <span class="promo-label">Oferta por Tempo Limitado</span>
+                    <span class="promo-label">Primeira Compra</span>
                     <h2>Use o cupom <strong>VELVET20</strong></h2>
-                    <p>e ganhe 20% OFF na sua primeira compra</p>
-                    <a href="/products" class="btn btn-light">Aproveitar Agora</a>
+                    <p>e ganhe 20% de desconto em todo o site</p>
+                    <a href="/products" class="btn btn-light">Comprar Agora</a>
                 </div>
             </div>
         </section>
 
-        <!-- New Arrivals -->
-        <section class="new-arrivals">
+        <section class="featured-products">
             <div class="container">
-                <h2 class="section-title">Chegaram Recentemente</h2>
-                <div class="products-grid" id="newArrivals">
-                    <!-- Carregado via JavaScript -->
-                </div>
+                <h2 class="section-title">Novidades</h2>
+                <p class="section-subtitle">Acabaram de chegar</p>
+                <div class="products-grid" id="newArrivals"></div>
             </div>
         </section>
 
-        <!-- Benefits -->
         <section class="benefits">
             <div class="container">
                 <div class="benefits-grid">
                     <div class="benefit-item">
-                        <i class="fas fa-truck"></i>
-                        <h3>Frete Grátis</h3>
-                        <p>Para compras acima de R$ 299</p>
+                        <div class="benefit-icon"><i class="fas fa-truck"></i></div>
+                        <h3>Frete Expresso</h3>
+                        <p>Grátis para compras acima de R$ 299</p>
                     </div>
                     <div class="benefit-item">
-                        <i class="fas fa-undo"></i>
-                        <h3>Troca Fácil</h3>
-                        <p>Até 30 dias para trocar</p>
+                        <div class="benefit-icon"><i class="fas fa-undo-alt"></i></div>
+                        <h3>Troca Simplificada</h3>
+                        <p>Primeira troca grátis em até 30 dias</p>
                     </div>
                     <div class="benefit-item">
-                        <i class="fas fa-lock"></i>
-                        <h3>Pagamento Seguro</h3>
-                        <p>Ambiente 100% seguro</p>
+                        <div class="benefit-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h3>Compra Segura</h3>
+                        <p>Pagamento 100% criptografado</p>
                     </div>
                     <div class="benefit-item">
-                        <i class="fas fa-headset"></i>
-                        <h3>Suporte 24/7</h3>
-                        <p>Atendimento via WhatsApp</p>
+                        <div class="benefit-icon"><i class="fas fa-gem"></i></div>
+                        <h3>Qualidade Premium</h3>
+                        <p>Peças selecionadas com excelência</p>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="footer-main">
             <div class="container">
@@ -223,48 +372,44 @@
                     <div class="footer-col">
                         <div class="footer-logo">
                             <h3>VELVET</h3>
-                            <span>store</span>
+                            <span>ATELIER</span>
                         </div>
-                        <p>Moda feminina que celebra sua beleza e individualidade.</p>
+                        <p>Moda feminina de luxo que celebra a individualidade e a beleza atemporal de cada mulher.</p>
                         <div class="social-links">
                             <a href="#"><i class="fab fa-instagram"></i></a>
-                            <a href="#"><i class="fab fa-facebook"></i></a>
-                            <a href="#"><i class="fab fa-pinterest"></i></a>
-                            <a href="#"><i class="fab fa-whatsapp"></i></a>
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-pinterest-p"></i></a>
                         </div>
                     </div>
                     <div class="footer-col">
-                        <h4>Links Rápidos</h4>
+                        <h4>Explorar</h4>
                         <ul>
-                            <li><a href="/products">Novidades</a></li>
+                            <li><a href="/products">Nova Coleção</a></li>
                             <li><a href="/products">Mais Vendidos</a></li>
-                            <li><a href="/products?sale=true">Promoções</a></li>
-                            <li><a href="#">Blog</a></li>
+                            <li><a href="/products">Exclusivos</a></li>
+                            <li><a href="#">Lookbook</a></li>
                         </ul>
                     </div>
                     <div class="footer-col">
-                        <h4>Ajuda</h4>
+                        <h4>Suporte</h4>
                         <ul>
-                            <li><a href="#">FAQ</a></li>
+                            <li><a href="#">Central de Ajuda</a></li>
                             <li><a href="#">Trocas e Devoluções</a></li>
+                            <li><a href="#">Guia de Medidas</a></li>
                             <li><a href="#">Política de Privacidade</a></li>
-                            <li><a href="#">Termos de Uso</a></li>
                         </ul>
                     </div>
                     <div class="footer-col">
                         <h4>Contato</h4>
                         <ul>
-                            <li><i class="fas fa-envelope"></i> contato@velvetstore.com</li>
-                            <li><i class="fas fa-phone"></i> (11) 99999-9999</li>
-                            <li><i class="fas fa-clock"></i> Seg-Sex: 9h às 18h</li>
+                            <li><i class="fas fa-envelope"></i> contato@velvetatelier.com</li>
+                            <li><i class="fas fa-phone-alt"></i> (11) 3456-7890</li>
+                            <li><i class="fab fa-whatsapp"></i> (11) 98765-4321</li>
+                            <li><i class="fas fa-clock"></i> Seg-Sáb: 9h às 19h</li>
                         </ul>
-                    </div>
-                    <div class="footer-col">
-                        <h4>Newsletter</h4>
-                        <p>Receba novidades e ofertas exclusivas</p>
                         <form class="newsletter-form" id="newsletterForm">
-                            <input type="email" placeholder="Seu e-mail" required>
-                            <button type="submit">Inscrever</button>
+                            <input type="email" placeholder="Seu e-mail">
+                            <button type="submit">Assinar</button>
                         </form>
                     </div>
                 </div>
@@ -272,12 +417,11 @@
         </div>
         <div class="footer-bottom">
             <div class="container">
-                <p>&copy; 2024 Velvet Store. Todos os direitos reservados.</p>
+                <p>&copy; 2024 Velvet Atelier. Todos os direitos reservados.</p>
                 <div class="payment-methods">
                     <i class="fab fa-cc-visa"></i>
                     <i class="fab fa-cc-mastercard"></i>
                     <i class="fab fa-cc-amex"></i>
-                    <i class="fab fa-cc-paypal"></i>
                     <i class="fas fa-barcode"></i>
                     <i class="fab fa-pix"></i>
                 </div>
@@ -285,67 +429,206 @@
         </div>
     </footer>
 
-    <!-- Scripts -->
     <script src="/js/auth.js"></script>
-    <script src="/js/main.js"></script>
     <script src="/js/cart.js"></script>
     <script>
-        // Carregar produtos em destaque
+        let categories = [];
+        let currentCategoryPage = 0;
+        const itemsPerPage = 5;
+
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const result = await response.json();
+                if (result.success) {
+                    categories = result.data.filter(c => c.status === 'active');
+                    renderCategories();
+                }
+            } catch (error) { console.error('Erro ao carregar categorias:', error); }
+        }
+
+        function renderCategories() {
+            const grid = document.getElementById('categoriesGrid');
+            const dots = document.getElementById('categoriesDots');
+            const totalPages = Math.ceil(categories.length / itemsPerPage);
+            
+            if (categories.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; width:100%;">Nenhuma categoria encontrada</p>';
+                document.getElementById('categoriesPrev').style.display = 'none';
+                document.getElementById('categoriesNext').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('categoriesPrev').style.display = totalPages > 1 ? 'flex' : 'none';
+            document.getElementById('categoriesNext').style.display = totalPages > 1 ? 'flex' : 'none';
+            
+            grid.innerHTML = categories.map(cat => {
+                const imageUrl = cat.image_url || 'https://via.placeholder.com/600?text=' + encodeURIComponent(cat.name);
+                return `
+                    <a href="/products?category=${cat.slug}" class="category-card">
+                        <img src="${imageUrl}" alt="${cat.name}">
+                        <div class="category-overlay">
+                            <h3>${cat.name}</h3>
+                            <span>Ver Coleção</span>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+            
+            dots.innerHTML = '';
+            for (let i = 0; i < totalPages; i++) {
+                const dot = document.createElement('span');
+                dot.className = 'carousel-dot' + (i === currentCategoryPage ? ' active' : '');
+                dot.onclick = () => goToCategoryPage(i);
+                dots.appendChild(dot);
+            }
+            
+            updateCarouselButtons();
+            updateCarouselPosition();
+        }
+
+        function updateCarouselPosition() {
+            const grid = document.getElementById('categoriesGrid');
+            const card = grid.querySelector('.category-card');
+            if (!card) return;
+            const cardWidth = card.offsetWidth;
+            const gap = 30;
+            const offset = -currentCategoryPage * (cardWidth + gap) * itemsPerPage;
+            grid.style.transform = `translateX(${offset}px)`;
+        }
+
+        function goToCategoryPage(page) {
+            const totalPages = Math.ceil(categories.length / itemsPerPage);
+            if (page >= 0 && page < totalPages) {
+                currentCategoryPage = page;
+                document.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === page));
+                updateCarouselPosition();
+                updateCarouselButtons();
+            }
+        }
+
+        function updateCarouselButtons() {
+            const totalPages = Math.ceil(categories.length / itemsPerPage);
+            document.getElementById('categoriesPrev').disabled = currentCategoryPage === 0;
+            document.getElementById('categoriesNext').disabled = currentCategoryPage === totalPages - 1;
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
+            loadCategories();
+            
             try {
                 const response = await fetch('/api/products/featured');
                 const data = await response.json();
-                
-                if (data.success) {
-                    renderProducts('featuredProducts', data.data);
-                }
-            } catch (error) {
-                console.error('Erro ao carregar produtos:', error);
-            }
+                if (data.success) renderProducts('featuredProducts', data.data);
+            } catch (error) { console.error('Erro ao carregar produtos:', error); }
             
             try {
                 const response = await fetch('/api/products/new-arrivals');
                 const data = await response.json();
-                
-                if (data.success) {
-                    renderProducts('newArrivals', data.data);
-                }
-            } catch (error) {
-                console.error('Erro ao carregar novidades:', error);
-            }
+                if (data.success) renderProducts('newArrivals', data.data);
+            } catch (error) { console.error('Erro ao carregar novidades:', error); }
         });
         
         function renderProducts(containerId, products) {
             const container = document.getElementById(containerId);
-            container.innerHTML = products.map(product => `
-                <div class="product-card">
-                    <div class="product-image">
-                        <a href="/product?id=${product.id}">
-                            <img src="${product.main_image || '/images/placeholder.jpg'}" alt="${product.name}">
-                        </a>
-                        ${product.promotional_price ? 
-                            `<span class="product-badge sale">-${Math.round((1 - product.promotional_price/product.price) * 100)}%</span>` : 
-                            ''}
-                        <button class="quick-view" data-id="${product.id}">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="add-to-cart-btn" data-id="${product.id}">
-                            <i class="fas fa-shopping-bag"></i>
-                        </button>
-                    </div>
-                    <div class="product-info">
-                        <h3><a href="/product?id=${product.id}">${product.name}</a></h3>
-                        <div class="product-price">
-                            ${product.promotional_price ? 
-                                `<span class="old-price">R$ ${product.price.toFixed(2)}</span>
-                                 <span class="current-price">R$ ${product.promotional_price.toFixed(2)}</span>` :
-                                `<span class="current-price">R$ ${product.price.toFixed(2)}</span>`
-                            }
+            container.innerHTML = products.map(product => {
+                const price = parseFloat(product.price) || 0;
+                const promoPrice = product.promotional_price ? parseFloat(product.promotional_price) : null;
+                const mainImage = product.main_image || (product.images && product.images[0]) || 'https://via.placeholder.com/600';
+                
+                return `
+                    <div class="product-card">
+                        <div class="product-image">
+                            <a href="/product?id=${product.id}">
+                                <img src="${mainImage}" alt="${product.name || ''}">
+                            </a>
+                            ${promoPrice ? `<span class="product-badge sale">-${Math.round((1 - promoPrice/price) * 100)}%</span>` : ''}
+                            <div class="product-actions">
+                                <button onclick="window.location.href='/product?id=${product.id}'">
+                                    <i class="fas fa-eye"></i> Ver
+                                </button>
+                                <button onclick="addToCart(${product.id})">
+                                    <i class="fas fa-shopping-bag"></i> Comprar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <h3><a href="/product?id=${product.id}">${product.name || ''}</a></h3>
+                            <div class="product-price">
+                                ${promoPrice ? 
+                                    `<span class="old-price">R$ ${price.toFixed(2)}</span>
+                                     <span class="current-price">R$ ${promoPrice.toFixed(2)}</span>` :
+                                    `<span class="current-price">R$ ${price.toFixed(2)}</span>`
+                                }
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
+        
+        window.addToCart = function(id) { console.log('Adicionar ao carrinho:', id); };
+        
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.dot');
+        
+        function showSlide(index) {
+            slides.forEach(s => s.classList.remove('active'));
+            dots.forEach(d => d.classList.remove('active'));
+            slides[index].classList.add('active');
+            dots[index].classList.add('active');
+        }
+        
+        document.getElementById('prevSlide').addEventListener('click', () => {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            showSlide(currentSlide);
+        });
+        
+        document.getElementById('nextSlide').addEventListener('click', () => {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        });
+        
+        setInterval(() => { currentSlide = (currentSlide + 1) % slides.length; showSlide(currentSlide); }, 6000);
+        
+        document.getElementById('categoriesPrev').addEventListener('click', () => goToCategoryPage(currentCategoryPage - 1));
+        document.getElementById('categoriesNext').addEventListener('click', () => goToCategoryPage(currentCategoryPage + 1));
+        
+        window.addEventListener('scroll', () => {
+            document.getElementById('header').classList.toggle('scrolled', window.scrollY > 50);
+        });
+        
+        window.addEventListener('resize', () => {
+            if (categories.length > 0) updateCarouselPosition();
+        });
+        
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            document.getElementById('searchOverlay').classList.add('active');
+        });
+        
+        document.getElementById('closeSearch').addEventListener('click', () => {
+            document.getElementById('searchOverlay').classList.remove('active');
+        });
+        
+        document.getElementById('searchOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('searchOverlay')) {
+                document.getElementById('searchOverlay').classList.remove('active');
+            }
+        });
+        
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query) window.location.href = '/products?search=' + encodeURIComponent(query);
+            }
+        });
+        
+        document.getElementById('newsletterForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Obrigada por assinar nossa newsletter!');
+            e.target.reset();
+        });
     </script>
 </body>
 </html>

@@ -170,6 +170,15 @@
         .status-active { background: #d4edda; color: #155724; }
         .status-inactive { background: #f8d7da; color: #721c24; }
         
+        .featured-badge {
+            background: #fff3cd;
+            color: #856404;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+        
         .action-buttons { display: flex; gap: 8px; }
         .action-btn {
             width: 35px;
@@ -205,7 +214,7 @@
             background: white;
             border-radius: 16px;
             padding: 30px;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
@@ -250,6 +259,16 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-group input {
+            width: auto;
         }
     </style>
 </head>
@@ -373,6 +392,14 @@
                         </select>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label>URLs das Imagens (separadas por vírgula)</label>
+                    <textarea id="productImages" rows="2" placeholder="https://imagem1.jpg, https://imagem2.jpg"></textarea>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="productFeatured">
+                    <label>Produto em Destaque (aparece na página inicial)</label>
+                </div>
                 <button type="submit" class="btn-primary" style="width: 100%;">Salvar Produto</button>
             </form>
         </div>
@@ -403,6 +430,7 @@
             document.getElementById('modalTitle').textContent = 'Novo Produto';
             document.getElementById('productId').value = '';
             productForm.reset();
+            document.getElementById('productStatus').value = 'active';
             modal.style.display = 'flex';
         });
         
@@ -444,30 +472,54 @@
                 
                 if (result.success) {
                     const tbody = document.getElementById('productsTableBody');
-                    tbody.innerHTML = result.data.products.map(p => `
-                        <tr>
-                            <td>
-                                <img src="${p.main_image || 'https://via.placeholder.com/50'}" class="product-image" alt="${p.name}">
-                            </td>
-                            <td>${p.name}</td>
-                            <td>${p.category_name || '-'}</td>
-                            <td>R$ ${parseFloat(p.price).toFixed(2)}</td>
-                            <td>${p.stock}</td>
-                            <td>
-                                <span class="status-badge status-${p.status}">${p.status === 'active' ? 'Ativo' : 'Inativo'}</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit-btn" onclick="editProduct(${p.id})">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="action-btn delete-btn" onclick="deleteProduct(${p.id})">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `).join('');
+                    tbody.innerHTML = result.data.products.map(p => {
+                        let images = [];
+                        try {
+                            if (p.images) {
+                                images = typeof p.images === 'string' ? JSON.parse(p.images) : p.images;
+                            }
+                        } catch (e) {
+                            images = [];
+                        }
+                        const mainImage = (images && images.length > 0) ? images[0] : 'https://via.placeholder.com/50';
+                        const price = parseFloat(p.price) || 0;
+                        const promoPrice = p.promotional_price ? parseFloat(p.promotional_price) : null;
+                        const isFeatured = p.is_featured === 1 || p.is_featured === true;
+                        
+                        return `
+                            <tr>
+                                <td>
+                                    <img src="${mainImage}" class="product-image" alt="${p.name || ''}">
+                                </td>
+                                <td>
+                                    ${p.name || ''}
+                                    ${isFeatured ? '<span class="featured-badge"><i class="fas fa-star"></i> Destaque</span>' : ''}
+                                </td>
+                                <td>${p.category_name || '-'}</td>
+                                <td>
+                                    ${promoPrice ? 
+                                        `<span style="text-decoration: line-through; color: #999; font-size: 12px;">R$ ${price.toFixed(2)}</span><br>
+                                         <span style="color: #c62828; font-weight: 600;">R$ ${promoPrice.toFixed(2)}</span>` :
+                                        `<span>R$ ${price.toFixed(2)}</span>`
+                                    }
+                                </td>
+                                <td>${p.stock || 0}</td>
+                                <td>
+                                    <span class="status-badge status-${p.status}">${p.status === 'active' ? 'Ativo' : 'Inativo'}</span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn edit-btn" onclick="editProduct(${p.id})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete-btn" onclick="deleteProduct(${p.id})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
                 }
             } catch (error) {
                 console.error('Erro ao carregar produtos:', error);
@@ -476,7 +528,7 @@
         
         window.editProduct = async function(id) {
             try {
-                const response = await fetch(`/api/admin/products`, {
+                const response = await fetch('/api/admin/products', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const result = await response.json();
@@ -485,14 +537,26 @@
                 if (product) {
                     document.getElementById('modalTitle').textContent = 'Editar Produto';
                     document.getElementById('productId').value = product.id;
-                    document.getElementById('productName').value = product.name;
+                    document.getElementById('productName').value = product.name || '';
                     document.getElementById('productDescription').value = product.description || '';
-                    document.getElementById('productPrice').value = product.price;
+                    document.getElementById('productPrice').value = product.price || '';
                     document.getElementById('productPromoPrice').value = product.promotional_price || '';
                     document.getElementById('productSku').value = product.sku || '';
-                    document.getElementById('productStock').value = product.stock;
+                    document.getElementById('productStock').value = product.stock || 0;
                     document.getElementById('productCategory').value = product.category_id || '';
-                    document.getElementById('productStatus').value = product.status;
+                    document.getElementById('productStatus').value = product.status || 'active';
+                    
+                    let images = [];
+                    try {
+                        if (product.images) {
+                            images = typeof product.images === 'string' ? JSON.parse(product.images) : product.images;
+                        }
+                    } catch (e) {
+                        images = [];
+                    }
+                    document.getElementById('productImages').value = Array.isArray(images) ? images.join(', ') : '';
+                    document.getElementById('productFeatured').checked = product.is_featured === 1 || product.is_featured === true;
+                    
                     modal.style.display = 'flex';
                 }
             } catch (error) {
@@ -518,15 +582,20 @@
             e.preventDefault();
             
             const id = document.getElementById('productId').value;
+            const imagesValue = document.getElementById('productImages').value;
+            const images = imagesValue ? imagesValue.split(',').map(s => s.trim()).filter(s => s) : [];
+            
             const data = {
                 name: document.getElementById('productName').value,
                 description: document.getElementById('productDescription').value,
                 price: parseFloat(document.getElementById('productPrice').value),
                 promotional_price: document.getElementById('productPromoPrice').value ? parseFloat(document.getElementById('productPromoPrice').value) : null,
                 sku: document.getElementById('productSku').value,
-                stock: parseInt(document.getElementById('productStock').value),
+                stock: parseInt(document.getElementById('productStock').value) || 0,
                 category_id: document.getElementById('productCategory').value || null,
-                status: document.getElementById('productStatus').value
+                status: document.getElementById('productStatus').value,
+                is_featured: document.getElementById('productFeatured').checked,
+                images: images
             };
             
             try {
@@ -554,7 +623,8 @@
             const rows = document.querySelectorAll('#productsTableBody tr');
             
             rows.forEach(row => {
-                const name = row.children[1].textContent.toLowerCase();
+                const nameCell = row.children[1];
+                const name = nameCell ? nameCell.textContent.toLowerCase() : '';
                 row.style.display = name.includes(searchTerm) ? '' : 'none';
             });
         });
