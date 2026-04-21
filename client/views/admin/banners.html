@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banners - Velvet Store Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f5f7fa; display: flex; }
+        .sidebar { width: 280px; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; position: fixed; left: 0; top: 0; padding: 20px 0; }
+        .sidebar-header { padding: 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar-header h2 { color: white; font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: 2px; }
+        .sidebar-header span { color: rgba(255,255,255,0.6); font-size: 12px; text-transform: uppercase; }
+        .sidebar-menu { list-style: none; padding: 0 15px; }
+        .sidebar-menu li { margin-bottom: 5px; }
+        .sidebar-menu a { display: flex; align-items: center; padding: 14px 20px; color: rgba(255,255,255,0.7); text-decoration: none; border-radius: 12px; transition: all 0.3s ease; font-size: 15px; }
+        .sidebar-menu a i { width: 24px; margin-right: 12px; font-size: 18px; }
+        .sidebar-menu a:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar-menu .active { background: rgba(255,255,255,0.15); color: white; }
+        .sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 25px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .user-info { display: flex; align-items: center; margin-bottom: 15px; }
+        .user-avatar { width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 20px; }
+        .user-details h4 { color: white; font-size: 14px; margin-bottom: 2px; }
+        .user-details p { color: rgba(255,255,255,0.6); font-size: 12px; }
+        .logout-btn { display: flex; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.1); color: white; text-decoration: none; border-radius: 10px; }
+        .logout-btn:hover { background: rgba(231, 76, 60, 0.3); }
+        .logout-btn i { margin-right: 10px; }
+        .main-content { flex: 1; margin-left: 280px; padding: 30px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title h1 { font-size: 28px; color: #1a1a2e; margin-bottom: 5px; }
+        .page-title p { color: #666; font-size: 14px; }
+        .btn-primary { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .banners-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+        .banner-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .banner-image { width: 100%; height: 200px; object-fit: cover; }
+        .banner-content { padding: 20px; }
+        .banner-title { font-size: 18px; font-weight: 600; color: #1a1a2e; margin-bottom: 5px; }
+        .banner-subtitle { color: #666; font-size: 14px; margin-bottom: 15px; }
+        .banner-position { display: inline-block; padding: 5px 12px; background: #e3f2fd; color: #1976d2; border-radius: 20px; font-size: 12px; margin-bottom: 15px; }
+        .banner-actions { display: flex; gap: 10px; }
+        .action-btn { flex: 1; padding: 8px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; transition: all 0.3s ease; }
+        .edit-btn { background: #e3f2fd; color: #1976d2; }
+        .delete-btn { background: #ffebee; color: #c62828; }
+        .edit-btn:hover { background: #1976d2; color: white; }
+        .delete-btn:hover { background: #c62828; color: white; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: white; border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .modal-header h3 { font-size: 20px; color: #1a1a2e; }
+        .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #1a1a2e; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header"><h2>VELVET</h2><span>administração</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+            <li><a href="/admin/pedidos"><i class="fas fa-shopping-cart"></i> Pedidos</a></li>
+            <li><a href="/admin/produtos"><i class="fas fa-box"></i> Produtos</a></li>
+            <li><a href="/admin/categorias"><i class="fas fa-tags"></i> Categorias</a></li>
+            <li><a href="/admin/clientes"><i class="fas fa-users"></i> Clientes</a></li>
+            <li><a href="/admin/banners" class="active"><i class="fas fa-image"></i> Banners</a></li>
+            <li><a href="/admin/cupons"><i class="fas fa-ticket-alt"></i> Cupons</a></li>
+            <li><a href="/admin/relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
+            <li><a href="/admin/configuracoes"><i class="fas fa-cog"></i> Configurações</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <div class="user-info"><div class="user-avatar"><i class="fas fa-user"></i></div><div class="user-details"><h4 id="adminName">Administrador</h4><p>Admin</p></div></div>
+            <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>Sair</a>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title"><h1>Banners</h1><p>Gerencie os banners da página inicial</p></div>
+            <button class="btn-primary" id="newBannerBtn"><i class="fas fa-plus"></i>Novo Banner</button>
+        </div>
+        <div class="banners-grid" id="bannersGrid"></div>
+    </div>
+    
+    <div class="modal" id="bannerModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="modalTitle">Novo Banner</h3><button class="close-modal" id="closeModalBtn">&times;</button></div>
+            <form id="bannerForm">
+                <input type="hidden" id="bannerId">
+                <div class="form-group"><label>Título</label><input type="text" id="bannerTitle" required></div>
+                <div class="form-group"><label>Subtítulo</label><input type="text" id="bannerSubtitle"></div>
+                <div class="form-group"><label>URL da Imagem</label><input type="text" id="bannerImage" required></div>
+                <div class="form-group"><label>Link</label><input type="text" id="bannerLink"></div>
+                <div class="form-group"><label>Posição</label><select id="bannerPosition"><option value="hero">Hero</option><option value="promo">Promocional</option></select></div>
+                <div class="form-group"><label>Ordem</label><input type="number" id="bannerOrder" value="0"></div>
+                <div class="form-group"><label>Status</label><select id="bannerStatus"><option value="1">Ativo</option><option value="0">Inativo</option></select></div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Salvar Banner</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const token = localStorage.getItem('token');
+        if (!token || user.role !== 'admin') window.location.href = '/admin';
+        document.getElementById('adminName').textContent = user.name || 'Administrador';
+        document.getElementById('logoutBtn').addEventListener('click', (e) => { e.preventDefault(); localStorage.clear(); window.location.href = '/admin'; });
+        
+        const modal = document.getElementById('bannerModal');
+        document.getElementById('newBannerBtn').addEventListener('click', () => { document.getElementById('modalTitle').textContent = 'Novo Banner'; document.getElementById('bannerId').value = ''; document.getElementById('bannerForm').reset(); modal.style.display = 'flex'; });
+        document.getElementById('closeModalBtn').addEventListener('click', () => modal.style.display = 'none');
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+        
+        async function loadBanners() {
+            try {
+                const response = await fetch('/api/admin/banners', { headers: { 'Authorization': `Bearer ${token}` } });
+                const result = await response.json();
+                if (result.success) {
+                    const grid = document.getElementById('bannersGrid');
+                    grid.innerHTML = result.data.map(b => `
+                        <div class="banner-card">
+                            <img src="${b.image_url}" class="banner-image" alt="${b.title}">
+                            <div class="banner-content">
+                                <h3 class="banner-title">${b.title}</h3>
+                                <p class="banner-subtitle">${b.subtitle || ''}</p>
+                                <span class="banner-position">${b.position}</span>
+                                <div class="banner-actions">
+                                    <button class="action-btn edit-btn" onclick="editBanner(${b.id})"><i class="fas fa-edit"></i> Editar</button>
+                                    <button class="action-btn delete-btn" onclick="deleteBanner(${b.id})"><i class="fas fa-trash"></i> Excluir</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) { console.error('Erro ao carregar banners:', error); }
+        }
+        
+        window.editBanner = async function(id) {
+            try {
+                const response = await fetch('/api/admin/banners', { headers: { 'Authorization': `Bearer ${token}` } });
+                const result = await response.json();
+                const banner = result.data.find(b => b.id === id);
+                if (banner) {
+                    document.getElementById('modalTitle').textContent = 'Editar Banner';
+                    document.getElementById('bannerId').value = banner.id;
+                    document.getElementById('bannerTitle').value = banner.title;
+                    document.getElementById('bannerSubtitle').value = banner.subtitle || '';
+                    document.getElementById('bannerImage').value = banner.image_url;
+                    document.getElementById('bannerLink').value = banner.link || '';
+                    document.getElementById('bannerPosition').value = banner.position;
+                    document.getElementById('bannerOrder').value = banner.sort_order;
+                    document.getElementById('bannerStatus').value = banner.is_active ? '1' : '0';
+                    modal.style.display = 'flex';
+                }
+            } catch (error) { console.error('Erro ao editar banner:', error); }
+        };
+        
+        window.deleteBanner = async function(id) {
+            if (confirm('Tem certeza que deseja excluir este banner?')) {
+                try {
+                    await fetch(`/api/admin/banners/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                    loadBanners();
+                } catch (error) { console.error('Erro ao excluir banner:', error); }
+            }
+        };
+        
+        document.getElementById('bannerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('bannerId').value;
+            const data = {
+                title: document.getElementById('bannerTitle').value,
+                subtitle: document.getElementById('bannerSubtitle').value,
+                image_url: document.getElementById('bannerImage').value,
+                link: document.getElementById('bannerLink').value,
+                position: document.getElementById('bannerPosition').value,
+                sort_order: parseInt(document.getElementById('bannerOrder').value),
+                is_active: document.getElementById('bannerStatus').value === '1'
+            };
+            try {
+                const url = id ? `/api/admin/banners/${id}` : '/api/admin/banners';
+                const method = id ? 'PUT' : 'POST';
+                await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+                modal.style.display = 'none';
+                loadBanners();
+            } catch (error) { console.error('Erro ao salvar banner:', error); }
+        });
+        
+        loadBanners();
+    </script>
+</body>
+</html>

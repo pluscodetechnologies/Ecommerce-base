@@ -11,6 +11,8 @@ CREATE TABLE users (
     phone VARCHAR(20),
     cpf VARCHAR(14) UNIQUE,
     role ENUM('user', 'admin') DEFAULT 'user',
+    reset_token VARCHAR(255) NULL,
+    reset_expires DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email)
@@ -134,6 +136,8 @@ CREATE TABLE orders (
     discount_amount DECIMAL(10,2) DEFAULT 0,
     payment_method VARCHAR(50),
     payment_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    payment_id VARCHAR(255) NULL,
+    payment_preference_id VARCHAR(255) NULL,
     shipping_address JSON,
     billing_address JSON,
     notes TEXT,

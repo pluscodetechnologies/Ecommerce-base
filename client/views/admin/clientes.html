@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - Velvet Store Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f5f7fa; display: flex; }
+        .sidebar { width: 280px; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; position: fixed; left: 0; top: 0; padding: 20px 0; }
+        .sidebar-header { padding: 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar-header h2 { color: white; font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: 2px; }
+        .sidebar-header span { color: rgba(255,255,255,0.6); font-size: 12px; text-transform: uppercase; }
+        .sidebar-menu { list-style: none; padding: 0 15px; }
+        .sidebar-menu li { margin-bottom: 5px; }
+        .sidebar-menu a { display: flex; align-items: center; padding: 14px 20px; color: rgba(255,255,255,0.7); text-decoration: none; border-radius: 12px; transition: all 0.3s ease; font-size: 15px; }
+        .sidebar-menu a i { width: 24px; margin-right: 12px; font-size: 18px; }
+        .sidebar-menu a:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar-menu .active { background: rgba(255,255,255,0.15); color: white; }
+        .sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 25px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .user-info { display: flex; align-items: center; margin-bottom: 15px; }
+        .user-avatar { width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 20px; }
+        .user-details h4 { color: white; font-size: 14px; margin-bottom: 2px; }
+        .user-details p { color: rgba(255,255,255,0.6); font-size: 12px; }
+        .logout-btn { display: flex; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.1); color: white; text-decoration: none; border-radius: 10px; }
+        .logout-btn:hover { background: rgba(231, 76, 60, 0.3); }
+        .logout-btn i { margin-right: 10px; }
+        .main-content { flex: 1; margin-left: 280px; padding: 30px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title h1 { font-size: 28px; color: #1a1a2e; margin-bottom: 5px; }
+        .page-title p { color: #666; font-size: 14px; }
+        .search-box { display: flex; align-items: center; background: white; padding: 10px 15px; border-radius: 10px; width: 300px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .search-box i { color: #999; margin-right: 10px; }
+        .search-box input { border: none; background: none; outline: none; width: 100%; font-family: 'Poppins', sans-serif; }
+        .customers-table { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; color: #666; font-weight: 500; font-size: 13px; border-bottom: 1px solid #eee; }
+        td { padding: 15px; border-bottom: 1px solid #f5f7fa; }
+        .customer-avatar { width: 40px; height: 40px; background: #1a1a2e; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header"><h2>VELVET</h2><span>administração</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+            <li><a href="/admin/pedidos"><i class="fas fa-shopping-cart"></i> Pedidos</a></li>
+            <li><a href="/admin/produtos"><i class="fas fa-box"></i> Produtos</a></li>
+            <li><a href="/admin/categorias"><i class="fas fa-tags"></i> Categorias</a></li>
+            <li><a href="/admin/clientes" class="active"><i class="fas fa-users"></i> Clientes</a></li>
+            <li><a href="/admin/banners"><i class="fas fa-image"></i> Banners</a></li>
+            <li><a href="/admin/cupons"><i class="fas fa-ticket-alt"></i> Cupons</a></li>
+            <li><a href="/admin/relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
+            <li><a href="/admin/configuracoes"><i class="fas fa-cog"></i> Configurações</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <div class="user-info"><div class="user-avatar"><i class="fas fa-user"></i></div><div class="user-details"><h4 id="adminName">Administrador</h4><p>Admin</p></div></div>
+            <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>Sair</a>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title"><h1>Clientes</h1><p>Gerencie os clientes cadastrados</p></div>
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Buscar clientes..." id="searchInput"></div>
+        </div>
+        <div class="customers-table">
+            <table>
+                <thead><tr><th>Cliente</th><th>Email</th><th>Telefone</th><th>CPF</th><th>Data de cadastro</th></tr></thead>
+                <tbody id="customersTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const token = localStorage.getItem('token');
+        if (!token || user.role !== 'admin') window.location.href = '/admin';
+        document.getElementById('adminName').textContent = user.name || 'Administrador';
+        document.getElementById('logoutBtn').addEventListener('click', (e) => { e.preventDefault(); localStorage.clear(); window.location.href = '/admin'; });
+        
+        async function loadCustomers(search = '') {
+            try {
+                const url = search ? `/api/admin/customers?search=${search}` : '/api/admin/customers';
+                const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                const result = await response.json();
+                if (result.success) {
+                    const tbody = document.getElementById('customersTableBody');
+                    tbody.innerHTML = result.data.customers.map(c => `
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="customer-avatar">${c.name.charAt(0).toUpperCase()}</div>
+                                    <span>${c.name}</span>
+                                </div>
+                            </td>
+                            <td>${c.email}</td>
+                            <td>${c.phone || '-'}</td>
+                            <td>${c.cpf || '-'}</td>
+                            <td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) { console.error('Erro ao carregar clientes:', error); }
+        }
+        
+        document.getElementById('searchInput').addEventListener('input', (e) => loadCustomers(e.target.value));
+        loadCustomers();
+    </script>
+</body>
+</html>

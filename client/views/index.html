@@ -36,12 +36,12 @@
                     <nav class="nav-menu" id="navMenu">
                         <ul>
                             <li><a href="/" class="active">Home</a></li>
-                            <li><a href="/views/products.html">Novidades</a></li>
-                            <li><a href="/views/products.html?category=vestidos">Vestidos</a></li>
-                            <li><a href="/views/products.html?category=blusas">Blusas</a></li>
-                            <li><a href="/views/products.html?category=calcas">Calças</a></li>
-                            <li><a href="/views/products.html?category=saias">Saias</a></li>
-                            <li><a href="/views/products.html?category=acessorios">Acessórios</a></li>
+                            <li><a href="/products">Novidades</a></li>
+                            <li><a href="/products?category=vestidos">Vestidos</a></li>
+                            <li><a href="/products?category=blusas">Blusas</a></li>
+                            <li><a href="/products?category=calcas">Calças</a></li>
+                            <li><a href="/products?category=saias">Saias</a></li>
+                            <li><a href="/products?category=acessorios">Acessórios</a></li>
                         </ul>
                     </nav>
                     
@@ -49,10 +49,13 @@
                         <button class="search-btn" id="searchBtn">
                             <i class="fas fa-search"></i>
                         </button>
-                        <a href="/views/account.html" class="user-btn">
-                            <i class="fas fa-user"></i>
-                        </a>
-                        <a href="/views/cart.html" class="cart-btn">
+                        <div id="userMenuContainer">
+                            <!-- Será preenchido via JavaScript -->
+                            <a href="/login" class="user-btn">
+                                <i class="fas fa-user"></i>
+                            </a>
+                        </div>
+                        <a href="/cart" class="cart-btn">
                             <i class="fas fa-shopping-bag"></i>
                             <span class="cart-count" id="cartCount">0</span>
                         </a>
@@ -81,21 +84,21 @@
         <section class="hero">
             <div class="hero-slider" id="heroSlider">
                 <div class="slide active">
-                    <img src="/images/banners/banner-1.jpg" alt="Nova Coleção">
+                    <img src="https://images.pexels.com/photos/972995/pexels-photo-972995.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=1" alt="Nova Coleção">
                     <div class="slide-content">
                         <span class="slide-subtitle">Nova Coleção</span>
                         <h2 class="slide-title">Elegância em Cada Detalhe</h2>
                         <p class="slide-description">Descubra peças exclusivas que valorizam sua beleza</p>
-                        <a href="/views/products.html" class="btn btn-primary">Comprar Agora</a>
+                        <a href="/products" class="btn btn-primary">Comprar Agora</a>
                     </div>
                 </div>
                 <div class="slide">
-                    <img src="/images/banners/banner-2.jpg" alt="Promoção Especial">
+                    <img src="https://images.pexels.com/photos/1485031/pexels-photo-1485031.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=1" alt="Promoção Especial">
                     <div class="slide-content">
                         <span class="slide-subtitle">Oferta Especial</span>
                         <h2 class="slide-title">Até 40% OFF</h2>
                         <p class="slide-description">Em produtos selecionados da nova coleção</p>
-                        <a href="/views/products.html" class="btn btn-primary">Ver Ofertas</a>
+                        <a href="/products" class="btn btn-primary">Ver Ofertas</a>
                     </div>
                 </div>
             </div>
@@ -109,36 +112,36 @@
             <div class="container">
                 <h2 class="section-title">Compre por Categoria</h2>
                 <div class="categories-grid">
-                    <a href="/views/products.html?category=vestidos" class="category-card">
-                        <img src="/images/categories/vestidos.jpg" alt="Vestidos">
+                    <a href="/products?category=vestidos" class="category-card">
+                        <img src="https://images.pexels.com/photos/985635/pexels-photo-985635.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Vestidos">
                         <div class="category-info">
                             <h3>Vestidos</h3>
                             <span>Ver coleção</span>
                         </div>
                     </a>
-                    <a href="/views/products.html?category=blusas" class="category-card">
-                        <img src="/images/categories/blusas.jpg" alt="Blusas">
+                    <a href="/products?category=blusas" class="category-card">
+                        <img src="https://images.pexels.com/photos/325876/pexels-photo-325876.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Blusas">
                         <div class="category-info">
                             <h3>Blusas</h3>
                             <span>Ver coleção</span>
                         </div>
                     </a>
-                    <a href="/views/products.html?category=calcas" class="category-card">
-                        <img src="/images/categories/calcas.jpg" alt="Calças">
+                    <a href="/products?category=calcas" class="category-card">
+                        <img src="https://images.pexels.com/photos/1082529/pexels-photo-1082529.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Calças">
                         <div class="category-info">
                             <h3>Calças</h3>
                             <span>Ver coleção</span>
                         </div>
                     </a>
-                    <a href="/views/products.html?category=saias" class="category-card">
-                        <img src="/images/categories/saias.jpg" alt="Saias">
+                    <a href="/products?category=saias" class="category-card">
+                        <img src="https://images.pexels.com/photos/1457983/pexels-photo-1457983.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Saias">
                         <div class="category-info">
                             <h3>Saias</h3>
                             <span>Ver coleção</span>
                         </div>
                     </a>
-                    <a href="/views/products.html?category=acessorios" class="category-card">
-                        <img src="/images/categories/acessorios.jpg" alt="Acessórios">
+                    <a href="/products?category=acessorios" class="category-card">
+                        <img src="https://images.pexels.com/photos/1202402/pexels-photo-1202402.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Acessórios">
                         <div class="category-info">
                             <h3>Acessórios</h3>
                             <span>Ver coleção</span>
@@ -156,7 +159,7 @@
                     <!-- Carregado via JavaScript -->
                 </div>
                 <div class="section-footer">
-                    <a href="/views/products.html" class="btn btn-outline">Ver Todos os Produtos</a>
+                    <a href="/products" class="btn btn-outline">Ver Todos os Produtos</a>
                 </div>
             </div>
         </section>
@@ -168,7 +171,7 @@
                     <span class="promo-label">Oferta por Tempo Limitado</span>
                     <h2>Use o cupom <strong>VELVET20</strong></h2>
                     <p>e ganhe 20% OFF na sua primeira compra</p>
-                    <a href="/views/products.html" class="btn btn-light">Aproveitar Agora</a>
+                    <a href="/products" class="btn btn-light">Aproveitar Agora</a>
                 </div>
             </div>
         </section>
@@ -233,9 +236,9 @@
                     <div class="footer-col">
                         <h4>Links Rápidos</h4>
                         <ul>
-                            <li><a href="/views/products.html">Novidades</a></li>
-                            <li><a href="/views/products.html">Mais Vendidos</a></li>
-                            <li><a href="/views/products.html?sale=true">Promoções</a></li>
+                            <li><a href="/products">Novidades</a></li>
+                            <li><a href="/products">Mais Vendidos</a></li>
+                            <li><a href="/products?sale=true">Promoções</a></li>
                             <li><a href="#">Blog</a></li>
                         </ul>
                     </div>
@@ -283,6 +286,7 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="/js/auth.js"></script>
     <script src="/js/main.js"></script>
     <script src="/js/cart.js"></script>
     <script>
@@ -316,7 +320,7 @@
             container.innerHTML = products.map(product => `
                 <div class="product-card">
                     <div class="product-image">
-                        <a href="/views/product-detail.html?id=${product.id}">
+                        <a href="/product?id=${product.id}">
                             <img src="${product.main_image || '/images/placeholder.jpg'}" alt="${product.name}">
                         </a>
                         ${product.promotional_price ? 
@@ -330,7 +334,7 @@
                         </button>
                     </div>
                     <div class="product-info">
-                        <h3><a href="/views/product-detail.html?id=${product.id}">${product.name}</a></h3>
+                        <h3><a href="/product?id=${product.id}">${product.name}</a></h3>
                         <div class="product-price">
                             ${product.promotional_price ? 
                                 `<span class="old-price">R$ ${product.price.toFixed(2)}</span>

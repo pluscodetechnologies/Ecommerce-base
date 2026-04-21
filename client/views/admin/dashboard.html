@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Velvet Store Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f7fa;
+            display: flex;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 20px 0;
+        }
+        
+        .sidebar-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-header h2 {
+            color: white;
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            letter-spacing: 2px;
+        }
+        
+        .sidebar-header span {
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0 15px;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-size: 15px;
+        }
+        
+        .sidebar-menu a i {
+            width: 24px;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        
+        .sidebar-menu a:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .sidebar-menu .active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 25px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .user-details h4 {
+            color: white;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .user-details p {
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+        }
+        
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(231, 76, 60, 0.3);
+        }
+        
+        .logout-btn i {
+            margin-right: 10px;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .page-title h1 {
+            font-size: 28px;
+            color: #1a1a2e;
+            margin-bottom: 5px;
+        }
+        
+        .page-title p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .date-info {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+        }
+        
+        .stat-content {
+            text-align: right;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-header h3 {
+            font-size: 18px;
+            color: #1a1a2e;
+        }
+        
+        .recent-orders {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h3 {
+            font-size: 18px;
+            color: #1a1a2e;
+        }
+        
+        .section-header a {
+            color: #1a1a2e;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .order-info h4 {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .order-info p {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .order-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-shipped {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .low-stock-alert {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 10px;
+            color: #856404;
+        }
+        
+        .low-stock-alert i {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>VELVET</h2>
+            <span>administração</span>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+            <li><a href="/admin/pedidos"><i class="fas fa-shopping-cart"></i> Pedidos</a></li>
+            <li><a href="/admin/produtos"><i class="fas fa-box"></i> Produtos</a></li>
+            <li><a href="/admin/categorias"><i class="fas fa-tags"></i> Categorias</a></li>
+            <li><a href="/admin/clientes"><i class="fas fa-users"></i> Clientes</a></li>
+            <li><a href="/admin/banners"><i class="fas fa-image"></i> Banners</a></li>
+            <li><a href="/admin/cupons"><i class="fas fa-ticket-alt"></i> Cupons</a></li>
+            <li><a href="/admin/relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
+            <li><a href="/admin/configuracoes"><i class="fas fa-cog"></i> Configurações</a></li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <h4 id="adminName">Administrador</h4>
+                    <p>Admin</p>
+                </div>
+            </div>
+            <a href="#" class="logout-btn" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                Sair
+            </a>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">
+                <h1>Dashboard</h1>
+                <p>Visão geral do seu negócio</p>
+            </div>
+            <div class="date-info" id="currentDate"></div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalOrders">0</div>
+                    <div class="stat-label">Total de Pedidos</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalRevenue">R$ 0</div>
+                    <div class="stat-label">Faturamento</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalProducts">0</div>
+                    <div class="stat-label">Produtos</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalCustomers">0</div>
+                    <div class="stat-label">Clientes</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Produtos Mais Vendidos</h3>
+                </div>
+                <div id="topProducts"></div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Estoque Baixo</h3>
+                </div>
+                <div id="lowStock"></div>
+            </div>
+        </div>
+        
+        <div class="recent-orders">
+            <div class="section-header">
+                <h3>Pedidos Recentes</h3>
+                <a href="/admin/pedidos">Ver todos <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div id="recentOrders"></div>
+        </div>
+    </div>
+    
+    <script>
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const token = localStorage.getItem('token');
+        
+        if (!token || user.role !== 'admin') {
+            window.location.href = '/admin';
+        }
+        
+        document.getElementById('adminName').textContent = user.name || 'Administrador';
+        
+        const date = new Date();
+        document.getElementById('currentDate').textContent = date.toLocaleDateString('pt-BR', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/admin';
+        });
+        
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/admin/dashboard/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const data = result.data;
+                    
+                    document.getElementById('totalOrders').textContent = data.totalOrders;
+                    document.getElementById('totalRevenue').textContent = `R$ ${parseFloat(data.totalRevenue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+                    document.getElementById('totalProducts').textContent = data.totalProducts;
+                    document.getElementById('totalCustomers').textContent = data.totalCustomers;
+                    
+                    const topProductsDiv = document.getElementById('topProducts');
+                    topProductsDiv.innerHTML = data.topProducts.map((p, i) => `
+                        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee;">
+                            <span>${i + 1}. ${p.name}</span>
+                            <span style="font-weight: 600;">${p.sold} vendidos</span>
+                        </div>
+                    `).join('');
+                    
+                    const lowStockDiv = document.getElementById('lowStock');
+                    if (data.lowStock.length > 0) {
+                        lowStockDiv.innerHTML = data.lowStock.map(p => `
+                            <div style="padding: 12px; background: #fff3cd; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="font-weight: 600;">${p.name}</div>
+                                <div style="color: #856404; font-size: 13px;">Estoque: ${p.stock} unidades</div>
+                            </div>
+                        `).join('');
+                    } else {
+                        lowStockDiv.innerHTML = '<p style="color: #666;">Nenhum produto com estoque baixo</p>';
+                    }
+                    
+                    const recentOrdersDiv = document.getElementById('recentOrders');
+                    recentOrdersDiv.innerHTML = data.recentOrders.map(order => `
+                        <div class="order-item">
+                            <div class="order-info">
+                                <h4>Pedido #${order.order_number}</h4>
+                                <p>${new Date(order.created_at).toLocaleDateString('pt-BR')} - R$ ${parseFloat(order.total_amount).toFixed(2)}</p>
+                            </div>
+                            <span class="order-status status-${order.status}">${order.status}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+            }
+        }
+        
+        loadDashboard();
+    </script>
+</body>
+</html>

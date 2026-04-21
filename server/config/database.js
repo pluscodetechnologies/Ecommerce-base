@@ -1,11 +1,8 @@
 const mysql = require('mysql2/promise');
-const dotenv = require('dotenv');
 
-dotenv.config();
+let pool = null;
 
-let pool;
-
-const connectDB = async () => {
+async function connectDB() {
     try {
         pool = mysql.createPool({
             host: process.env.DB_HOST || 'localhost',
@@ -14,28 +11,25 @@ const connectDB = async () => {
             database: process.env.DB_NAME || 'velvet_store',
             waitForConnections: true,
             connectionLimit: 10,
-            queueLimit: 0,
-            enableKeepAlive: true,
-            keepAliveInitialDelay: 0
+            queueLimit: 0
         });
 
-        // Testar conexão
         const connection = await pool.getConnection();
-        console.log('Banco de dados conectado com sucesso!');
+        console.log('✅ MySQL conectado com sucesso!');
         connection.release();
         
         return pool;
     } catch (error) {
-        console.error('Erro ao conectar ao banco de dados:', error.message);
-        process.exit(1);
+        console.error('❌ Erro ao conectar ao MySQL:', error.message);
+        throw error;
     }
-};
+}
 
-const getDB = () => {
+function getDB() {
     if (!pool) {
-        throw new Error('Banco de dados não inicializado');
+        throw new Error('Banco de dados não inicializado. Chame connectDB() primeiro.');
     }
     return pool;
-};
+}
 
 module.exports = { connectDB, getDB };
