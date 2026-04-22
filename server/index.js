@@ -46,11 +46,10 @@ app.get('/api/products/featured', async (req, res) => {
         `);
         
         products.forEach(p => {
-            try {
-                p.images = JSON.parse(p.images || '[]');
-            } catch {
-                p.images = [];
-            }
+            if (p.images) {
+                try { p.images = JSON.parse(p.images); } 
+                catch { p.images = [p.images]; }
+            } else { p.images = []; }
             p.main_image = p.images[0] || 'https://via.placeholder.com/600';
             p.price = parseFloat(p.price) || 0;
             p.promotional_price = p.promotional_price ? parseFloat(p.promotional_price) : null;
@@ -77,11 +76,10 @@ app.get('/api/products/new-arrivals', async (req, res) => {
         `);
         
         products.forEach(p => {
-            try {
-                p.images = JSON.parse(p.images || '[]');
-            } catch {
-                p.images = [];
-            }
+            if (p.images) {
+                try { p.images = JSON.parse(p.images); } 
+                catch { p.images = [p.images]; }
+            } else { p.images = []; }
             p.main_image = p.images[0] || 'https://via.placeholder.com/600';
             p.price = parseFloat(p.price) || 0;
             p.promotional_price = p.promotional_price ? parseFloat(p.promotional_price) : null;
@@ -100,7 +98,7 @@ app.get('/api/products', async (req, res) => {
         const category = req.query.category || null;
         const search = req.query.search || null;
         const page = parseInt(req.query.page) || 1;
-        const limit = 12;
+        const limit = parseInt(req.query.limit) || 12;
         const offset = (page - 1) * limit;
         
         let query = `
@@ -128,11 +126,10 @@ app.get('/api/products', async (req, res) => {
         const [total] = await db.execute('SELECT COUNT(*) as count FROM products WHERE status = "active"');
         
         products.forEach(p => {
-            try {
-                p.images = JSON.parse(p.images || '[]');
-            } catch {
-                p.images = [];
-            }
+            if (p.images) {
+                try { p.images = JSON.parse(p.images); } 
+                catch { p.images = [p.images]; }
+            } else { p.images = []; }
             p.main_image = p.images[0] || 'https://via.placeholder.com/600';
             p.price = parseFloat(p.price) || 0;
             p.promotional_price = p.promotional_price ? parseFloat(p.promotional_price) : null;
@@ -155,7 +152,8 @@ app.get('/api/product/:id', async (req, res) => {
     try {
         const db = require('./config/database').getDB();
         const [products] = await db.execute(`
-            SELECT p.*, c.name as category_name, p.images
+            SELECT p.*, c.name as category_name, 
+                   COALESCE(p.images, '[]') as images
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
             WHERE p.id = ? AND p.status = 'active'
@@ -166,7 +164,21 @@ app.get('/api/product/:id', async (req, res) => {
         }
         
         const product = products[0];
-        product.images = JSON.parse(product.images || '[]');
+        
+        if (product.images) {
+            if (typeof product.images === 'string') {
+                try {
+                    product.images = JSON.parse(product.images);
+                } catch {
+                    product.images = [product.images];
+                }
+            }
+        } else {
+            product.images = [];
+        }
+        
+        product.price = parseFloat(product.price) || 0;
+        product.promotional_price = product.promotional_price ? parseFloat(product.promotional_price) : null;
         
         res.json({ success: true, data: product });
     } catch (error) {
