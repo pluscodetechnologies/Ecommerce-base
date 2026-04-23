@@ -15,14 +15,13 @@
         
         .header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: rgba(253, 252, 251, 0.98); border-bottom: 1px solid var(--border-light); }
         .header-top { background: var(--dark); color: white; text-align: center; padding: 8px 0; font-size: 13px; }
-        .header-main { position: relative; }
+        .header-main { padding: 20px 0; position: relative; }
         .header-wrapper { display: flex; align-items: center; justify-content: space-between; }
         .logo { text-decoration: none; }
         .logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 600; letter-spacing: 6px; color: var(--dark); }
         .logo span { font-size: 11px; text-transform: uppercase; letter-spacing: 4px; color: var(--primary); }
         .nav-menu { position: static; }
-        .nav-menu > ul { position: relative; }
-        .nav-menu ul { display: flex; list-style: none; gap: 48px; }
+        .nav-menu > ul { display: flex; list-style: none; gap: 48px; }
         .nav-menu a { text-decoration: none; color: var(--dark); font-weight: 500; font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; }
         .nav-menu a:hover { color: var(--primary); }
         .nav-menu a.active { color: var(--primary); border-bottom: 1.5px solid var(--primary); padding-bottom: 4px; }
@@ -31,6 +30,16 @@
         .cart-btn { position: relative; }
         .cart-count { position: absolute; top: -8px; right: -8px; background: var(--primary); color: white; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
         
+        .user-menu { position: relative; display: inline-block; }
+        .user-menu-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; font-size: 15px; color: var(--dark); cursor: pointer; padding: 8px 12px; }
+        .user-menu-btn:hover { color: var(--primary); }
+        .user-dropdown { position: absolute; top: 100%; right: 0; background: white; border-radius: 4px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); min-width: 200px; padding: 10px 0; margin-top: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; z-index: 1000; }
+        .user-menu:hover .user-dropdown { opacity: 1; visibility: visible; }
+        .user-dropdown a { display: flex; align-items: center; gap: 12px; padding: 12px 18px; color: var(--dark); text-decoration: none; font-size: 14px; }
+        .user-dropdown a:hover { background: var(--light); color: var(--primary); }
+        .user-dropdown .divider { height: 1px; background: var(--border-light); margin: 8px 0; }
+        
+        /* Mega Menu Dropdown */
         /* Mega Menu Dropdown */
 .nav-menu .dropdown { position: static; }
 .nav-menu .dropdown > a { display: flex; align-items: center; gap: 5px; }
@@ -43,7 +52,7 @@
     left: 0;
     width: 100%;
     background: white;
-    padding: 30px 40px;
+    padding: 30px 0;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     opacity: 0;
     visibility: hidden;
@@ -64,6 +73,7 @@
     gap: 20px 40px;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 40px;
 }
 
 .dropdown-grid li {
@@ -115,15 +125,6 @@
     padding-left: 24px;
     color: white;
 }
-
-        .user-menu { position: relative; display: inline-block; }
-        .user-menu-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; font-size: 15px; color: var(--dark); cursor: pointer; padding: 8px 12px; }
-        .user-menu-btn:hover { color: var(--primary); }
-        .user-dropdown { position: absolute; top: 100%; right: 0; background: white; border-radius: 4px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); min-width: 200px; padding: 10px 0; margin-top: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; z-index: 1000; }
-        .user-menu:hover .user-dropdown { opacity: 1; visibility: visible; }
-        .user-dropdown a { display: flex; align-items: center; gap: 12px; padding: 12px 18px; color: var(--dark); text-decoration: none; font-size: 14px; }
-        .user-dropdown a:hover { background: var(--light); color: var(--primary); }
-        .user-dropdown .divider { height: 1px; background: var(--border-light); margin: 8px 0; }
         
         .page-header { margin-top: 120px; padding: 40px 0; text-align: center; background: #F5EDE8; }
         .page-header h1 { font-family: 'Cormorant Garamond', serif; font-size: 44px; font-weight: 600; }
@@ -207,21 +208,18 @@
                 <div class="header-wrapper">
                     <a href="/" class="logo"><h1>VELVET</h1><span>ATELIER</span></a>
                     <nav class="nav-menu">
-    <ul>
-        <li><a href="/index">Início</a></li>
-        <li class="dropdown">
-            <a href="/" class="active">Coleção <i class="fas fa-chevron-down"></i></a>
-            <ul class="dropdown-menu">
-                <div class="dropdown-grid" id="categoriesDropdown">
-                    <li><a href="/products">Ver Todas</a></li>
-                </div>
-            </ul>
-        </li>
-        <li><a href="/products?category=novidades">Novidades</a></li>
-        <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
-        <li><a href="/products?sale=true" style="color: #C45C5C;">Sale</a></li>
-    </ul>
-</nav>
+                        <ul>
+                            <li><a href="/">Início</a></li>
+                            <li class="dropdown">
+                                <a href="/products" class="active">Coleção <i class="fas fa-chevron-down"></i></a>
+                                <ul class="dropdown-menu">
+                                    <div class="dropdown-grid" id="categoriesDropdown">
+                                        <li><a href="/products">Ver Todas</a></li>
+                                    </div>
+                                </ul>
+                            </li>
+                        </ul>
+                    </nav>
                     <div class="header-actions">
                         <div id="userMenuContainer"><a href="/login"><i class="fas fa-user"></i></a></div>
                         <a href="/cart" class="cart-btn"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
@@ -266,14 +264,57 @@
         <div class="footer-main">
             <div class="container">
                 <div class="footer-grid">
-                    <div class="footer-col"><div class="footer-logo"><h3>VELVET</h3><span>ATELIER</span></div><p>Moda feminina de luxo.</p></div>
-                    <div class="footer-col"><h4>Explorar</h4><ul><li><a href="/products">Coleção</a></li></ul></div>
-                    <div class="footer-col"><h4>Suporte</h4><ul><li><a href="#">Ajuda</a></li></ul></div>
-                    <div class="footer-col"><h4>Contato</h4><ul><li><i class="fas fa-envelope"></i> contato@velvetatelier.com</li></ul></div>
+                    <div class="footer-col">
+                        <div class="footer-logo"><h3>VELVET</h3><span>ATELIER</span></div>
+                        <p>Moda feminina de luxo que celebra a individualidade e beleza de cada mulher.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-pinterest-p"></i></a>
+                        </div>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Explorar</h4>
+                        <ul>
+                            <li><a href="/products">Nova Coleção</a></li>
+                            <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
+                            <li><a href="/products?sale=true">Sale</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Suporte</h4>
+                        <ul>
+                            <li><a href="#">Central de Ajuda</a></li>
+                            <li><a href="#">Trocas e Devoluções</a></li>
+                            <li><a href="#">Política de Privacidade</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Contato</h4>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> contato@velvetatelier.com</li>
+                            <li><i class="fas fa-phone-alt"></i> (11) 3456-7890</li>
+                            <li><i class="fab fa-whatsapp"></i> (11) 98765-4321</li>
+                        </ul>
+                        <form class="newsletter-form" id="newsletterForm">
+                            <input type="email" placeholder="Seu e-mail">
+                            <button type="submit">Assinar</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="footer-bottom"><div class="container"><p>&copy; 2024 Velvet Atelier</p></div></div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2024 Velvet Atelier. Todos os direitos reservados.</p>
+                <div class="payment-methods">
+                    <i class="fab fa-cc-visa"></i>
+                    <i class="fab fa-cc-mastercard"></i>
+                    <i class="fas fa-barcode"></i>
+                    <i class="fab fa-pix"></i>
+                </div>
+            </div>
+        </div>
     </footer>
 
     <script src="/js/auth.js"></script>
@@ -282,6 +323,24 @@
         let page = 1, totalPages = 1, category = '', sort = 'newest';
         const urlParams = new URLSearchParams(window.location.search);
         category = urlParams.get('category') || '';
+
+        async function loadNavCategories() {
+            try {
+                const res = await fetch('/api/categories');
+                const data = await res.json();
+                if (data.success && data.data.length > 0) {
+                    const dropdown = document.getElementById('categoriesDropdown');
+                    if (dropdown) {
+                        const activeCategories = data.data.filter(c => c.status === 'active');
+                        let html = '';
+                        activeCategories.forEach(cat => { html += `<li><a href="/products?category=${cat.slug}">${cat.name}</a></li>`; });
+                        while (html.split('<li>').length - 1 < 8) { html += `<li><a href="#" style="visibility: hidden;"> </a></li>`; }
+                        html += `<li class="view-all"><a href="/products">Ver Todas as Categorias</a></li>`;
+                        dropdown.innerHTML = html;
+                    }
+                }
+            } catch (e) { console.error('Erro ao carregar categorias da navbar:', e); }
+        }
 
         async function loadCategories() {
             try {
@@ -303,98 +362,53 @@
             } catch (e) { console.error(e); }
         }
 
-        async function loadNavCategories() {
-    try {
-        const res = await fetch('/api/categories');
-        const data = await res.json();
-        
-        if (data.success && data.data.length > 0) {
-            const dropdown = document.getElementById('categoriesDropdown');
-            if (dropdown) {
-                const activeCategories = data.data.filter(c => c.status === 'active');
-                
-                let html = '';
-                
-                activeCategories.forEach(cat => {
-                    html += `<li><a href="/products?category=${cat.slug}">${cat.name}</a></li>`;
-                });
-                
-                while (html.split('<li>').length - 1 < 8) {
-                    html += `<li><a href="#" style="visibility: hidden;"> </a></li>`;
-                }
-                
-                html += `<li class="view-all"><a href="/products">Ver Todas as Categorias</a></li>`;
-                
-                dropdown.innerHTML = html;
-            }
-        }
-    } catch (e) {
-        console.error('Erro ao carregar categorias da navbar:', e);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', loadNavCategories);
-
-document.addEventListener('DOMContentLoaded', loadNavCategories);
-
         async function loadProducts() {
-    try {
-        let url = `/api/products?page=${page}&limit=12`;
-        
-        if (category === 'novidades') {
-            url += '&sort=newest';
-        } else if (category === 'mais-vendidos') {
-            url += '&sort=best-sellers';
-        } else if (category) {
-            url += `&category=${encodeURIComponent(category)}`;
-        }
-        
-        if (urlParams.get('sale') === 'true') {
-            url += '&onSale=true';
-            document.getElementById('pageTitle').textContent = 'Sale';
-        }
-        
-        if (sort === 'price-asc') url += '&sort=price-asc';
-        if (sort === 'price-desc') url += '&sort=price-desc';
-        
-        const res = await fetch(url);
-        const data = await res.json();
-        
-        if (data.success) {
-            totalPages = data.totalPages;
-            let prods = data.data || [];
-            
-            const grid = document.getElementById('productsGrid');
-            if (!prods.length) {
-                grid.innerHTML = '<div class="no-products">Nenhum produto encontrado</div>';
-                document.getElementById('pagination').innerHTML = '';
-            } else {
-                grid.innerHTML = prods.map(p => {
-                    const price = parseFloat(p.price)||0, promo = p.promotional_price?parseFloat(p.promotional_price):null;
-                    const img = p.main_image || p.images?.[0] || 'https://via.placeholder.com/400';
-                    return `<div class="product-card"><div class="product-image"><a href="/product?id=${p.id}"><img src="${img}" alt="${p.name}"></a>${promo?`<span class="product-badge">-${Math.round((1-promo/price)*100)}%</span>`:''}</div><div class="product-info"><h3><a href="/product?id=${p.id}">${p.name}</a></h3><div class="product-price">${promo?`<span class="old-price">R$ ${price.toFixed(2)}</span><span class="current-price">R$ ${promo.toFixed(2)}</span>`:`<span class="current-price">R$ ${price.toFixed(2)}</span>`}</div></div></div>`;
-                }).join('');
-            }
-            
-            document.getElementById('productCount').textContent = `${data.total} produtos`;
-            document.getElementById('showingCount').textContent = data.total > 0 ? `Mostrando ${(page-1)*12+1}-${Math.min(page*12,data.total)} de ${data.total}` : 'Nenhum produto';
-            
-            if (totalPages > 1) {
-                let pag = `<button ${page===1?'disabled':''} onclick="goToPage(${page-1})">Anterior</button>`;
-                for (let i=1; i<=totalPages; i++) {
-                    if (i===1||i===totalPages||(i>=page-2&&i<=page+2)) pag += `<button class="${i===page?'active':''}" onclick="goToPage(${i})">${i}</button>`;
-                    else if (i===page-3||i===page+3) pag += '<span>...</span>';
+            try {
+                let url = `/api/products?page=${page}&limit=12`;
+                if (category === 'novidades') { url += '&sort=newest'; }
+                else if (category === 'mais-vendidos') { url += '&sort=best-sellers'; }
+                else if (category) { url += `&category=${encodeURIComponent(category)}`; }
+                if (urlParams.get('sale') === 'true') { url += '&onSale=true'; document.getElementById('pageTitle').textContent = 'Sale'; }
+                if (sort === 'price-asc') url += '&sort=price-asc';
+                if (sort === 'price-desc') url += '&sort=price-desc';
+                if (sort === 'best-sellers') url += '&sort=best-sellers';
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success) {
+                    totalPages = data.totalPages;
+                    let prods = data.data || [];
+                    const grid = document.getElementById('productsGrid');
+                    if (!prods.length) {
+                        grid.innerHTML = '<div class="no-products">Nenhum produto encontrado</div>';
+                        document.getElementById('pagination').innerHTML = '';
+                    } else {
+                        grid.innerHTML = prods.map(p => {
+                            const price = parseFloat(p.price)||0, promo = p.promotional_price?parseFloat(p.promotional_price):null;
+                            const img = p.main_image || p.images?.[0] || 'https://via.placeholder.com/400';
+                            return `<div class="product-card"><div class="product-image"><a href="/product?id=${p.id}"><img src="${img}" alt="${p.name}"></a>${promo?`<span class="product-badge">-${Math.round((1-promo/price)*100)}%</span>`:''}</div><div class="product-info"><h3><a href="/product?id=${p.id}">${p.name}</a></h3><div class="product-price">${promo?`<span class="old-price">R$ ${price.toFixed(2)}</span><span class="current-price">R$ ${promo.toFixed(2)}</span>`:`<span class="current-price">R$ ${price.toFixed(2)}</span>`}</div></div></div>`;
+                        }).join('');
+                    }
+                    document.getElementById('productCount').textContent = `${data.total} produtos`;
+                    document.getElementById('showingCount').textContent = data.total > 0 ? `Mostrando ${(page-1)*12+1}-${Math.min(page*12,data.total)} de ${data.total}` : 'Nenhum produto';
+                    if (totalPages > 1) {
+                        let pag = `<button ${page===1?'disabled':''} onclick="goToPage(${page-1})">Anterior</button>`;
+                        for (let i=1; i<=totalPages; i++) {
+                            if (i===1||i===totalPages||(i>=page-2&&i<=page+2)) pag += `<button class="${i===page?'active':''}" onclick="goToPage(${i})">${i}</button>`;
+                            else if (i===page-3||i===page+3) pag += '<span>...</span>';
+                        }
+                        pag += `<button ${page===totalPages?'disabled':''} onclick="goToPage(${page+1})">Próximo</button>`;
+                        document.getElementById('pagination').innerHTML = pag;
+                    }
                 }
-                pag += `<button ${page===totalPages?'disabled':''} onclick="goToPage(${page+1})">Próximo</button>`;
-                document.getElementById('pagination').innerHTML = pag;
-            }
+            } catch (e) { console.error(e); }
         }
-    } catch (e) { console.error(e); }
-}
 
         window.goToPage = (p) => { page = p; loadProducts(); scrollTo(0,0); };
         document.getElementById('sortSelect').onchange = (e) => { sort = e.target.value; loadProducts(); };
+        document.getElementById('newsletterForm').onsubmit = (e) => { e.preventDefault(); alert('Obrigada por assinar!'); e.target.reset(); };
         
+        loadNavCategories();
         loadCategories();
         loadProducts();
     </script>
