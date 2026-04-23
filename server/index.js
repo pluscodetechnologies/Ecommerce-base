@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
 const { connectDB } = require('./config/database');
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.use(helmet({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(morgan('dev'));
 
 app.use('/css', express.static(path.join(__dirname, '../client/public/css')));
@@ -35,8 +37,11 @@ app.use('/api/admin', adminRoutes);
 const cartRoutes = require('./routes/cart');
 app.use('/api/cart', cartRoutes);
 
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
+const checkoutRoutes = require('./routes/checkout');
+app.use('/api/checkout', checkoutRoutes);
+
+const paymentRoutes = require('./routes/payment');
+app.use('/api/payment', paymentRoutes);
 
 app.get('/api/products/featured', async (req, res) => {
     try {
@@ -54,7 +59,7 @@ app.get('/api/products/featured', async (req, res) => {
         products.forEach(p => {
             if (p.images) {
                 try { p.images = JSON.parse(p.images); } 
-                catch { p.images = [p.images]; }
+                catch { p.images = []; }
             } else { p.images = []; }
             p.main_image = p.images[0] || 'https://via.placeholder.com/600';
             p.price = parseFloat(p.price) || 0;
@@ -84,7 +89,7 @@ app.get('/api/products/new-arrivals', async (req, res) => {
         products.forEach(p => {
             if (p.images) {
                 try { p.images = JSON.parse(p.images); } 
-                catch { p.images = [p.images]; }
+                catch { p.images = []; }
             } else { p.images = []; }
             p.main_image = p.images[0] || 'https://via.placeholder.com/600';
             p.price = parseFloat(p.price) || 0;
@@ -264,6 +269,18 @@ app.get('/cart', (req, res) => {
 
 app.get('/checkout', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/views/checkout.html'));
+});
+
+app.get('/checkout-success', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/checkout-success.html'));
+});
+
+app.get('/checkout-pending', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/checkout-pending.html'));
+});
+
+app.get('/checkout-error', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/checkout-error.html'));
 });
 
 app.get('/account', (req, res) => {

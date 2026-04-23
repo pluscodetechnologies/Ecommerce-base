@@ -1,13 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const paymentController = require('../controllers/paymentController');
-const authMiddleware = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/auth');
 
-// Rotas públicas
 router.post('/webhook', paymentController.webhook.bind(paymentController));
 router.get('/methods', paymentController.getPaymentMethods.bind(paymentController));
 
-// Rotas protegidas (requerem autenticação)
 router.use(authMiddleware);
 
 router.post('/checkout', paymentController.createCheckout.bind(paymentController));
