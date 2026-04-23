@@ -40,9 +40,6 @@ app.use('/api/cart', cartRoutes);
 const checkoutRoutes = require('./routes/checkout');
 app.use('/api/checkout', checkoutRoutes);
 
-const paymentRoutes = require('./routes/payment');
-app.use('/api/payment', paymentRoutes);
-
 app.get('/api/products/featured', async (req, res) => {
     try {
         const db = require('./config/database').getDB();

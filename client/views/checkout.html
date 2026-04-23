@@ -255,10 +255,7 @@
                 const res = await fetch('/api/checkout/shipping', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        zipcode: cep,
-                        items: cartData.items.map(i => ({ quantity: i.quantity, weight: 0.3 }))
-                    })
+                    body: JSON.stringify({ zipcode: cep, items: cartData.items.map(i => ({ quantity: i.quantity, weight: 0.3 })) })
                 });
                 const data = await res.json();
                 
@@ -331,29 +328,28 @@
                 const res = await fetch('/api/checkout/order', {
                     method: 'POST',
                     headers,
-                    body: JSON.stringify({
-                        shipping,
-                        payment,
-                        coupon: discountApplied ? 'VELVET20' : null
-                    })
+                    body: JSON.stringify({ shipping, payment, coupon: discountApplied ? 'VELVET20' : null })
                 });
                 
                 const data = await res.json();
                 
                 if (data.success) {
-                    if (data.payment && data.payment.init_point) {
-                        window.location.href = data.payment.sandbox_init_point;
+                    if (data.preference_id) {
+                        window.location.href = data.init_point;
+                    } else if (data.pix) {
+                        window.location.href = `/checkout-success?order=${data.orderNumber}&payment_id=${data.pix.payment_id}&method=pix`;
+                    } else if (data.boleto) {
+                        window.location.href = `/checkout-success?order=${data.orderNumber}&payment_id=${data.boleto.payment_id}&method=boleto`;
                     } else {
                         window.location.href = `/checkout-success?order=${data.orderNumber}`;
                     }
                 } else {
                     alert(data.message || 'Erro ao processar pedido');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-lock"></i> Finalizar Pedido';
                 }
             } catch (e) {
                 console.error(e);
                 alert('Erro ao processar pedido');
+            } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-lock"></i> Finalizar Pedido';
             }
