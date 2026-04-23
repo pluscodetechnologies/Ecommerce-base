@@ -32,6 +32,12 @@ app.use('/api/auth', authRoutes);
 const adminRoutes = require('./routes/admin');
 app.use('/api/admin', adminRoutes);
 
+const cartRoutes = require('./routes/cart');
+app.use('/api/cart', cartRoutes);
+
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
 app.get('/api/products/featured', async (req, res) => {
     try {
         const db = require('./config/database').getDB();
@@ -97,12 +103,14 @@ app.get('/api/products', async (req, res) => {
         const db = require('./config/database').getDB();
         const category = req.query.category || null;
         const search = req.query.search || null;
+        const onSale = req.query.onSale === 'true';
+        const sort = req.query.sort || 'newest';
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 12;
         const offset = (page - 1) * limit;
         
         let query = `
-            SELECT p.*, c.name as category_name, 
+            SELECT p.*, c.name as category_name, c.slug as category_slug,
                    COALESCE(p.images, '[]') as images
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
@@ -110,9 +118,13 @@ app.get('/api/products', async (req, res) => {
         `;
         const params = [];
         
-        if (category) {
+        if (category && category !== 'novidades' && category !== 'mais-vendidos') {
             query += ' AND c.slug = ?';
             params.push(category);
+        }
+        
+        if (onSale) {
+            query += ' AND p.promotional_price IS NOT NULL';
         }
         
         if (search) {
@@ -120,15 +132,43 @@ app.get('/api/products', async (req, res) => {
             params.push(`%${search}%`);
         }
         
-        query += ' ORDER BY p.created_at DESC LIMIT ' + limit + ' OFFSET ' + offset;
+        if (sort === 'price-asc') {
+            query += ' ORDER BY COALESCE(p.promotional_price, p.price) ASC';
+        } else if (sort === 'price-desc') {
+            query += ' ORDER BY COALESCE(p.promotional_price, p.price) DESC';
+        } else if (sort === 'best-sellers') {
+            query += ' ORDER BY p.sales_count DESC';
+        } else {
+            query += ' ORDER BY p.created_at DESC';
+        }
+        
+        query += ' LIMIT ' + limit + ' OFFSET ' + offset;
         
         const [products] = await db.execute(query, params);
-        const [total] = await db.execute('SELECT COUNT(*) as count FROM products WHERE status = "active"');
+        
+        let countQuery = 'SELECT COUNT(*) as count FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.status = "active"';
+        const countParams = [];
+        
+        if (category && category !== 'novidades' && category !== 'mais-vendidos') {
+            countQuery += ' AND c.slug = ?';
+            countParams.push(category);
+        }
+        
+        if (onSale) {
+            countQuery += ' AND p.promotional_price IS NOT NULL';
+        }
+        
+        if (search) {
+            countQuery += ' AND p.name LIKE ?';
+            countParams.push(`%${search}%`);
+        }
+        
+        const [total] = await db.execute(countQuery, countParams);
         
         products.forEach(p => {
             if (p.images) {
                 try { p.images = JSON.parse(p.images); } 
-                catch { p.images = [p.images]; }
+                catch { p.images = []; }
             } else { p.images = []; }
             p.main_image = p.images[0] || 'https://via.placeholder.com/600';
             p.price = parseFloat(p.price) || 0;

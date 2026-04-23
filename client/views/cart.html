@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho | Velvet Atelier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #8B7355; --primary-dark: #6B5340; --dark: #1A1817; --light: #FDFCFB; --gray: #8B8581; --border-light: #E8E4E0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; color: var(--dark); background: var(--light); display: flex; flex-direction: column; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 30px; }
+        
+        .header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: rgba(253, 252, 251, 0.98); border-bottom: 1px solid var(--border-light); }
+        .header-top { background: var(--dark); color: white; text-align: center; padding: 8px 0; font-size: 13px; }
+        .header-main { position: relative; }
+        .header-wrapper { display: flex; align-items: center; justify-content: space-between; }
+        .logo { text-decoration: none; }
+        .logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; letter-spacing: 5px; color: var(--dark); }
+        .logo span { font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: var(--primary); }
+        .nav-menu { position: static; }
+        .nav-menu > ul { position: relative; }
+        .nav-menu ul { display: flex; list-style: none; gap: 40px; }
+        .nav-menu a { text-decoration: none; color: var(--dark); font-weight: 500; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; }
+        .nav-menu a:hover, .nav-menu a.active { color: var(--primary); }
+        .header-actions { display: flex; align-items: center; gap: 20px; }
+        .header-actions a { color: var(--dark); font-size: 20px; text-decoration: none; }
+        .cart-btn { position: relative; }
+        .cart-count { position: absolute; top: -8px; right: -8px; background: var(--primary); color: white; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        
+        /* Mega Menu Dropdown */
+.nav-menu .dropdown { position: static; }
+.nav-menu .dropdown > a { display: flex; align-items: center; gap: 5px; }
+.nav-menu .dropdown > a i { font-size: 12px; transition: transform 0.2s ease; }
+.nav-menu .dropdown:hover > a i { transform: rotate(180deg); }
+
+.nav-menu .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    padding: 30px 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.nav-menu .dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+}
+
+.dropdown-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dropdown-grid li {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.dropdown-grid a {
+    display: block;
+    padding: 8px 0;
+    text-transform: none;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    color: var(--dark);
+    border-bottom: none;
+    font-weight: 400;
+    transition: all 0.2s ease;
+}
+
+.dropdown-grid a:hover {
+    color: var(--primary);
+    padding-left: 8px;
+    background: transparent;
+}
+
+.dropdown-grid .view-all {
+    grid-column: 1 / -1;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-light);
+    text-align: center;
+}
+
+.dropdown-grid .view-all a {
+    display: inline-block;
+    padding: 8px 24px;
+    background: var(--primary);
+    color: white;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+.dropdown-grid .view-all a:hover {
+    background: var(--primary-dark);
+    padding-left: 24px;
+    color: white;
+}
+
+        .user-menu { position: relative; display: inline-block; }
+        .user-menu-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; font-size: 15px; color: var(--dark); cursor: pointer; padding: 8px 12px; }
+        .user-menu-btn:hover { color: var(--primary); }
+        .user-dropdown { position: absolute; top: 100%; right: 0; background: white; border-radius: 4px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); min-width: 200px; padding: 10px 0; margin-top: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; z-index: 1000; }
+        .user-menu:hover .user-dropdown { opacity: 1; visibility: visible; }
+        .user-dropdown a { display: flex; align-items: center; gap: 12px; padding: 12px 18px; color: var(--dark); text-decoration: none; font-size: 14px; }
+        .user-dropdown a:hover { background: var(--light); color: var(--primary); }
+        .user-dropdown .divider { height: 1px; background: var(--border-light); margin: 8px 0; }
+        
+        .cart-page { margin-top: 120px; padding: 40px 0 60px; flex: 1; }
+        .page-title { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; margin-bottom: 30px; }
+        
+        .cart-container { display: grid; grid-template-columns: 1fr 350px; gap: 30px; }
+        .cart-items { background: white; border-radius: 8px; border: 1px solid var(--border-light); overflow: hidden; }
+        .cart-header { display: grid; grid-template-columns: 3fr 1fr 1.5fr 1fr 0.5fr; padding: 15px 20px; background: #F8F6F4; border-bottom: 1px solid var(--border-light); font-weight: 500; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+        .cart-item { display: grid; grid-template-columns: 3fr 1fr 1.5fr 1fr 0.5fr; padding: 20px; align-items: center; border-bottom: 1px solid var(--border-light); }
+        .product-cell { display: flex; gap: 15px; align-items: center; }
+        .product-image { width: 80px; height: 100px; border-radius: 4px; overflow: hidden; background: #F5F3F1; }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; }
+        .product-info h4 { font-family: 'Cormorant Garamond', serif; font-size: 16px; margin-bottom: 5px; }
+        .product-info a { color: var(--dark); text-decoration: none; }
+        .price-cell { font-weight: 500; }
+        .quantity-cell { display: flex; align-items: center; }
+        .quantity-control { display: flex; align-items: center; border: 1px solid var(--border-light); border-radius: 4px; width: 100px; background: white; }
+        .quantity-control button { width: 30px; height: 35px; border: none; background: none; cursor: pointer; font-size: 14px; }
+        .quantity-control button:hover { background: var(--primary); color: white; }
+        .quantity-control input { width: 40px; height: 35px; border: none; text-align: center; font-size: 14px; outline: none; }
+        .total-cell { font-weight: 600; color: var(--primary); }
+        .remove-cell { text-align: center; }
+        .remove-btn { background: none; border: none; color: #C45C5C; cursor: pointer; font-size: 16px; }
+        .remove-btn:hover { color: #a04040; }
+        
+        .cart-summary { background: white; border-radius: 8px; border: 1px solid var(--border-light); padding: 25px; height: fit-content; }
+        .summary-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-light); }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; }
+        .summary-total { display: flex; justify-content: space-between; margin: 20px 0; padding-top: 20px; border-top: 1px solid var(--border-light); font-weight: 600; font-size: 18px; }
+        .shipping-calc { margin: 20px 0; }
+        .shipping-calc h4 { font-size: 14px; margin-bottom: 10px; }
+        .shipping-input { display: flex; gap: 10px; }
+        .shipping-input input { flex: 1; padding: 12px; border: 1px solid var(--border-light); border-radius: 4px; font-family: 'Montserrat', sans-serif; }
+        .shipping-input button { padding: 12px 15px; background: var(--dark); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-checkout { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; }
+        .btn-checkout:hover { background: var(--primary-dark); }
+        .continue-link { display: block; text-align: center; margin-top: 15px; color: var(--gray); text-decoration: none; font-size: 13px; }
+        .continue-link:hover { color: var(--primary); }
+        
+        .empty-cart { text-align: center; padding: 80px 20px; background: white; border-radius: 8px; border: 1px solid var(--border-light); }
+        .empty-cart i { font-size: 60px; color: var(--border-light); margin-bottom: 20px; }
+        .empty-cart h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; margin-bottom: 10px; }
+        .empty-cart p { color: var(--gray); margin-bottom: 25px; }
+        .btn-primary { display: inline-block; padding: 14px 36px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; text-transform: uppercase; letter-spacing: 2px; font-size: 14px; }
+        
+        .footer { background: var(--dark); color: white; }
+        .footer-main { padding: 60px 0 40px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 40px; }
+        .footer-logo h3 { font-family: 'Cormorant Garamond', serif; font-size: 30px; letter-spacing: 4px; margin-bottom: 5px; }
+        .footer-logo span { font-size: 10px; text-transform: uppercase; letter-spacing: 3px; opacity: 0.6; }
+        .footer-col p { margin: 20px 0; opacity: 0.7; font-size: 14px; }
+        .social-links { display: flex; gap: 15px; }
+        .social-links a { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
+        .social-links a:hover { background: var(--primary); }
+        .footer-col h4 { font-family: 'Cormorant Garamond', serif; font-size: 18px; margin-bottom: 20px; }
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 12px; }
+        .footer-col ul li a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px; }
+        .footer-col ul li a:hover { color: white; }
+        .footer-col ul li i { margin-right: 10px; width: 18px; color: var(--primary); }
+        .newsletter-form { display: flex; margin-top: 20px; }
+        .newsletter-form input { flex: 1; padding: 12px 15px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none; }
+        .newsletter-form input::placeholder { color: rgba(255,255,255,0.5); }
+        .newsletter-form button { padding: 12px 20px; background: var(--primary); color: white; border: none; cursor: pointer; text-transform: uppercase; font-size: 12px; }
+        .newsletter-form button:hover { background: var(--primary-dark); }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding: 20px 0; }
+        .footer-bottom .container { display: flex; justify-content: space-between; align-items: center; }
+        .footer-bottom p { opacity: 0.6; font-size: 13px; }
+        .payment-methods { display: flex; gap: 15px; font-size: 26px; opacity: 0.6; }
+        
+        @media (max-width: 1024px) { .footer-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 900px) { .cart-container { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .nav-menu { display: none; }
+            .cart-header { display: none; }
+            .cart-item { grid-template-columns: 1fr; gap: 15px; }
+            .quantity-control { width: 100%; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .footer-bottom .container { flex-direction: column; gap: 15px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-top"><div class="container"><p>FRETE GRÁTIS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p></div></div>
+        <div class="header-main">
+            <div class="container">
+                <div class="header-wrapper">
+                    <a href="/" class="logo"><h1>VELVET</h1><span>ATELIER</span></a>
+                    <nav class="nav-menu">
+    <ul>
+        <li><a href="/">Início</a></li>
+        <li class="dropdown">
+            <a href="/products">Coleção <i class="fas fa-chevron-down"></i></a>
+            <ul class="dropdown-menu">
+                <div class="dropdown-grid" id="categoriesDropdown">
+                    <li><a href="/products">Ver Todas</a></li>
+                </div>
+            </ul>
+        </li>
+        <li><a href="/products?category=novidades">Novidades</a></li>
+        <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
+        <li><a href="/products?sale=true" style="color: #C45C5C;">Sale</a></li>
+    </ul>
+</nav>
+                    <div class="header-actions">
+                        <div id="userMenuContainer"><a href="/login"><i class="fas fa-user"></i></a></div>
+                        <a href="/cart" class="cart-btn"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <section class="cart-page">
+        <div class="container">
+            <h1 class="page-title">Seu Carrinho</h1>
+            <div id="cartContent"><div class="empty-cart"><i class="fas fa-shopping-bag"></i><h3>Carregando...</h3></div></div>
+        </div>
+    </section>
+    
+    <footer class="footer">
+        <div class="footer-main">
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-col"><div class="footer-logo"><h3>VELVET</h3><span>ATELIER</span></div><p>Moda feminina de luxo.</p></div>
+                    <div class="footer-col"><h4>Explorar</h4><ul><li><a href="/products">Coleção</a></li></ul></div>
+                    <div class="footer-col"><h4>Suporte</h4><ul><li><a href="#">Ajuda</a></li></ul></div>
+                    <div class="footer-col"><h4>Contato</h4><ul><li><i class="fas fa-envelope"></i> contato@velvetatelier.com</li></ul></div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom"><div class="container"><p>&copy; 2024 Velvet Atelier</p></div></div>
+    </footer>
+    
+    <script src="/js/auth.js"></script>
+    <script src="/js/cart.js"></script>
+    <script>
+        let cartData = { items: [], subtotal: 0, totalItems: 0 };
+        
+        async function loadCart() {
+            try {
+                const headers = {};
+                const sessionId = localStorage.getItem('cartSessionId') || '';
+                if (sessionId) headers['X-Session-Id'] = sessionId;
+                if (window.auth && auth.isAuthenticated()) headers['Authorization'] = `Bearer ${auth.getToken()}`;
+                
+                const res = await fetch('/api/cart', { headers });
+                const data = await res.json();
+                if (data.success) { cartData = data.data; if (data.sessionId) localStorage.setItem('cartSessionId', data.sessionId); renderCart(); updateCartCount(); }
+                else renderCart();
+            } catch (e) { console.error(e); renderCart(); }
+        }
+        
+        function renderCart() {
+            const container = document.getElementById('cartContent');
+            if (!cartData.items || cartData.items.length === 0) {
+                container.innerHTML = `<div class="empty-cart"><i class="fas fa-shopping-bag"></i><h3>Seu carrinho está vazio</h3><p>Explore nossa coleção!</p><a href="/products" class="btn-primary">Ver Coleção</a></div>`;
+                return;
+            }
+            container.innerHTML = `
+                <div class="cart-container">
+                    <div class="cart-items"><div class="cart-header"><span>Produto</span><span>Preço</span><span>Quantidade</span><span>Total</span><span></span></div><div id="cartItemsList"></div></div>
+                    <div class="cart-summary">
+                        <h3 class="summary-title">Resumo</h3>
+                        <div class="summary-row"><span>Subtotal (${cartData.totalItems} itens)</span><span>R$ ${cartData.subtotal.toFixed(2)}</span></div>
+                        <div class="shipping-calc"><h4>Calcular Frete</h4><div class="shipping-input"><input type="text" id="shippingCep" placeholder="Digite seu CEP" maxlength="9"><button type="button" id="calcShippingBtn">Calcular</button></div><div id="shippingResult" style="margin-top:10px;font-size:13px;"></div></div>
+                        <div class="summary-total"><span>Total</span><span id="cartTotal">R$ ${cartData.subtotal.toFixed(2)}</span></div>
+                        <button class="btn-checkout" id="checkoutBtn">Finalizar Compra</button>
+                        <a href="/products" class="continue-link">Continuar Comprando</a>
+                    </div>
+                </div>`;
+            renderCartItems();
+        }
+        
+        function renderCartItems() {
+            const list = document.getElementById('cartItemsList');
+            list.innerHTML = cartData.items.map(item => `
+                <div class="cart-item"><div class="product-cell"><div class="product-image"><img src="${item.main_image}" alt="${item.name}"></div><div class="product-info"><h4><a href="/product?id=${item.product_id}">${item.name}</a></h4></div></div>
+                <div class="price-cell">R$ ${item.final_price.toFixed(2)}</div><div class="quantity-cell"><div class="quantity-control"><button onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button><input type="text" value="${item.quantity}" readonly><button onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button></div></div>
+                <div class="total-cell">R$ ${(item.final_price * item.quantity).toFixed(2)}</div><div class="remove-cell"><button class="remove-btn" onclick="removeItem(${item.id})"><i class="fas fa-trash-alt"></i></button></div></div>`).join('');
+            document.getElementById('cartTotal').textContent = `R$ ${cartData.subtotal.toFixed(2)}`;
+            document.getElementById('shippingCep').oninput = e => { let v = e.target.value.replace(/\D/g,''); if(v.length>5) v=v.replace(/^(\d{5})(\d)/,'$1-$2'); e.target.value=v; };
+            document.getElementById('calcShippingBtn').onclick = calcShipping;
+            document.getElementById('checkoutBtn').onclick = () => window.location.href = '/checkout';
+        }
+        
+        async function loadNavCategories() {
+    try {
+        const res = await fetch('/api/categories');
+        const data = await res.json();
+        
+        if (data.success && data.data.length > 0) {
+            const dropdown = document.getElementById('categoriesDropdown');
+            if (dropdown) {
+                const activeCategories = data.data.filter(c => c.status === 'active');
+                
+                let html = '';
+                
+                activeCategories.forEach(cat => {
+                    html += `<li><a href="/products?category=${cat.slug}">${cat.name}</a></li>`;
+                });
+                
+                while (html.split('<li>').length - 1 < 8) {
+                    html += `<li><a href="#" style="visibility: hidden;"> </a></li>`;
+                }
+                
+                html += `<li class="view-all"><a href="/products">Ver Todas as Categorias</a></li>`;
+                
+                dropdown.innerHTML = html;
+            }
+        }
+    } catch (e) {
+        console.error('Erro ao carregar categorias da navbar:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadNavCategories);
+
+document.addEventListener('DOMContentLoaded', loadNavCategories);
+
+        async function updateQuantity(itemId, newQty) {
+            if (newQty < 1) newQty = 1; if (newQty > 99) newQty = 99;
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                const sessionId = localStorage.getItem('cartSessionId') || '';
+                if (sessionId) headers['X-Session-Id'] = sessionId;
+                if (window.auth && auth.isAuthenticated()) headers['Authorization'] = `Bearer ${auth.getToken()}`;
+                const res = await fetch(`/api/cart/item/${itemId}`, { method: 'PUT', headers, body: JSON.stringify({ quantity: newQty }) });
+                const data = await res.json();
+                if (data.success) { cartData = data.data; renderCart(); updateCartCount(); }
+            } catch (e) { console.error(e); }
+        }
+        
+        async function removeItem(itemId) {
+            try {
+                const headers = {};
+                const sessionId = localStorage.getItem('cartSessionId') || '';
+                if (sessionId) headers['X-Session-Id'] = sessionId;
+                if (window.auth && auth.isAuthenticated()) headers['Authorization'] = `Bearer ${auth.getToken()}`;
+                const res = await fetch(`/api/cart/item/${itemId}`, { method: 'DELETE', headers });
+                const data = await res.json();
+                if (data.success) { cartData = data.data; renderCart(); updateCartCount(); }
+            } catch (e) { console.error(e); }
+        }
+        
+        function calcShipping() {
+            const cep = document.getElementById('shippingCep').value.replace(/\D/g,'');
+            const result = document.getElementById('shippingResult');
+            if (cep.length === 8) {
+                const subtotal = cartData.subtotal, freight = subtotal >= 299 ? 0 : 20;
+                result.innerHTML = freight === 0 ? '<span style="color:#2E8B57;">Frete Grátis!</span>' : `<span>Frete: R$ ${freight.toFixed(2)}</span>`;
+                document.getElementById('cartTotal').textContent = `R$ ${(subtotal + freight).toFixed(2)}`;
+            } else result.innerHTML = '<span style="color:#C45C5C;">CEP inválido</span>';
+        }
+        
+        window.updateQuantity = updateQuantity;
+        window.removeItem = removeItem;
+        loadCart();
+    </script>
+</body>
+</html>

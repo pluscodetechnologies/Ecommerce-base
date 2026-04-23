@@ -27,11 +27,13 @@
         /* Header */
         .header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: rgba(253, 252, 251, 0.98); border-bottom: 1px solid var(--border-light); }
         .header-top { background: var(--dark); color: white; text-align: center; padding: 8px 0; font-size: 13px; }
-        .header-main { padding: 20px 0; }
+        .header-main { position: relative; }
         .header-wrapper { display: flex; align-items: center; justify-content: space-between; }
         .logo { text-align: center; text-decoration: none; }
         .logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 600; letter-spacing: 6px; color: var(--dark); }
         .logo span { font-size: 11px; text-transform: uppercase; letter-spacing: 4px; color: var(--primary); }
+        .nav-menu { position: static; }
+        .nav-menu > ul { position: relative; }
         .nav-menu ul { display: flex; list-style: none; gap: 48px; }
         .nav-menu a { text-decoration: none; color: var(--dark); font-weight: 500; font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; }
         .nav-menu a:hover { color: var(--primary); }
@@ -42,6 +44,101 @@
         .cart-btn { position: relative; }
         .cart-count { position: absolute; top: -8px; right: -8px; background: var(--primary); color: white; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
         .mobile-menu-btn { display: none; }
+        
+        /* Mega Menu Dropdown */
+.nav-menu .dropdown { position: static; }
+.nav-menu .dropdown > a { display: flex; align-items: center; gap: 5px; }
+.nav-menu .dropdown > a i { font-size: 12px; transition: transform 0.2s ease; }
+.nav-menu .dropdown:hover > a i { transform: rotate(180deg); }
+
+.nav-menu .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    padding: 30px 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.nav-menu .dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+}
+
+.dropdown-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dropdown-grid li {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.dropdown-grid a {
+    display: block;
+    padding: 8px 0;
+    text-transform: none;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    color: var(--dark);
+    border-bottom: none;
+    font-weight: 400;
+    transition: all 0.2s ease;
+}
+
+.dropdown-grid a:hover {
+    color: var(--primary);
+    padding-left: 8px;
+    background: transparent;
+}
+
+.dropdown-grid .view-all {
+    grid-column: 1 / -1;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-light);
+    text-align: center;
+}
+
+.dropdown-grid .view-all a {
+    display: inline-block;
+    padding: 8px 24px;
+    background: var(--primary);
+    color: white;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+.dropdown-grid .view-all a:hover {
+    background: var(--primary-dark);
+    padding-left: 24px;
+    color: white;
+}
+
+        /* User Menu */
+        .user-menu { position: relative; display: inline-block; }
+        .user-menu-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; font-size: 15px; color: var(--dark); cursor: pointer; padding: 8px 12px; }
+        .user-menu-btn:hover { color: var(--primary); }
+        .user-dropdown { position: absolute; top: 100%; right: 0; background: white; border-radius: 4px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); min-width: 200px; padding: 10px 0; margin-top: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; z-index: 1000; }
+        .user-menu:hover .user-dropdown { opacity: 1; visibility: visible; }
+        .user-dropdown a { display: flex; align-items: center; gap: 12px; padding: 12px 18px; color: var(--dark); text-decoration: none; font-size: 14px; }
+        .user-dropdown a:hover { background: var(--light); color: var(--primary); }
+        .user-dropdown .divider { height: 1px; background: var(--border-light); margin: 8px 0; }
         
         /* Hero */
         .hero { margin-top: 120px; height: 500px; position: relative; overflow: hidden; }
@@ -147,16 +244,6 @@
         .footer-bottom p { opacity: 0.6; font-size: 13px; }
         .payment-methods { display: flex; gap: 15px; font-size: 26px; opacity: 0.6; }
         
-        /* User Menu */
-        .user-menu { position: relative; display: inline-block; }
-        .user-menu-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; font-size: 15px; color: var(--dark); cursor: pointer; }
-        .user-dropdown { position: absolute; top: 100%; right: 0; background: white; border-radius: 4px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); min-width: 200px; padding: 10px 0; margin-top: 10px; display: none; }
-        .user-menu:hover .user-dropdown { display: block; }
-        .user-dropdown a { display: flex; align-items: center; gap: 12px; padding: 12px 18px; color: var(--dark); text-decoration: none; font-size: 14px; }
-        .user-dropdown a:hover { background: var(--light); color: var(--primary); }
-        .user-dropdown .divider { height: 1px; background: var(--border-light); margin: 8px 0; }
-        
-        /* Mobile */
         @media (max-width: 1024px) {
             .container { padding: 0 20px; }
             .nav-menu { display: none; }
@@ -196,15 +283,21 @@
                         <span>ATELIER</span>
                     </a>
                     <nav class="nav-menu">
-                        <ul>
-                            <li><a href="/" class="active">Home</a></li>
-                            <li><a href="/products">Coleção</a></li>
-                            <li><a href="/products?category=vestidos">Vestidos</a></li>
-                            <li><a href="/products?category=blusas">Blusas</a></li>
-                            <li><a href="/products?category=calcas">Calças</a></li>
-                            <li><a href="/products?category=saias">Saias</a></li>
-                        </ul>
-                    </nav>
+    <ul>
+        <li><a href="/" class="active">Início</a></li>
+        <li class="dropdown">
+            <a href="/products">Coleção <i class="fas fa-chevron-down"></i></a>
+            <ul class="dropdown-menu">
+                <div class="dropdown-grid" id="categoriesDropdown">
+                    <li><a href="/products">Ver Todas</a></li>
+                </div>
+            </ul>
+        </li>
+        <li><a href="/products?category=novidades">Novidades</a></li>
+        <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
+        <li><a href="/products?sale=true" style="color: #C45C5C;">Sale</a></li>
+    </ul>
+</nav>
                     <div class="header-actions">
                         <div id="userMenuContainer">
                             <a href="/login"><i class="fas fa-user"></i></a>
@@ -428,6 +521,40 @@
             }
         }
         
+        async function loadNavCategories() {
+    try {
+        const res = await fetch('/api/categories');
+        const data = await res.json();
+        
+        if (data.success && data.data.length > 0) {
+            const dropdown = document.getElementById('categoriesDropdown');
+            if (dropdown) {
+                const activeCategories = data.data.filter(c => c.status === 'active');
+                
+                let html = '';
+                
+                activeCategories.forEach(cat => {
+                    html += `<li><a href="/products?category=${cat.slug}">${cat.name}</a></li>`;
+                });
+                
+                while (html.split('<li>').length - 1 < 8) {
+                    html += `<li><a href="#" style="visibility: hidden;"> </a></li>`;
+                }
+                
+                html += `<li class="view-all"><a href="/products">Ver Todas as Categorias</a></li>`;
+                
+                dropdown.innerHTML = html;
+            }
+        }
+    } catch (e) {
+        console.error('Erro ao carregar categorias da navbar:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadNavCategories);
+
+document.addEventListener('DOMContentLoaded', loadNavCategories);
+
         function renderProducts(id, products) {
             document.getElementById(id).innerHTML = products.map(p => {
                 const price = parseFloat(p.price) || 0, promo = p.promotional_price ? parseFloat(p.promotional_price) : null;

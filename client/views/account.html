@@ -3,94 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Conta - Velvet Store</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Minha Conta | Velvet Atelier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #8B7355; --primary-dark: #6B5340; --dark: #1A1817; --light: #FDFCFB; --gray: #8B8581; --border-light: #E8E4E0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; color: var(--dark); background: var(--light); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 30px; }
+        
+        .header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: rgba(253, 252, 251, 0.98); border-bottom: 1px solid var(--border-light); }
+        .header-top { background: var(--dark); color: white; text-align: center; padding: 8px 0; font-size: 13px; }
+        .header-main { position: relative; }
+        .header-wrapper { display: flex; align-items: center; justify-content: space-between; }
+        .logo { text-decoration: none; }
+        .logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; letter-spacing: 5px; color: var(--dark); }
+        .logo span { font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: var(--primary); }
+        .nav-menu { position: static; }
+        .nav-menu > ul { position: relative; }
+        .nav-menu ul { display: flex; list-style: none; gap: 40px; }
+        .nav-menu a { text-decoration: none; color: var(--dark); font-weight: 500; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; }
+        .nav-menu a:hover, .nav-menu a.active { color: var(--primary); }
+        .header-actions { display: flex; align-items: center; gap: 20px; }
+        .header-actions a { color: var(--dark); font-size: 20px; text-decoration: none; }
+        .cart-btn { position: relative; }
+        .cart-count { position: absolute; top: -8px; right: -8px; background: var(--primary); color: white; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        
+        /* Mega Menu Dropdown */
+.nav-menu .dropdown { position: static; }
+.nav-menu .dropdown > a { display: flex; align-items: center; gap: 5px; }
+.nav-menu .dropdown > a i { font-size: 12px; transition: transform 0.2s ease; }
+.nav-menu .dropdown:hover > a i { transform: rotate(180deg); }
+
+.nav-menu .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    padding: 30px 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.nav-menu .dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+}
+
+.dropdown-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dropdown-grid li {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.dropdown-grid a {
+    display: block;
+    padding: 8px 0;
+    text-transform: none;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    color: var(--dark);
+    border-bottom: none;
+    font-weight: 400;
+    transition: all 0.2s ease;
+}
+
+.dropdown-grid a:hover {
+    color: var(--primary);
+    padding-left: 8px;
+    background: transparent;
+}
+
+.dropdown-grid .view-all {
+    grid-column: 1 / -1;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-light);
+    text-align: center;
+}
+
+.dropdown-grid .view-all a {
+    display: inline-block;
+    padding: 8px 24px;
+    background: var(--primary);
+    color: white;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+.dropdown-grid .view-all a:hover {
+    background: var(--primary-dark);
+    padding-left: 24px;
+    color: white;
+}
+
+        .user-menu { position: relative; display: inline-block; }
+        .user-menu-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; font-size: 15px; color: var(--dark); cursor: pointer; padding: 8px 12px; }
+        .user-menu-btn:hover { color: var(--primary); }
+        .user-dropdown { position: absolute; top: 100%; right: 0; background: white; border-radius: 4px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); min-width: 200px; padding: 10px 0; margin-top: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; z-index: 1000; }
+        .user-menu:hover .user-dropdown { opacity: 1; visibility: visible; }
+        .user-dropdown a { display: flex; align-items: center; gap: 12px; padding: 12px 18px; color: var(--dark); text-decoration: none; font-size: 14px; }
+        .user-dropdown a:hover { background: var(--light); color: var(--primary); }
+        .user-dropdown .divider { height: 1px; background: var(--border-light); margin: 8px 0; }
+        
+        .account-page { margin-top: 120px; padding: 40px 0 60px; min-height: 60vh; }
+        .page-title { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; margin-bottom: 30px; }
+        
+        .account-grid { display: grid; grid-template-columns: 280px 1fr; gap: 30px; }
+        .account-sidebar { background: white; border-radius: 8px; border: 1px solid var(--border-light); padding: 20px 0; height: fit-content; }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { padding: 12px 20px; }
+        .sidebar-menu li a { color: var(--dark); text-decoration: none; display: flex; align-items: center; gap: 12px; }
+        .sidebar-menu li a:hover, .sidebar-menu li.active a { color: var(--primary); }
+        .sidebar-menu li i { width: 20px; }
+        
+        .account-content { background: white; border-radius: 8px; border: 1px solid var(--border-light); padding: 30px; }
+        .account-section h2 { font-family: 'Cormorant Garamond', serif; font-size: 24px; margin-bottom: 25px; }
+        .info-row { display: flex; margin-bottom: 15px; }
+        .info-label { width: 120px; font-weight: 500; }
+        .info-value { color: var(--gray); }
+        .btn-edit { padding: 8px 20px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px; }
+        
+        .footer { background: var(--dark); color: white; }
+        .footer-main { padding: 60px 0 40px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 40px; }
+        .footer-logo h3 { font-family: 'Cormorant Garamond', serif; font-size: 30px; }
+        .footer-col p { margin: 20px 0; opacity: 0.7; font-size: 14px; }
+        .social-links { display: flex; gap: 15px; }
+        .social-links a { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
+        .footer-col h4 { font-size: 16px; margin-bottom: 20px; }
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 12px; }
+        .footer-col ul li a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; }
+        .footer-col ul li i { margin-right: 10px; width: 18px; color: var(--primary); }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding: 20px 0; text-align: center; }
+        
+        @media (max-width: 768px) { .account-grid { grid-template-columns: 1fr; } .nav-menu { display: none; } .footer-grid { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body>
     <header class="header">
-        <div class="header-top">
-            <div class="container">
-                <p>Frete Grátis para todo Brasil em compras acima de R$ 299 ✨</p>
-            </div>
-        </div>
-        
+        <div class="header-top"><div class="container"><p>FRETE GRÁTIS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p></div></div>
         <div class="header-main">
             <div class="container">
                 <div class="header-wrapper">
-                    <a href="/" class="logo">
-                        <h1>VELVET</h1>
-                        <span>store</span>
-                    </a>
-                    
+                    <a href="/" class="logo"><h1>VELVET</h1><span>ATELIER</span></a>
+                    <nav class="nav-menu">
+    <ul>
+        <li><a href="/">Início</a></li>
+        <li class="dropdown">
+            <a href="/products">Coleção <i class="fas fa-chevron-down"></i></a>
+            <ul class="dropdown-menu">
+                <div class="dropdown-grid" id="categoriesDropdown">
+                    <li><a href="/products">Ver Todas</a></li>
+                </div>
+            </ul>
+        </li>
+        <li><a href="/products?category=novidades">Novidades</a></li>
+        <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
+        <li><a href="/products?sale=true" style="color: #C45C5C;">Sale</a></li>
+    </ul>
+</nav>
                     <div class="header-actions">
-                        <div id="userMenuContainer"></div>
-                        <a href="/cart" class="cart-btn">
-                            <i class="fas fa-shopping-bag"></i>
-                            <span class="cart-count" id="cartCount">0</span>
-                        </a>
+                        <div id="userMenuContainer"><a href="/login"><i class="fas fa-user"></i></a></div>
+                        <a href="/cart" class="cart-btn"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
                     </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <div class="container" style="padding: 40px 20px; min-height: 60vh;">
-        <h1 style="margin-bottom: 30px;">Minha Conta</h1>
-        <div id="accountContent">
-            <p>Carregando...</p>
+    <section class="account-page">
+        <div class="container">
+            <h1 class="page-title">Minha Conta</h1>
+            <div class="account-grid">
+                <div class="account-sidebar">
+                    <ul class="sidebar-menu">
+                        <li class="active"><a href="#"><i class="fas fa-user"></i> Meus Dados</a></li>
+                        <li><a href="#"><i class="fas fa-shopping-bag"></i> Meus Pedidos</a></li>
+                        <li><a href="#"><i class="fas fa-map-marker-alt"></i> Endereços</a></li>
+                        <li><a href="#" id="logoutSidebar"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
+                    </ul>
+                </div>
+                <div class="account-content">
+                    <div class="account-section">
+                        <h2>Meus Dados</h2>
+                        <div id="profileInfo">Carregando...</div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-main"><div class="container"><div class="footer-grid"><div class="footer-col"><div class="footer-logo"><h3>VELVET</h3></div><p>Moda feminina de luxo.</p></div></div></div></div>
+        <div class="footer-bottom"><div class="container"><p>&copy; 2024 Velvet Atelier</p></div></div>
+    </footer>
 
     <script src="/js/auth.js"></script>
+    <script src="/js/cart.js"></script>
     <script>
-        // Verificar autenticação
-        if (!auth.isAuthenticated()) {
-            window.location.href = '/login';
-        }
+        if (!auth.isAuthenticated()) window.location.href = '/login';
         
-        // Carregar dados do usuário
-        async function loadUserData() {
+        async function loadProfile() {
             try {
-                const response = await auth.fetchWithAuth('/api/auth/profile');
-                const result = await response.json();
-                
-                if (result.success) {
-                    const user = result.data;
-                    document.getElementById('accountContent').innerHTML = `
-                        <div style="background: white; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <h2>Olá, ${user.name}!</h2>
-                            <p style="color: var(--text-light); margin-bottom: 30px;">${user.email}</p>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                                <a href="/account?tab=orders" style="padding: 20px; border: 2px solid var(--border-color); border-radius: 10px; text-decoration: none; color: inherit;">
-                                    <i class="fas fa-shopping-bag" style="font-size: 24px; color: var(--primary-color); margin-bottom: 10px;"></i>
-                                    <h3>Meus Pedidos</h3>
-                                    <p style="color: var(--text-light);">Acompanhe seus pedidos</p>
-                                </a>
-                                
-                                <a href="/account?tab=profile" style="padding: 20px; border: 2px solid var(--border-color); border-radius: 10px; text-decoration: none; color: inherit;">
-                                    <i class="fas fa-user" style="font-size: 24px; color: var(--primary-color); margin-bottom: 10px;"></i>
-                                    <h3>Dados Pessoais</h3>
-                                    <p style="color: var(--text-light);">Edite suas informações</p>
-                                </a>
-                                
-                                <a href="/account?tab=addresses" style="padding: 20px; border: 2px solid var(--border-color); border-radius: 10px; text-decoration: none; color: inherit;">
-                                    <i class="fas fa-map-marker-alt" style="font-size: 24px; color: var(--primary-color); margin-bottom: 10px;"></i>
-                                    <h3>Endereços</h3>
-                                    <p style="color: var(--text-light);">Gerencie seus endereços</p>
-                                </a>
-                            </div>
-                        </div>
-                    `;
+                const res = await auth.fetchWithAuth('/api/auth/profile');
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('profileInfo').innerHTML = `
+                        <div class="info-row"><span class="info-label">Nome:</span><span class="info-value">${data.data.name}</span></div>
+                        <div class="info-row"><span class="info-label">Email:</span><span class="info-value">${data.data.email}</span></div>
+                        <div class="info-row"><span class="info-label">Telefone:</span><span class="info-value">${data.data.phone || '-'}</span></div>
+                        <div class="info-row"><span class="info-label">CPF:</span><span class="info-value">${data.data.cpf || '-'}</span></div>
+                        <button class="btn-edit" onclick="alert('Funcionalidade em desenvolvimento')">Editar Perfil</button>`;
                 }
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadNavCategories() {
+    try {
+        const res = await fetch('/api/categories');
+        const data = await res.json();
+        
+        if (data.success && data.data.length > 0) {
+            const dropdown = document.getElementById('categoriesDropdown');
+            if (dropdown) {
+                const activeCategories = data.data.filter(c => c.status === 'active');
+                
+                let html = '';
+                
+                activeCategories.forEach(cat => {
+                    html += `<li><a href="/products?category=${cat.slug}">${cat.name}</a></li>`;
+                });
+                
+                while (html.split('<li>').length - 1 < 8) {
+                    html += `<li><a href="#" style="visibility: hidden;"> </a></li>`;
+                }
+                
+                html += `<li class="view-all"><a href="/products">Ver Todas as Categorias</a></li>`;
+                
+                dropdown.innerHTML = html;
             }
         }
+    } catch (e) {
+        console.error('Erro ao carregar categorias da navbar:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadNavCategories);
+
+document.addEventListener('DOMContentLoaded', loadNavCategories);
         
-        loadUserData();
+        document.getElementById('logoutSidebar').onclick = (e) => { e.preventDefault(); auth.logout(); };
+        loadProfile();
     </script>
 </body>
 </html>
