@@ -15,6 +15,8 @@ class AdminController {
                 SELECT p.name, SUM(oi.quantity) as sold
                 FROM order_items oi
                 JOIN products p ON oi.product_id = p.id
+                JOIN orders o ON oi.order_id = o.id
+                WHERE o.status IN ('paid', 'processing', 'shipped', 'delivered')
                 GROUP BY p.id
                 ORDER BY sold DESC
                 LIMIT 5
@@ -468,6 +470,54 @@ async updateCategory(req, res) {
         } catch (error) {
             console.error('Erro ao gerar relatório:', error);
             res.status(500).json({ success: false, message: 'Erro ao gerar relatório' });
+        }
+    }
+
+    async getAlerts(req, res) {
+        try {
+            const db = getDB();
+            const [alerts] = await db.execute('SELECT * FROM store_alerts ORDER BY created_at DESC');
+            res.json({ success: true, data: alerts });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Erro ao buscar alertas' });
+        }
+    }
+
+    async createAlert(req, res) {
+        try {
+            const db = getDB();
+            const { title, message } = req.body;
+            if (!message) return res.status(400).json({ success: false, message: 'Mensagem é obrigatória' });
+            const [result] = await db.execute(
+                'INSERT INTO store_alerts (title, message, is_active) VALUES (?, ?, 1)',
+                [title || null, message]
+            );
+            res.status(201).json({ success: true, data: { id: result.insertId } });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Erro ao criar alerta' });
+        }
+    }
+
+    async updateAlert(req, res) {
+        try {
+            const { id } = req.params;
+            const { is_active } = req.body;
+            const db = getDB();
+            await db.execute('UPDATE store_alerts SET is_active = ? WHERE id = ?', [is_active ? 1 : 0, id]);
+            res.json({ success: true });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Erro ao atualizar alerta' });
+        }
+    }
+
+    async deleteAlert(req, res) {
+        try {
+            const { id } = req.params;
+            const db = getDB();
+            await db.execute('DELETE FROM store_alerts WHERE id = ?', [id]);
+            res.json({ success: true });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Erro ao excluir alerta' });
         }
     }
 

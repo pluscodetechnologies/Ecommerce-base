@@ -38,7 +38,6 @@
         .banner-content { padding: 20px; }
         .banner-title { font-size: 18px; font-weight: 600; color: #1a1a2e; margin-bottom: 5px; }
         .banner-subtitle { color: #666; font-size: 14px; margin-bottom: 15px; }
-        .banner-position { display: inline-block; padding: 5px 12px; background: #e3f2fd; color: #1976d2; border-radius: 20px; font-size: 12px; margin-bottom: 15px; }
         .banner-actions { display: flex; gap: 10px; }
         .action-btn { flex: 1; padding: 8px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; transition: all 0.3s ease; }
         .edit-btn { background: #e3f2fd; color: #1976d2; }
@@ -67,11 +66,13 @@
             <li><a href="/admin/clientes"><i class="fas fa-users"></i> Clientes</a></li>
             <li><a href="/admin/banners" class="active"><i class="fas fa-image"></i> Banners</a></li>
             <li><a href="/admin/cupons"><i class="fas fa-ticket-alt"></i> Cupons</a></li>
+            <li><a href="/admin/alertas"><i class="fas fa-bell"></i> Alertas</a></li>
             <li><a href="/admin/relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
             <li><a href="/admin/configuracoes"><i class="fas fa-cog"></i> Configurações</a></li>
         </ul>
         <div class="sidebar-footer">
             <div class="user-info"><div class="user-avatar"><i class="fas fa-user"></i></div><div class="user-details"><h4 id="adminName">Administrador</h4><p>Admin</p></div></div>
+            <a href="/" target="_blank" class="logout-btn" style="margin-bottom:10px;background:rgba(255,255,255,0.07);"><i class="fas fa-store" style="margin-right:10px;"></i> Ver loja</a>
             <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>Sair</a>
         </div>
     </div>
@@ -92,8 +93,6 @@
                 <div class="form-group"><label>Título</label><input type="text" id="bannerTitle" required></div>
                 <div class="form-group"><label>Subtítulo</label><input type="text" id="bannerSubtitle"></div>
                 <div class="form-group"><label>URL da Imagem</label><input type="text" id="bannerImage" required></div>
-                <div class="form-group"><label>Link</label><input type="text" id="bannerLink"></div>
-                <div class="form-group"><label>Posição</label><select id="bannerPosition"><option value="hero">Hero</option><option value="promo">Promocional</option></select></div>
                 <div class="form-group"><label>Ordem</label><input type="number" id="bannerOrder" value="0"></div>
                 <div class="form-group"><label>Status</label><select id="bannerStatus"><option value="1">Ativo</option><option value="0">Inativo</option></select></div>
                 <button type="submit" class="btn-primary" style="width: 100%;">Salvar Banner</button>
@@ -125,7 +124,7 @@
                             <div class="banner-content">
                                 <h3 class="banner-title">${b.title}</h3>
                                 <p class="banner-subtitle">${b.subtitle || ''}</p>
-                                <span class="banner-position">${b.position}</span>
+
                                 <div class="banner-actions">
                                     <button class="action-btn edit-btn" onclick="editBanner(${b.id})"><i class="fas fa-edit"></i> Editar</button>
                                     <button class="action-btn delete-btn" onclick="deleteBanner(${b.id})"><i class="fas fa-trash"></i> Excluir</button>
@@ -148,8 +147,6 @@
                     document.getElementById('bannerTitle').value = banner.title;
                     document.getElementById('bannerSubtitle').value = banner.subtitle || '';
                     document.getElementById('bannerImage').value = banner.image_url;
-                    document.getElementById('bannerLink').value = banner.link || '';
-                    document.getElementById('bannerPosition').value = banner.position;
                     document.getElementById('bannerOrder').value = banner.sort_order;
                     document.getElementById('bannerStatus').value = banner.is_active ? '1' : '0';
                     modal.style.display = 'flex';
@@ -173,8 +170,8 @@
                 title: document.getElementById('bannerTitle').value,
                 subtitle: document.getElementById('bannerSubtitle').value,
                 image_url: document.getElementById('bannerImage').value,
-                link: document.getElementById('bannerLink').value,
-                position: document.getElementById('bannerPosition').value,
+                link: null,
+                position: 'hero',
                 sort_order: parseInt(document.getElementById('bannerOrder').value),
                 is_active: document.getElementById('bannerStatus').value === '1'
             };

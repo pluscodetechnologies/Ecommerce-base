@@ -229,6 +229,26 @@ app.get('/api/product/:id', async (req, res) => {
     }
 });
 
+app.get('/api/alerts', async (req, res) => {
+    try {
+        const db = require('./config/database').getDB();
+        const [alerts] = await db.execute('SELECT * FROM store_alerts WHERE is_active = 1 ORDER BY created_at DESC');
+        res.json({ success: true, data: alerts });
+    } catch (error) {
+        res.status(500).json({ success: false, data: [] });
+    }
+});
+
+app.get('/api/banners', async (req, res) => {
+    try {
+        const db = require('./config/database').getDB();
+        const [banners] = await db.execute('SELECT * FROM banners WHERE is_active = 1 AND position = "hero" ORDER BY sort_order');
+        res.json({ success: true, data: banners });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Erro ao buscar banners' });
+    }
+});
+
 app.get('/api/categories', async (req, res) => {
     try {
         const db = require('./config/database').getDB();
@@ -237,6 +257,60 @@ app.get('/api/categories', async (req, res) => {
     } catch (error) {
         console.error('Erro ao buscar categorias:', error);
         res.status(500).json({ success: false, data: [] });
+    }
+});
+
+app.post('/api/coupons/validate', async (req, res) => {
+    try {
+        const db = require('./config/database').getDB();
+        const { code, userId } = req.body;
+
+        if (!code) return res.status(400).json({ success: false, message: 'Informe o código do cupom' });
+
+        const [rows] = await db.execute(
+            'SELECT * FROM coupons WHERE code = ? AND status = "active"',
+            [code.trim().toUpperCase()]
+        );
+
+        if (!rows.length) {
+            return res.status(404).json({ success: false, message: 'Cupom inválido ou inativo' });
+        }
+
+        const coupon = rows[0];
+
+        if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+            return res.status(400).json({ success: false, message: 'Este cupom já expirou' });
+        }
+
+        if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
+            return res.status(400).json({ success: false, message: 'Este cupom atingiu o limite de usos' });
+        }
+
+        // Se max_uses = 1, é cupom de primeira compra — verificar se usuário já usou
+        if (coupon.max_uses === 1 && userId) {
+            const [usage] = await db.execute(
+                'SELECT id FROM coupon_usage WHERE coupon_id = ? AND user_id = ?',
+                [coupon.id, userId]
+            );
+            if (usage.length) {
+                return res.status(400).json({ success: false, message: 'Você já utilizou este cupom' });
+            }
+        }
+
+        res.json({
+            success: true,
+            data: {
+                id: coupon.id,
+                code: coupon.code,
+                discount_type: coupon.discount_type,
+                discount_value: parseFloat(coupon.discount_value),
+                min_purchase: parseFloat(coupon.min_purchase || 0),
+                description: coupon.description
+            }
+        });
+    } catch (error) {
+        console.error('Erro ao validar cupom:', error);
+        res.status(500).json({ success: false, message: 'Erro ao validar cupom' });
     }
 });
 
@@ -319,7 +393,13 @@ app.get('/admin/cupons', (req, res) => {
 app.get('/admin/relatorios', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/views/admin/relatorios.html'));
 });
+app.get('/admin/alertas', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/admin/alertas.html'));
+});
 
+app.get('/admin/reset-password', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/views/admin/reset-password.html'));
+});
 app.get('/admin/configuracoes', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/views/admin/configuracoes.html'));
 });

@@ -269,9 +269,9 @@
 </head>
 <body>
     <header class="header">
-        <div class="header-top">
+        <div class="header-top" id="headerTop">
             <div class="container">
-                <p>FRETE GRÁTIS PARA TODO BRASIL EM COMPRAS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p>
+                <p id="headerTopText">FRETE GRÁTIS PARA TODO BRASIL EM COMPRAS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p>
             </div>
         </div>
         <div class="header-main">
@@ -295,7 +295,7 @@
         </li>
         <li><a href="/products?category=novidades">Novidades</a></li>
         <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
-        <li><a href="/products?sale=true" style="color: #C45C5C;">Sale</a></li>
+        <li><a href="/products?sale=true" style="color: #C45C5C;">Ofertas</a></li>
     </ul>
 </nav>
                     <div class="header-actions">
@@ -315,24 +315,7 @@
     <main>
         <section class="hero">
             <div class="hero-slider" id="heroSlider">
-                <div class="slide active">
-                    <img src="https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=1" alt="Coleção">
-                    <div class="slide-overlay"></div>
-                    <div class="slide-content">
-                        <span class="slide-subtitle">Coleção 2024</span>
-                        <h2 class="slide-title">Elegância Atemporal</h2>
-                        <a href="/products" class="btn btn-primary">Explorar Coleção</a>
-                    </div>
-                </div>
-                <div class="slide">
-                    <img src="https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=1" alt="Oferta">
-                    <div class="slide-overlay"></div>
-                    <div class="slide-content">
-                        <span class="slide-subtitle">Oferta Exclusiva</span>
-                        <h2 class="slide-title">Até 40% OFF</h2>
-                        <a href="/products" class="btn btn-primary">Aproveitar</a>
-                    </div>
-                </div>
+                <!-- slides carregados dinamicamente -->
             </div>
             <button class="slider-arrow prev" id="prevSlide"><i class="fas fa-chevron-left"></i></button>
             <button class="slider-arrow next" id="nextSlide"><i class="fas fa-chevron-right"></i></button>
@@ -359,17 +342,6 @@
                 <div class="products-grid" id="featuredProducts"></div>
                 <div class="section-footer">
                     <a href="/products" class="btn btn-outline">Ver Toda Coleção</a>
-                </div>
-            </div>
-        </section>
-
-        <section class="promo-banner">
-            <div class="container">
-                <div class="promo-content">
-                    <span class="promo-label">Primeira Compra</span>
-                    <h2>Use o cupom <strong>VELVET20</strong></h2>
-                    <p>e ganhe 20% de desconto em todo o site</p>
-                    <a href="/products" class="btn btn-light">Comprar Agora</a>
                 </div>
             </div>
         </section>
@@ -567,13 +539,86 @@ document.addEventListener('DOMContentLoaded', loadNavCategories);
             loadCategories();
             try { const r = await fetch('/api/products/featured'); const d = await r.json(); if (d.success) renderProducts('featuredProducts', d.data); } catch (e) {}
             try { const r = await fetch('/api/products/new-arrivals'); const d = await r.json(); if (d.success) renderProducts('newArrivals', d.data); } catch (e) {}
+
+            // Alertas rotativos no topo
+            try {
+                const r = await fetch('/api/alerts');
+                const d = await r.json();
+                if (d.success && d.data.length) {
+                    const textEl = document.getElementById('headerTopText');
+                    const alerts = d.data;
+                    let idx = 0;
+
+                    function showAlert(a) {
+                        const text = a.title ? `${a.title} — ${a.message}` : a.message;
+                        textEl.style.opacity = '0';
+                        setTimeout(() => {
+                            textEl.textContent = text;
+                            textEl.style.opacity = '1';
+                        }, 300);
+                    }
+
+                    textEl.style.transition = 'opacity 0.3s ease';
+                    showAlert(alerts[0]);
+                    if (alerts.length > 1) {
+                        setInterval(() => {
+                            idx = (idx + 1) % alerts.length;
+                            showAlert(alerts[idx]);
+                        }, 5000);
+                    }
+                }
+            } catch (e) {}
         });
         
-        let slide = 0, slides = document.querySelectorAll('.slide'), dots = document.querySelectorAll('.dot');
-        function showSlide(i) { slides.forEach(s => s.classList.remove('active')); dots.forEach(d => d.classList.remove('active')); slides[i].classList.add('active'); dots[i].classList.add('active'); }
+        let slide = 0, slides = [], dots = [];
+
+        function showSlide(i) {
+            slides.forEach(s => s.classList.remove('active'));
+            dots.forEach(d => d.classList.remove('active'));
+            if (slides[i]) slides[i].classList.add('active');
+            if (dots[i]) dots[i].classList.add('active');
+        }
+
+        async function loadHeroBanners() {
+            try {
+                const res = await fetch('/api/banners');
+                const data = await res.json();
+                if (!data.success || !data.data.length) return;
+
+                const heroBanners = data.data;
+                if (!heroBanners.length) return;
+
+                const slider = document.getElementById('heroSlider');
+                const dotsContainer = document.getElementById('sliderDots');
+
+                slider.innerHTML = heroBanners.map((b, i) => `
+                    <div class="slide ${i === 0 ? 'active' : ''}">
+                        <img src="${b.image_url}" alt="${b.title}">
+                        <div class="slide-overlay"></div>
+                        <div class="slide-content">
+                            ${b.subtitle ? `<span class="slide-subtitle">${b.subtitle}</span>` : ''}
+                            <h2 class="slide-title">${b.title}</h2>
+                            <a href="/products" class="btn btn-primary">Explorar Coleção</a>
+                        </div>
+                    </div>
+                `).join('');
+
+                dotsContainer.innerHTML = heroBanners.map((_, i) => `
+                    <div class="dot ${i === 0 ? 'active' : ''}" onclick="showSlide(${i}); slide=${i};"></div>
+                `).join('');
+
+                slides = Array.from(slider.querySelectorAll('.slide'));
+                dots = Array.from(dotsContainer.querySelectorAll('.dot'));
+                slide = 0;
+            } catch (e) {
+                console.error('Erro ao carregar banners:', e);
+            }
+        }
+
         document.getElementById('prevSlide').onclick = () => { slide = (slide - 1 + slides.length) % slides.length; showSlide(slide); };
         document.getElementById('nextSlide').onclick = () => { slide = (slide + 1) % slides.length; showSlide(slide); };
-        setInterval(() => { slide = (slide + 1) % slides.length; showSlide(slide); }, 5000);
+        setInterval(() => { if (slides.length) { slide = (slide + 1) % slides.length; showSlide(slide); } }, 5000);
+        loadHeroBanners();
         
         document.getElementById('categoriesPrev').onclick = () => goToPage(currentCategoryPage - 1);
         document.getElementById('categoriesNext').onclick = () => goToPage(currentCategoryPage + 1);

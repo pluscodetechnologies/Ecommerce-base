@@ -169,6 +169,7 @@
         let selectedShipping = null;
         let discountApplied = false;
         let discountAmount = 0;
+        let appliedCoupon = null;
         let selectedPayment = 'checkout_pro';
         
         document.querySelectorAll('.payment-option').forEach(opt => {
@@ -237,8 +238,10 @@
             }
             document.getElementById('summaryShipping').textContent = shippingText;
             
-            if (discountApplied) {
-                discountAmount = cartData.subtotal * 0.2;
+            if (discountApplied && appliedCoupon) {
+                discountAmount = appliedCoupon.discount_type === 'percentage'
+                    ? cartData.subtotal * (appliedCoupon.discount_value / 100)
+                    : appliedCoupon.discount_value;
                 document.getElementById('discountRow').style.display = 'flex';
                 document.getElementById('summaryDiscount').textContent = `- R$ ${discountAmount.toFixed(2)}`;
             }
@@ -278,21 +281,60 @@
             updateTotals();
         });
         
-        document.getElementById('applyCouponBtn').addEventListener('click', () => {
+        document.getElementById('applyCouponBtn').addEventListener('click', async () => {
             const code = document.getElementById('couponCode').value.trim().toUpperCase();
             const msg = document.getElementById('couponMessage');
-            
-            if (code === 'VELVET20') {
-                discountApplied = true;
-                msg.textContent = 'Cupom VELVET20 aplicado! 20% OFF';
-                msg.style.display = 'block';
-                msg.style.color = 'var(--success)';
-                updateTotals();
-            } else {
-                msg.textContent = 'Cupom inválido';
-                msg.style.display = 'block';
+            const btn = document.getElementById('applyCouponBtn');
+
+            if (!code) return;
+
+            btn.disabled = true;
+            btn.textContent = '...';
+
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const res = await fetch('/api/coupons/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, userId: user.id || null })
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    const c = result.data;
+
+                    if (c.min_purchase > 0 && cartData.subtotal < c.min_purchase) {
+                        msg.textContent = `Pedido mínimo de R$ ${c.min_purchase.toFixed(2)} para usar este cupom`;
+                        msg.style.color = 'var(--error)';
+                        msg.style.display = 'block';
+                        discountApplied = false;
+                        appliedCoupon = null;
+                    } else {
+                        appliedCoupon = c;
+                        discountApplied = true;
+                        const label = c.discount_type === 'percentage'
+                            ? `${c.discount_value}% OFF`
+                            : `R$ ${c.discount_value.toFixed(2)} OFF`;
+                        msg.textContent = `Cupom ${c.code} aplicado! ${label}`;
+                        msg.style.color = 'var(--success)';
+                        msg.style.display = 'block';
+                        updateTotals();
+                    }
+                } else {
+                    discountApplied = false;
+                    appliedCoupon = null;
+                    msg.textContent = result.message;
+                    msg.style.color = 'var(--error)';
+                    msg.style.display = 'block';
+                }
+            } catch (e) {
+                msg.textContent = 'Erro ao validar cupom';
                 msg.style.color = 'var(--error)';
+                msg.style.display = 'block';
             }
+
+            btn.disabled = false;
+            btn.textContent = 'Aplicar';
         });
         
         document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
@@ -328,7 +370,7 @@
                 const res = await fetch('/api/checkout/order', {
                     method: 'POST',
                     headers,
-                    body: JSON.stringify({ shipping, payment, coupon: discountApplied ? 'VELVET20' : null })
+                    body: JSON.stringify({ shipping, payment, coupon: appliedCoupon ? appliedCoupon.code : null })
                 });
                 
                 const data = await res.json();

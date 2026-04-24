@@ -13,5 +13,6 @@ router.post('/reset-password', authController.resetPassword.bind(authController)
 router.get('/profile', authMiddleware, authController.getProfile.bind(authController));
 router.put('/profile', authMiddleware, authController.updateProfile.bind(authController));
 router.put('/change-password', authMiddleware, authController.changePassword.bind(authController));
+router.put('/update-email', authMiddleware, authController.updateEmail.bind(authController));
 
 module.exports = router;

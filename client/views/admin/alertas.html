@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas - Velvet Store Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f5f7fa; display: flex; }
+        .sidebar { width: 280px; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; position: fixed; left: 0; top: 0; padding: 20px 0; }
+        .sidebar-header { padding: 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar-header h2 { color: white; font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: 2px; }
+        .sidebar-header span { color: rgba(255,255,255,0.6); font-size: 12px; text-transform: uppercase; }
+        .sidebar-menu { list-style: none; padding: 0 15px; }
+        .sidebar-menu li { margin-bottom: 5px; }
+        .sidebar-menu a { display: flex; align-items: center; padding: 14px 20px; color: rgba(255,255,255,0.7); text-decoration: none; border-radius: 12px; transition: all 0.3s ease; font-size: 15px; }
+        .sidebar-menu a i { width: 24px; margin-right: 12px; font-size: 18px; }
+        .sidebar-menu a:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar-menu .active { background: rgba(255,255,255,0.15); color: white; }
+        .sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 25px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .user-info { display: flex; align-items: center; margin-bottom: 15px; }
+        .user-avatar { width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 20px; }
+        .user-details h4 { color: white; font-size: 14px; margin-bottom: 2px; }
+        .user-details p { color: rgba(255,255,255,0.6); font-size: 12px; }
+        .logout-btn { display: flex; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.1); color: white; text-decoration: none; border-radius: 10px; }
+        .logout-btn:hover { background: rgba(231, 76, 60, 0.3); }
+        .logout-btn i { margin-right: 10px; }
+        .main-content { flex: 1; margin-left: 280px; padding: 30px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title h1 { font-size: 28px; color: #1a1a2e; margin-bottom: 5px; }
+        .page-title p { color: #666; font-size: 14px; }
+        .btn-primary { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .btn-primary:hover { opacity: 0.9; }
+
+        .info-box { background: #e8f4fd; border-left: 4px solid #1976d2; border-radius: 10px; padding: 16px 20px; margin-bottom: 30px; display: flex; align-items: flex-start; gap: 12px; }
+        .info-box i { color: #1976d2; font-size: 18px; margin-top: 2px; flex-shrink: 0; }
+        .info-box p { color: #1a3a5c; font-size: 14px; line-height: 1.6; }
+
+        .alerts-list { display: flex; flex-direction: column; gap: 16px; }
+        .alert-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 20px; }
+        .alert-preview { flex: 1; background: #1a1a2e; border-radius: 8px; padding: 10px 18px; display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .alert-preview-title { color: white; font-weight: 600; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
+        .alert-preview-sep { color: rgba(255,255,255,0.4); flex-shrink: 0; }
+        .alert-preview-msg { color: rgba(255,255,255,0.85); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .alert-meta { font-size: 12px; color: #999; white-space: nowrap; flex-shrink: 0; }
+        .alert-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .btn-icon { width: 36px; height: 36px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.2s; }
+        .btn-toggle-on { background: #d4edda; color: #155724; }
+        .btn-toggle-on:hover { background: #155724; color: white; }
+        .btn-toggle-off { background: #f8d7da; color: #721c24; }
+        .btn-toggle-off:hover { background: #721c24; color: white; }
+        .btn-delete { background: #ffebee; color: #c62828; }
+        .btn-delete:hover { background: #c62828; color: white; }
+
+        .empty-state { background: white; border-radius: 16px; padding: 60px 30px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .empty-state i { font-size: 48px; color: #ccc; margin-bottom: 16px; }
+        .empty-state p { color: #999; font-size: 15px; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: white; border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .modal-header h3 { font-size: 20px; color: #1a1a2e; }
+        .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 14px; outline: none; transition: border 0.2s; }
+        .form-group input:focus, .form-group textarea:focus { border-color: #1a1a2e; }
+        .form-group textarea { resize: vertical; min-height: 90px; }
+        .form-group .hint { font-size: 12px; color: #999; margin-top: 5px; }
+
+        .preview-box { background: #1a1a2e; border-radius: 8px; padding: 10px 18px; margin-top: 8px; display: flex; align-items: center; gap: 10px; }
+        .preview-box .preview-title { color: white; font-weight: 600; font-size: 13px; }
+        .preview-box .preview-sep { color: rgba(255,255,255,0.4); }
+        .preview-box .preview-msg { color: rgba(255,255,255,0.85); font-size: 13px; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>VELVET</h2>
+            <span>Admin Panel</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+            <li><a href="/admin/pedidos"><i class="fas fa-shopping-cart"></i> Pedidos</a></li>
+            <li><a href="/admin/produtos"><i class="fas fa-box"></i> Produtos</a></li>
+            <li><a href="/admin/categorias"><i class="fas fa-tags"></i> Categorias</a></li>
+            <li><a href="/admin/clientes"><i class="fas fa-users"></i> Clientes</a></li>
+            <li><a href="/admin/banners"><i class="fas fa-image"></i> Banners</a></li>
+            <li><a href="/admin/cupons"><i class="fas fa-ticket-alt"></i> Cupons</a></li>
+            <li><a href="/admin/alertas" class="active"><i class="fas fa-bell"></i> Alertas</a></li>
+            <li><a href="/admin/relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
+            <li><a href="/admin/configuracoes"><i class="fas fa-cog"></i> Configurações</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+                <div class="user-details">
+                    <h4 id="adminName">Administrador</h4>
+                    <p>Administrador</p>
+                </div>
+            </div>
+            <a href="/" target="_blank" class="logout-btn" style="margin-bottom:10px;background:rgba(255,255,255,0.07);"><i class="fas fa-store" style="margin-right:10px;"></i> Ver loja</a>
+            <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</a>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">
+                <h1>Alertas</h1>
+                <p>Mensagens exibidas na barra do topo da loja</p>
+            </div>
+            <button class="btn-primary" id="newAlertBtn"><i class="fas fa-plus"></i> Novo Alerta</button>
+        </div>
+
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <p>Os alertas ativos aparecem em rotação na barra preta do topo da loja. Use para comunicar promoções, cupons, frete grátis ou qualquer aviso importante.</p>
+        </div>
+
+        <div class="alerts-list" id="alertsList"></div>
+    </div>
+
+    <div class="modal" id="alertModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Novo Alerta</h3>
+                <button class="close-modal" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Título <span style="color:#999;font-weight:400">(destaque)</span></label>
+                <input type="text" id="alertTitle" placeholder="Ex: CUPOM" maxlength="30">
+                <div class="hint">Aparece em negrito antes da mensagem. Deixe em branco para não usar.</div>
+            </div>
+            <div class="form-group">
+                <label>Mensagem</label>
+                <textarea id="alertMessage" placeholder="Ex: Use VELVET20 e ganhe 20% de desconto na primeira compra"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Pré-visualização</label>
+                <div class="preview-box">
+                    <span class="preview-title" id="previewTitle"></span>
+                    <span class="preview-sep" id="previewSep" style="display:none">—</span>
+                    <span class="preview-msg" id="previewMsg">Sua mensagem aparece aqui</span>
+                </div>
+            </div>
+            <button class="btn-primary" id="saveAlertBtn" style="width:100%; justify-content:center;">Salvar Alerta</button>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const token = localStorage.getItem('token');
+        if (!token || user.role !== 'admin') window.location.href = '/admin';
+        document.getElementById('adminName').textContent = user.name || 'Administrador';
+        document.getElementById('logoutBtn').addEventListener('click', (e) => { e.preventDefault(); localStorage.clear(); window.location.href = '/admin'; });
+
+        const modal = document.getElementById('alertModal');
+        document.getElementById('newAlertBtn').addEventListener('click', () => modal.style.display = 'flex');
+        document.getElementById('closeModalBtn').addEventListener('click', () => modal.style.display = 'none');
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+        // Preview em tempo real
+        document.getElementById('alertTitle').addEventListener('input', updatePreview);
+        document.getElementById('alertMessage').addEventListener('input', updatePreview);
+
+        function updatePreview() {
+            const title = document.getElementById('alertTitle').value.trim();
+            const msg = document.getElementById('alertMessage').value.trim();
+            document.getElementById('previewTitle').textContent = title;
+            document.getElementById('previewSep').style.display = title ? 'inline' : 'none';
+            document.getElementById('previewMsg').textContent = msg || 'Sua mensagem aparece aqui';
+        }
+
+        async function loadAlerts() {
+            try {
+                const res = await fetch('/api/admin/alerts', { headers: { 'Authorization': `Bearer ${token}` } });
+                const result = await res.json();
+                const list = document.getElementById('alertsList');
+
+                if (!result.success || !result.data.length) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>Nenhum alerta criado ainda.</p>
+                        </div>`;
+                    return;
+                }
+
+                list.innerHTML = result.data.map(a => `
+                    <div class="alert-card">
+                        <div class="alert-preview">
+                            ${a.title ? `<span class="alert-preview-title">${a.title}</span><span class="alert-preview-sep">—</span>` : ''}
+                            <span class="alert-preview-msg">${a.message}</span>
+                        </div>
+                        <span class="alert-meta">${a.is_active ? '● Ativo' : '○ Inativo'}</span>
+                        <div class="alert-actions">
+                            <button class="btn-icon ${a.is_active ? 'btn-toggle-on' : 'btn-toggle-off'}"
+                                onclick="toggleAlert(${a.id}, ${a.is_active})"
+                                title="${a.is_active ? 'Desativar' : 'Ativar'}">
+                                <i class="fas fa-${a.is_active ? 'eye' : 'eye-slash'}"></i>
+                            </button>
+                            <button class="btn-icon btn-delete" onclick="deleteAlert(${a.id})" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) { console.error('Erro ao carregar alertas:', e); }
+        }
+
+        document.getElementById('saveAlertBtn').addEventListener('click', async () => {
+            const title = document.getElementById('alertTitle').value.trim();
+            const message = document.getElementById('alertMessage').value.trim();
+
+            if (!message) { alert('A mensagem é obrigatória.'); return; }
+
+            try {
+                await fetch('/api/admin/alerts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ title, message })
+                });
+                modal.style.display = 'none';
+                document.getElementById('alertTitle').value = '';
+                document.getElementById('alertMessage').value = '';
+                updatePreview();
+                loadAlerts();
+            } catch (e) { console.error('Erro ao salvar alerta:', e); }
+        });
+
+        window.toggleAlert = async function(id, currentState) {
+            try {
+                await fetch(`/api/admin/alerts/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ is_active: !currentState })
+                });
+                loadAlerts();
+            } catch (e) { console.error('Erro ao atualizar alerta:', e); }
+        };
+
+        window.deleteAlert = async function(id) {
+            if (!confirm('Excluir este alerta?')) return;
+            try {
+                await fetch(`/api/admin/alerts/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                loadAlerts();
+            } catch (e) { console.error('Erro ao excluir alerta:', e); }
+        };
+
+        loadAlerts();
+    </script>
+</body>
+</html>

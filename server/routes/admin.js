@@ -29,4 +29,9 @@ router.get('/reports/sales', adminController.getSalesReport.bind(adminController
 router.get('/settings', adminController.getSettings.bind(adminController));
 router.put('/settings', adminController.updateSettings.bind(adminController));
 
+router.get('/alerts', adminController.getAlerts.bind(adminController));
+router.post('/alerts', adminController.createAlert.bind(adminController));
+router.put('/alerts/:id', adminController.updateAlert.bind(adminController));
+router.delete('/alerts/:id', adminController.deleteAlert.bind(adminController));
+
 module.exports = router;

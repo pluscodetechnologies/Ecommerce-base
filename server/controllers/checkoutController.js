@@ -23,9 +23,36 @@ class CheckoutController {
             const subtotal = items.reduce((sum, item) => sum + (item.final_price * item.quantity), 0);
             const shippingCost = parseFloat(shipping?.cost) || 0;
             let discountAmount = 0;
-            
-            if (coupon === 'VELVET20') {
-                discountAmount = subtotal * 0.2;
+            let couponData = null;
+
+            if (coupon) {
+                const [couponRows] = await connection.execute(
+                    'SELECT * FROM coupons WHERE code = ? AND status = "active"',
+                    [coupon.trim().toUpperCase()]
+                );
+
+                if (couponRows.length) {
+                    couponData = couponRows[0];
+                    const isExpired = couponData.expires_at && new Date(couponData.expires_at) < new Date();
+                    const isExhausted = couponData.max_uses && couponData.used_count >= couponData.max_uses;
+
+                    let alreadyUsed = false;
+                    if (couponData.max_uses === 1 && userId) {
+                        const [usage] = await connection.execute(
+                            'SELECT id FROM coupon_usage WHERE coupon_id = ? AND user_id = ?',
+                            [couponData.id, userId]
+                        );
+                        alreadyUsed = usage.length > 0;
+                    }
+
+                    if (!isExpired && !isExhausted && !alreadyUsed) {
+                        if (couponData.discount_type === 'percentage') {
+                            discountAmount = subtotal * (couponData.discount_value / 100);
+                        } else {
+                            discountAmount = parseFloat(couponData.discount_value);
+                        }
+                    }
+                }
             }
             
             const totalAmount = subtotal + shippingCost - discountAmount;
@@ -62,6 +89,18 @@ class CheckoutController {
             }
             
             await Cart.clearCart(cart.id);
+
+            if (couponData && discountAmount > 0 && userId) {
+                await connection.execute(
+                    'INSERT INTO coupon_usage (coupon_id, user_id, order_id, discount_amount) VALUES (?, ?, ?, ?)',
+                    [couponData.id, userId, orderId, discountAmount]
+                );
+                await connection.execute(
+                    'UPDATE coupons SET used_count = used_count + 1 WHERE id = ?',
+                    [couponData.id]
+                );
+            }
+
             await connection.commit();
             
             res.json({ success: true, orderId, orderNumber, totalAmount });

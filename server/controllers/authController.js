@@ -214,38 +214,91 @@ class AuthController {
         try {
             const { email } = req.body;
             const db = getDB();
-            
-            const [users] = await db.execute(
-                'SELECT id FROM users WHERE email = ?',
-                [email]
-            );
-            
-            if (users.length === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Email não encontrado'
-                });
+
+            const [users] = await db.execute('SELECT id FROM users WHERE email = ?', [email]);
+
+            // Sempre retorna sucesso para não revelar se o email existe
+            if (!users.length) {
+                return res.json({ success: true, message: 'Se o email existir, você receberá um link de recuperação' });
             }
-            
-            res.json({
-                success: true,
-                message: 'Se o email existir, você receberá um link de recuperação'
-            });
+
+            const crypto = require('crypto');
+            const token = crypto.randomBytes(32).toString('hex');
+            const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+            await db.execute(
+                'UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?',
+                [token, expires, users[0].id]
+            );
+
+            const { sendPasswordResetEmail } = require('../services/emailService');
+            await sendPasswordResetEmail(email, token);
+
+            res.json({ success: true, message: 'Se o email existir, você receberá um link de recuperação' });
         } catch (error) {
             console.error('Erro ao recuperar senha:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Erro ao processar solicitação'
-            });
+            res.status(500).json({ success: false, message: 'Erro ao processar solicitação' });
         }
     }
-    
+
     async resetPassword(req, res) {
-        res.json({
-            success: true,
-            message: 'Senha redefinida com sucesso'
-        });
+        try {
+            const { token, newPassword } = req.body;
+            const db = getDB();
+
+            const [users] = await db.execute(
+                'SELECT id FROM users WHERE reset_token = ? AND reset_expires > NOW()',
+                [token]
+            );
+
+            if (!users.length) {
+                return res.status(400).json({ success: false, message: 'Link inválido ou expirado' });
+            }
+
+            const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!passwordRegex.test(newPassword)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'A senha deve ter no mínimo 8 caracteres, uma letra maiúscula, um número e um símbolo'
+                });
+            }
+
+            const bcrypt = require('bcrypt');
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            await db.execute(
+                'UPDATE users SET password = ?, reset_token = NULL, reset_expires = NULL WHERE id = ?',
+                [hashedPassword, users[0].id]
+            );
+
+            res.json({ success: true, message: 'Senha redefinida com sucesso' });
+        } catch (error) {
+            console.error('Erro ao redefinir senha:', error);
+            res.status(500).json({ success: false, message: 'Erro ao redefinir senha' });
+        }
+    }
+
+    async updateEmail(req, res) {
+        try {
+            const { newEmail } = req.body;
+            const db = getDB();
+
+            if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+                return res.status(400).json({ success: false, message: 'Email inválido' });
+            }
+
+            const [existing] = await db.execute('SELECT id FROM users WHERE email = ? AND id != ?', [newEmail, req.userId]);
+            if (existing.length) {
+                return res.status(400).json({ success: false, message: 'Este email já está em uso' });
+            }
+
+            await db.execute('UPDATE users SET email = ? WHERE id = ?', [newEmail, req.userId]);
+
+            res.json({ success: true, message: 'Email atualizado com sucesso' });
+        } catch (error) {
+            console.error('Erro ao atualizar email:', error);
+            res.status(500).json({ success: false, message: 'Erro ao atualizar email' });
+        }
     }
 }
-
 module.exports = new AuthController();
