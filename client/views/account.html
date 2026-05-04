@@ -197,16 +197,27 @@
             <div class="account-grid">
                 <div class="account-sidebar">
                     <ul class="sidebar-menu">
-                        <li class="active"><a href="#"><i class="fas fa-user"></i> Meus Dados</a></li>
-                        <li><a href="#"><i class="fas fa-shopping-bag"></i> Meus Pedidos</a></li>
-                        <li><a href="#"><i class="fas fa-map-marker-alt"></i> Endereços</a></li>
+                        <li class="active" id="tabDados"><a href="#" onclick="showTab('dados',this)"><i class="fas fa-user"></i> Meus Dados</a></li>
+                        <li id="tabPedidos"><a href="#" onclick="showTab('pedidos',this)"><i class="fas fa-shopping-bag"></i> Meus Pedidos</a></li>
+                        <li id="tabFavoritos"><a href="#" onclick="showTab('favoritos',this)"><i class="fas fa-heart"></i> Favoritos</a></li>
                         <li><a href="#" id="logoutSidebar"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
                     </ul>
                 </div>
                 <div class="account-content">
-                    <div class="account-section">
+                    <!-- ABA: DADOS -->
+                    <div class="account-section" id="sectionDados">
                         <h2>Meus Dados</h2>
                         <div id="profileInfo">Carregando...</div>
+                    </div>
+                    <!-- ABA: PEDIDOS -->
+                    <div class="account-section" id="sectionPedidos" style="display:none;">
+                        <h2>Meus Pedidos</h2>
+                        <div id="ordersList">Carregando...</div>
+                    </div>
+                    <!-- ABA: FAVORITOS -->
+                    <div class="account-section" id="sectionFavoritos" style="display:none;">
+                        <h2>Favoritos</h2>
+                        <div id="favoritosList">Carregando...</div>
                     </div>
                 </div>
             </div>
@@ -220,12 +231,54 @@
 
     <script src="/js/auth.js"></script>
     <script src="/js/cart.js"></script>
+    <script src="/js/wishlist.js"></script>
+    <style>
+        .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+        .fav-card { border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; }
+        .fav-card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+        .fav-card-info { padding: 12px; }
+        .fav-card-info h4 { font-size: 13px; margin-bottom: 6px; }
+        .fav-card-info a { color: var(--dark); text-decoration: none; }
+        .fav-card-info a:hover { color: var(--primary); }
+        .fav-card-price { font-size: 13px; font-weight: 600; color: var(--primary); }
+        .fav-card-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-fav-remove { flex: 1; padding: 7px; background: transparent; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+        .btn-fav-remove:hover { border-color: #e74c3c; color: #e74c3c; }
+        .empty-state { text-align: center; padding: 50px 20px; color: var(--gray); }
+        .empty-state i { font-size: 48px; display: block; margin-bottom: 14px; opacity: 0.25; }
+        .empty-state p { font-size: 14px; margin-bottom: 16px; }
+        .empty-state a { color: var(--primary); text-decoration: none; font-weight: 500; }
+        .order-card { border: 1px solid var(--border-light); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .order-number { font-weight: 600; font-size: 14px; }
+        .order-date { font-size: 12px; color: var(--gray); }
+        .order-status { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-pending  { background: #FFF3CD; color: #856404; }
+        .status-paid     { background: #D4EDDA; color: #155724; }
+        .status-shipped  { background: #CCE5FF; color: #004085; }
+        .status-delivered{ background: #D4EDDA; color: #155724; }
+        .status-cancelled{ background: #F8D7DA; color: #721C24; }
+        .order-total { font-weight: 600; font-size: 15px; }
+    </style>
     <script>
         if (!auth.isAuthenticated()) window.location.href = '/login';
-        
+
+        // ── Navegação entre abas ─────────────────────────────────────────────
+        window.showTab = function(tab, link) {
+            ['dados','pedidos','favoritos'].forEach(t => {
+                document.getElementById('section' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = 'none';
+                document.getElementById('tab'    + t.charAt(0).toUpperCase() + t.slice(1)).classList.remove('active');
+            });
+            document.getElementById('section' + tab.charAt(0).toUpperCase() + tab.slice(1)).style.display = 'block';
+            link.closest('li').classList.add('active');
+            if (tab === 'pedidos')   loadOrders();
+            if (tab === 'favoritos') loadFavoritos();
+        };
+
+        // ── Meus Dados ───────────────────────────────────────────────────────
         async function loadProfile() {
             try {
-                const res = await auth.fetchWithAuth('/api/auth/profile');
+                const res  = await auth.fetchWithAuth('/api/auth/profile');
                 const data = await res.json();
                 if (data.success) {
                     document.getElementById('profileInfo').innerHTML = `
@@ -233,45 +286,93 @@
                         <div class="info-row"><span class="info-label">Email:</span><span class="info-value">${data.data.email}</span></div>
                         <div class="info-row"><span class="info-label">Telefone:</span><span class="info-value">${data.data.phone || '-'}</span></div>
                         <div class="info-row"><span class="info-label">CPF:</span><span class="info-value">${data.data.cpf || '-'}</span></div>
-                        <button class="btn-edit" onclick="alert('Funcionalidade em desenvolvimento')">Editar Perfil</button>`;
+                        <button class="btn-edit" onclick="alert('Em desenvolvimento')">Editar Perfil</button>`;
                 }
             } catch (e) { console.error(e); }
         }
 
-        async function loadNavCategories() {
-    try {
-        const res = await fetch('/api/categories');
-        const data = await res.json();
-        
-        if (data.success && data.data.length > 0) {
-            const dropdown = document.getElementById('categoriesDropdown');
-            if (dropdown) {
-                const activeCategories = data.data.filter(c => c.status === 'active');
-                
-                let html = '';
-                
-                activeCategories.forEach(cat => {
-                    html += `<li><a href="/products?category=${cat.slug}">${cat.name}</a></li>`;
-                });
-                
-                while (html.split('<li>').length - 1 < 8) {
-                    html += `<li><a href="#" style="visibility: hidden;"> </a></li>`;
+        // ── Meus Pedidos ─────────────────────────────────────────────────────
+        async function loadOrders() {
+            const el = document.getElementById('ordersList');
+            el.innerHTML = 'Carregando...';
+            try {
+                const res  = await auth.fetchWithAuth('/api/orders');
+                const data = await res.json();
+                if (!data.success || !data.data?.length) {
+                    el.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>Nenhum pedido ainda.</p><a href="/products">Explorar produtos →</a></div>`;
+                    return;
                 }
-                
-                html += `<li class="view-all"><a href="/products">Ver Todas as Categorias</a></li>`;
-                
-                dropdown.innerHTML = html;
-            }
+                const statusLabel = { pending: 'Aguardando', paid: 'Pago', shipped: 'Enviado', delivered: 'Entregue', cancelled: 'Cancelado' };
+                el.innerHTML = data.data.map(o => `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <div class="order-number">#${o.order_number}</div>
+                                <div class="order-date">${new Date(o.created_at).toLocaleDateString('pt-BR')}</div>
+                            </div>
+                            <span class="order-status status-${o.status}">${statusLabel[o.status] || o.status}</span>
+                            <div class="order-total">R$ ${parseFloat(o.total_amount).toFixed(2)}</div>
+                        </div>
+                    </div>`).join('');
+            } catch (e) { el.innerHTML = 'Erro ao carregar pedidos.'; }
         }
-    } catch (e) {
-        console.error('Erro ao carregar categorias da navbar:', e);
-    }
-}
 
-document.addEventListener('DOMContentLoaded', loadNavCategories);
+        // ── Favoritos ────────────────────────────────────────────────────────
+        async function loadFavoritos() {
+            const el = document.getElementById('favoritosList');
+            el.innerHTML = 'Carregando...';
+            try {
+                const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+                const res   = await fetch('/api/wishlist', { headers: { Authorization: `Bearer ${token}` } });
+                const data  = await res.json();
+                if (!data.success || !data.data?.length) {
+                    el.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><p>Nenhum favorito ainda.</p><a href="/products">Explorar produtos →</a></div>`;
+                    return;
+                }
+                el.innerHTML = `<div class="fav-grid">${data.data.map(p => {
+                    const price = p.promotional_price || p.price;
+                    return `<div class="fav-card" id="fav-${p.product_id}">
+                        <a href="/product?id=${p.product_id}"><img src="${p.main_image}" alt="${p.name}"></a>
+                        <div class="fav-card-info">
+                            <h4><a href="/product?id=${p.product_id}">${p.name}</a></h4>
+                            <div class="fav-card-price">R$ ${parseFloat(price).toFixed(2)}</div>
+                            <div class="fav-card-actions">
+                                <button class="btn-fav-remove" onclick="removeFavorito(${p.product_id})">
+                                    <i class="far fa-trash-alt"></i> Remover
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('')}</div>`;
+            } catch (e) { el.innerHTML = 'Erro ao carregar favoritos.'; }
+        }
 
-document.addEventListener('DOMContentLoaded', loadNavCategories);
-        
+        window.removeFavorito = async function(productId) {
+            await Wishlist.toggle(productId);
+            document.getElementById(`fav-${productId}`)?.remove();
+            // Se ficou vazio, mostra estado vazio
+            const grid = document.querySelector('.fav-grid');
+            if (grid && !grid.children.length) loadFavoritos();
+        };
+
+        // ── Nav categorias ───────────────────────────────────────────────────
+        async function loadNavCategories() {
+            try {
+                const res  = await fetch('/api/categories');
+                const data = await res.json();
+                if (data.success && data.data.length) {
+                    const dropdown = document.getElementById('categoriesDropdown');
+                    if (dropdown) {
+                        let html = data.data.filter(c => c.status === 'active')
+                            .map(cat => `<li><a href="/products?category=${cat.slug}">${cat.name}</a></li>`).join('');
+                        html += `<li class="view-all"><a href="/products">Ver Todas as Categorias</a></li>`;
+                        dropdown.innerHTML = html;
+                    }
+                }
+            } catch {}
+        }
+
+        document.addEventListener('DOMContentLoaded', loadNavCategories);
         document.getElementById('logoutSidebar').onclick = (e) => { e.preventDefault(); auth.logout(); };
         loadProfile();
     </script>

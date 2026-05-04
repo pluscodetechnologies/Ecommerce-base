@@ -40,6 +40,15 @@ app.use('/api/cart', cartRoutes);
 const checkoutRoutes = require('./routes/checkout');
 app.use('/api/checkout', checkoutRoutes);
 
+const reviewRoutes = require('./routes/reviews');
+app.use('/api/reviews', reviewRoutes);
+
+const orderRoutes = require('./routes/orders');
+app.use('/api/orders', orderRoutes);
+
+const wishlistRoutes = require('./routes/wishlist');
+app.use('/api/wishlist', wishlistRoutes);
+
 app.get('/api/products/featured', async (req, res) => {
     try {
         const db = require('./config/database').getDB();
