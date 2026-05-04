@@ -51,7 +51,6 @@
         .breadcrumb a { color: var(--gray); text-decoration: none; }
         .breadcrumb a:hover { color: var(--primary); }
 
-        /* ── PRODUTO ── */
         .product-detail { padding: 40px 0 60px; }
         .product-container { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
         .product-gallery { position: relative; }
@@ -65,14 +64,9 @@
 
         .product-info h1 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; margin-bottom: 8px; }
         .product-sku { color: var(--gray); font-size: 12px; margin-bottom: 12px; }
-
-        /* estrelinhas no topo do produto */
         .product-rating-summary { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; cursor: pointer; }
         .stars-display { display: flex; gap: 2px; }
-        .stars-display i { font-size: 14px; color: #DAA520; }
-        .stars-display i.empty { color: #DDD; }
         .rating-count { font-size: 13px; color: var(--gray); text-decoration: underline; }
-
         .product-price-container { display: flex; align-items: baseline; gap: 15px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-light); }
         .current-price { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 600; }
         .old-price { color: var(--gray); text-decoration: line-through; font-size: 18px; }
@@ -87,6 +81,19 @@
         .stock-status.out { color: #CD5C5C; }
 
         .purchase-section { background: #F8F6F4; padding: 25px; border-radius: 8px; }
+        .variations-section { margin-bottom: 20px; }
+        .variation-group { margin-bottom: 16px; }
+        .variation-label { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; display: flex; gap: 6px; }
+        .variation-label span { color: var(--dark); font-weight: 600; }
+        .variation-options { display: flex; flex-wrap: wrap; gap: 8px; }
+        .var-btn { padding: 8px 16px; border: 1.5px solid var(--border-light); border-radius: 4px; background: white; font-family: 'Montserrat', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; min-width: 44px; text-align: center; }
+        .var-btn:hover { border-color: var(--primary); }
+        .var-btn.selected { border-color: var(--primary); background: var(--primary); color: white; }
+        .var-btn.color-btn { width: 36px; height: 36px; padding: 0; border-radius: 50%; position: relative; }
+        .var-btn.color-btn.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+        .stock-warning { font-size: 12px; color: #C47C2A; margin-top: 8px; display: none; }
+        .stock-warning.visible { display: block; }
+
         .quantity-selector { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
         .quantity-control { display: flex; align-items: center; border: 1px solid var(--border-light); border-radius: 4px; background: white; }
         .quantity-control button { width: 40px; height: 40px; border: none; background: white; cursor: pointer; font-size: 18px; transition: all 0.2s; }
@@ -96,18 +103,13 @@
         .btn-add-cart:hover { background: var(--primary-dark); }
         .btn-add-cart:disabled { background: var(--gray); cursor: not-allowed; }
 
-        /* ── SEÇÃO DE AVALIAÇÕES ── */
+        /* Reviews */
         .reviews-section { padding: 60px 0; border-top: 1px solid var(--border-light); }
         .reviews-section h2 { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; margin-bottom: 40px; }
-
         .reviews-layout { display: grid; grid-template-columns: 280px 1fr; gap: 50px; align-items: start; }
-
-        /* painel de stats */
         .reviews-stats { background: #F8F6F4; border-radius: 12px; padding: 28px; text-align: center; }
-        .stats-score { font-family: 'Cormorant Garamond', serif; font-size: 64px; font-weight: 600; line-height: 1; color: var(--dark); }
+        .stats-score { font-family: 'Cormorant Garamond', serif; font-size: 64px; font-weight: 600; line-height: 1; }
         .stats-stars { display: flex; justify-content: center; gap: 4px; margin: 8px 0; }
-        .stats-stars i { font-size: 18px; color: #DAA520; }
-        .stats-stars i.empty { color: #DDD; }
         .stats-total { font-size: 13px; color: var(--gray); margin-bottom: 20px; }
         .stats-bars { display: flex; flex-direction: column; gap: 8px; text-align: left; }
         .bar-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
@@ -115,12 +117,8 @@
         .bar-track { flex: 1; height: 6px; background: #E8E4E0; border-radius: 3px; overflow: hidden; }
         .bar-fill { height: 100%; background: #DAA520; border-radius: 3px; transition: width 0.6s ease; }
         .bar-count { width: 20px; color: var(--gray); text-align: right; }
-
-        /* botão de escrever avaliação */
         .btn-write-review { width: 100%; margin-top: 20px; padding: 12px; border: 2px solid var(--primary); color: var(--primary); background: transparent; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; }
         .btn-write-review:hover { background: var(--primary); color: white; }
-
-        /* lista de reviews */
         .reviews-list { display: flex; flex-direction: column; gap: 24px; }
         .review-card { border-bottom: 1px solid var(--border-light); padding-bottom: 24px; }
         .review-card:last-child { border-bottom: none; }
@@ -128,35 +126,28 @@
         .review-author { font-weight: 600; font-size: 14px; }
         .review-date { font-size: 12px; color: var(--gray); margin-top: 2px; }
         .review-stars { display: flex; gap: 2px; margin-bottom: 6px; }
-        .review-stars i { font-size: 13px; color: #DAA520; }
-        .review-stars i.empty { color: #DDD; }
         .review-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
         .review-comment { font-size: 14px; color: #555; line-height: 1.6; }
         .reviews-empty { text-align: center; padding: 40px; color: var(--gray); font-size: 14px; }
         .reviews-empty i { font-size: 40px; display: block; margin-bottom: 12px; opacity: 0.3; }
-
-        /* formulário de avaliação */
         .review-form-wrap { display: none; background: #F8F6F4; border-radius: 12px; padding: 28px; margin-bottom: 30px; }
         .review-form-wrap.visible { display: block; }
         .review-form-wrap h3 { font-family: 'Cormorant Garamond', serif; font-size: 22px; margin-bottom: 20px; }
         .star-picker { display: flex; gap: 6px; margin-bottom: 20px; flex-direction: row-reverse; justify-content: flex-end; }
         .star-picker input { display: none; }
         .star-picker label { font-size: 28px; color: #DDD; cursor: pointer; transition: color 0.1s; }
-        .star-picker label:hover,
-        .star-picker label:hover ~ label,
-        .star-picker input:checked ~ label { color: #DAA520; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); margin-bottom: 6px; }
-        .form-group input, .form-group textarea { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-light); border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 14px; background: white; }
-        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
-        .form-group textarea { resize: vertical; min-height: 100px; }
+        .star-picker label:hover, .star-picker label:hover ~ label, .star-picker input:checked ~ label { color: #DAA520; }
+        .rf-group { margin-bottom: 16px; }
+        .rf-group label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); margin-bottom: 6px; }
+        .rf-group input, .rf-group textarea { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-light); border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 14px; background: white; }
+        .rf-group input:focus, .rf-group textarea:focus { outline: none; border-color: var(--primary); }
+        .rf-group textarea { resize: vertical; min-height: 100px; }
         .review-form-actions { display: flex; gap: 12px; }
-        .btn-submit-review { padding: 12px 28px; background: var(--primary); color: white; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: background 0.2s; }
+        .btn-submit-review { padding: 12px 28px; background: var(--primary); color: white; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; }
         .btn-submit-review:hover { background: var(--primary-dark); }
         .btn-cancel-review { padding: 12px 20px; background: transparent; border: 1.5px solid var(--border-light); border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 13px; cursor: pointer; }
         .review-msg { font-size: 13px; margin-top: 10px; display: none; }
 
-        /* footer */
         .footer { background: var(--dark); color: white; margin-top: 40px; }
         .footer-main { padding: 60px 0 40px; }
         .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 40px; }
@@ -216,13 +207,11 @@
         </div>
     </section>
 
-    <!-- SEÇÃO DE AVALIAÇÕES -->
+    <!-- AVALIAÇÕES -->
     <section class="reviews-section">
         <div class="container">
             <h2>Avaliações dos Clientes</h2>
             <div class="reviews-layout">
-
-                <!-- Stats -->
                 <div>
                     <div class="reviews-stats" id="reviewsStats">
                         <div class="stats-score" id="statsScore">—</div>
@@ -234,15 +223,12 @@
                         <i class="fas fa-pen" style="margin-right:6px;"></i> Escrever Avaliação
                     </button>
                 </div>
-
-                <!-- Lista + formulário -->
                 <div>
-                    <!-- Formulário (oculto por padrão) -->
                     <div class="review-form-wrap" id="reviewFormWrap">
                         <h3>Sua Avaliação</h3>
                         <div style="margin-bottom:16px;">
                             <label style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);display:block;margin-bottom:8px;">Nota *</label>
-                            <div class="star-picker" id="starPicker">
+                            <div class="star-picker">
                                 <input type="radio" name="rating" id="s5" value="5"><label for="s5"><i class="fas fa-star"></i></label>
                                 <input type="radio" name="rating" id="s4" value="4"><label for="s4"><i class="fas fa-star"></i></label>
                                 <input type="radio" name="rating" id="s3" value="3"><label for="s3"><i class="fas fa-star"></i></label>
@@ -250,22 +236,14 @@
                                 <input type="radio" name="rating" id="s1" value="1"><label for="s1"><i class="fas fa-star"></i></label>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Título</label>
-                            <input type="text" id="reviewTitle" placeholder="Resumo da sua avaliação">
-                        </div>
-                        <div class="form-group">
-                            <label>Comentário</label>
-                            <textarea id="reviewComment" placeholder="Conte o que achou do produto..."></textarea>
-                        </div>
+                        <div class="rf-group"><label>Título</label><input type="text" id="reviewTitle" placeholder="Resumo da sua avaliação"></div>
+                        <div class="rf-group"><label>Comentário</label><textarea id="reviewComment" placeholder="Conte o que achou do produto..."></textarea></div>
                         <div class="review-form-actions">
                             <button class="btn-submit-review" onclick="submitReview()">Enviar Avaliação</button>
                             <button class="btn-cancel-review" onclick="toggleReviewForm()">Cancelar</button>
                         </div>
                         <p class="review-msg" id="reviewMsg"></p>
                     </div>
-
-                    <!-- Lista de avaliações -->
                     <div class="reviews-list" id="reviewsList">
                         <div class="reviews-empty"><i class="fas fa-comment-slash"></i>Carregando avaliações...</div>
                     </div>
@@ -302,10 +280,11 @@
             } catch (e) { console.error(e); }
         }
 
-        function renderStars(rating, size = 14) {
+        function renderStars(rating, size) {
+            size = size || 14;
             let html = '';
             for (let i = 1; i <= 5; i++) {
-                html += `<i class="fas fa-star${i <= rating ? '' : ' empty'}" style="font-size:${size}px;color:${i <= rating ? '#DAA520' : '#DDD'}"></i>`;
+                html += `<i class="fas fa-star" style="font-size:${size}px;color:${i <= rating ? '#DAA520' : '#DDD'}"></i>`;
             }
             return html;
         }
@@ -313,7 +292,7 @@
         function renderProduct() {
             const price  = parseFloat(product.price) || 0;
             const promo  = product.promotional_price ? parseFloat(product.promotional_price) : null;
-            const images = product.images?.length ? product.images : ['https://via.placeholder.com/600x800'];
+            const images = product.images && product.images.length ? product.images : ['https://via.placeholder.com/600x800'];
             const stock  = product.stock || 0;
 
             document.getElementById('breadcrumbProduct').textContent = product.name;
@@ -336,7 +315,7 @@
                 <div class="product-info">
                     <h1>${product.name}</h1>
                     <div class="product-sku">SKU: ${product.sku || 'N/A'}</div>
-                    <div class="product-rating-summary" id="productRatingSummary" onclick="document.querySelector('.reviews-section').scrollIntoView({behavior:'smooth'})">
+                    <div class="product-rating-summary" onclick="document.querySelector('.reviews-section').scrollIntoView({behavior:'smooth'})">
                         <div class="stars-display" id="productStars">${renderStars(0)}</div>
                         <span class="rating-count" id="productRatingCount">Ver avaliações</span>
                     </div>
@@ -350,6 +329,7 @@
                         <div class="meta-item"><span class="meta-label">Disponibilidade:</span><span class="meta-value stock-status ${stockClass}">${stockStatus}</span></div>
                     </div>
                     <div class="purchase-section">
+                        <div id="variationsSection" class="variations-section"></div>
                         <div class="quantity-selector">
                             <label>Quantidade:</label>
                             <div class="quantity-control">
@@ -358,6 +338,7 @@
                                 <button type="button" id="increaseQty">+</button>
                             </div>
                         </div>
+                        <p class="stock-warning" id="stockWarning"></p>
                         <button class="btn-add-cart" id="addToCartBtn" ${stock === 0 ? 'disabled' : ''}>
                             <i class="fas fa-shopping-bag"></i> Adicionar ao Carrinho
                         </button>
@@ -373,6 +354,10 @@
                 i.value = Math.min(parseInt(i.max) || 99, parseInt(i.value) + 1);
             };
             document.getElementById('addToCartBtn').onclick = async () => {
+                if (window._colors && window._colors.length > 0 && !window._selectedColor) {
+                    alert('Selecione uma cor antes de adicionar ao carrinho.');
+                    return;
+                }
                 const qty = parseInt(document.getElementById('quantity').value);
                 const ok  = await addToCart(productId, qty);
                 if (ok) {
@@ -383,13 +368,117 @@
             };
         }
 
-        window.setMainImage = function(index) {
-            const imgs = product.images || [];
-            if (imgs[index]) {
-                document.getElementById('mainImageImg').src = imgs[index];
+        window.setMainImage = function(index, imgs) {
+            const images = imgs || product.images || [];
+            if (images[index]) {
+                document.getElementById('mainImageImg').src = images[index];
                 document.querySelectorAll('.thumbnail').forEach((t, i) => t.classList.toggle('active', i === index));
             }
         };
+
+        // ── Tamanhos e Cores ─────────────────────────────────────────────────
+        window._colors        = [];
+        window._selectedColor = null;
+        window._selectedSize  = null;
+        window._defaultImages = [];
+
+        async function loadVariations() {
+            window._defaultImages = [...(product.images || [])];
+            const section = document.getElementById('variationsSection');
+            let html = '';
+
+            // Tamanhos vêm do campo sizes do produto
+            if (product.sizes) {
+                const sizes = product.sizes.split(',').map(s => s.trim()).filter(Boolean);
+                if (sizes.length) {
+                    html += `<div class="variation-group">
+                        <div class="variation-label">Tamanho: <span id="selectedSizeLabel">Selecione</span></div>
+                        <div class="variation-options">
+                            ${sizes.map(s => `<button class="var-btn" data-type="size" data-value="${s}">${s}</button>`).join('')}
+                        </div>
+                    </div>`;
+                }
+            }
+
+            // Cores vêm da API
+            try {
+                const res  = await fetch(`/api/colors/${productId}`);
+                const data = await res.json();
+                if (data.success && data.data.length) {
+                    window._colors = data.data;
+                    html += `<div class="variation-group">
+                        <div class="variation-label">Cor: <span id="selectedColorLabel">Selecione</span></div>
+                        <div class="variation-options">
+                            ${data.data.map(c => {
+                                if (c.hex) {
+                                    return `<button class="var-btn color-btn" data-type="color" data-value="${c.name}" style="background:${c.hex};border-color:${c.hex};" title="${c.name}"></button>`;
+                                }
+                                return `<button class="var-btn" data-type="color" data-value="${c.name}">${c.name}</button>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
+                }
+            } catch (e) { console.error('Erro ao carregar cores:', e); }
+
+            if (!html) return;
+            section.innerHTML = html;
+
+            section.querySelectorAll('.var-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.dataset.type;
+                    section.querySelectorAll(`.var-btn[data-type="${type}"]`).forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+
+                    if (type === 'size') {
+                        window._selectedSize = btn.dataset.value;
+                        const lbl = document.getElementById('selectedSizeLabel');
+                        if (lbl) lbl.textContent = btn.dataset.value;
+                    }
+
+                    if (type === 'color') {
+                        window._selectedColor = btn.dataset.value;
+                        const lbl = document.getElementById('selectedColorLabel');
+                        if (lbl) lbl.textContent = btn.dataset.value;
+
+                        const color = window._colors.find(c => c.name === btn.dataset.value);
+                        swapGallery(color && color.images && color.images.length ? color.images : window._defaultImages);
+
+                        if (color) {
+                            const warning  = document.getElementById('stockWarning');
+                            const addBtn   = document.getElementById('addToCartBtn');
+                            const qtyInput = document.getElementById('quantity');
+                            qtyInput.max    = color.stock;
+                            addBtn.disabled = color.stock === 0;
+                            if (color.stock === 0) {
+                                warning.textContent = 'Esta cor está esgotada.';
+                                warning.classList.add('visible');
+                            } else if (color.stock <= 3) {
+                                warning.textContent = `Apenas ${color.stock} restante${color.stock > 1 ? 's' : ''}!`;
+                                warning.classList.add('visible');
+                            } else {
+                                warning.classList.remove('visible');
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function swapGallery(images) {
+            if (!images || !images.length) return;
+            const mainImg = document.getElementById('mainImageImg');
+            if (mainImg) mainImg.src = images[0];
+            const thumbList = document.getElementById('thumbnailList');
+            if (!thumbList) return;
+            if (images.length > 1) {
+                thumbList.innerHTML = images.map((img, i) => `
+                    <div class="thumbnail ${i===0?'active':''}" onclick="setMainImage(${i}, ${JSON.stringify(images).replace(/"/g,'&quot;')})">
+                        <img src="${img}" alt="">
+                    </div>`).join('');
+            } else {
+                thumbList.innerHTML = '';
+            }
+        }
 
         // ── Avaliações ───────────────────────────────────────────────────────
         async function loadReviews() {
@@ -397,13 +486,10 @@
                 const res  = await fetch(`/api/reviews/${productId}`);
                 const data = await res.json();
                 if (!data.success) return;
-
                 renderStats(data.stats);
                 renderReviewsList(data.data);
-
-                // Atualiza mini-rating no topo do produto
                 if (data.stats.total > 0) {
-                    document.getElementById('productStars').innerHTML     = renderStars(Math.round(data.stats.average));
+                    document.getElementById('productStars').innerHTML = renderStars(Math.round(data.stats.average));
                     document.getElementById('productRatingCount').textContent =
                         `${data.stats.average} (${data.stats.total} avaliação${data.stats.total !== 1 ? 'ões' : ''})`;
                 }
@@ -413,17 +499,13 @@
         function renderStats(s) {
             const total = parseInt(s.total) || 0;
             const avg   = parseFloat(s.average) || 0;
-
             document.getElementById('statsScore').textContent = total ? avg.toFixed(1) : '—';
             document.getElementById('statsStars').innerHTML   = total ? renderStars(Math.round(avg), 18) : '';
-            document.getElementById('statsTotal').textContent = total
-                ? `${total} avaliação${total !== 1 ? 'ões' : ''}`
-                : 'Nenhuma avaliação ainda';
-
+            document.getElementById('statsTotal').textContent = total ? `${total} avaliação${total !== 1 ? 'ões' : ''}` : 'Nenhuma avaliação ainda';
             if (total) {
                 const counts = { 5: s.five, 4: s.four, 3: s.three, 2: s.two, 1: s.one };
                 document.getElementById('statsBars').innerHTML = [5,4,3,2,1].map(n => {
-                    const pct = total ? Math.round((counts[n] / total) * 100) : 0;
+                    const pct = Math.round((counts[n] / total) * 100);
                     return `<div class="bar-row">
                         <span>${n} <i class="fas fa-star" style="color:#DAA520;font-size:10px;"></i></span>
                         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
@@ -436,10 +518,7 @@
         function renderReviewsList(reviews) {
             const el = document.getElementById('reviewsList');
             if (!reviews.length) {
-                el.innerHTML = `<div class="reviews-empty">
-                    <i class="fas fa-comment-slash"></i>
-                    Nenhuma avaliação ainda. Seja o primeiro a avaliar!
-                </div>`;
+                el.innerHTML = `<div class="reviews-empty"><i class="fas fa-comment-slash"></i>Nenhuma avaliação ainda. Seja o primeiro a avaliar!</div>`;
                 return;
             }
             el.innerHTML = reviews.map(r => `
@@ -451,13 +530,11 @@
                         </div>
                     </div>
                     <div class="review-stars">${renderStars(r.rating, 13)}</div>
-                    ${r.title ? `<div class="review-title">${r.title}</div>` : ''}
+                    ${r.title   ? `<div class="review-title">${r.title}</div>`   : ''}
                     ${r.comment ? `<div class="review-comment">${r.comment}</div>` : ''}
-                </div>
-            `).join('');
+                </div>`).join('');
         }
 
-        // ── Formulário de avaliação ──────────────────────────────────────────
         window.toggleReviewForm = function() {
             const wrap = document.getElementById('reviewFormWrap');
             const isVisible = wrap.classList.toggle('visible');
@@ -471,48 +548,34 @@
             const msgEl    = document.getElementById('reviewMsg');
 
             if (!ratingEl) {
-                msgEl.textContent   = 'Selecione uma nota antes de enviar.';
-                msgEl.style.color   = '#C45C5C';
-                msgEl.style.display = 'block';
+                msgEl.textContent = 'Selecione uma nota antes de enviar.';
+                msgEl.style.color = '#C45C5C'; msgEl.style.display = 'block';
                 return;
             }
-
-            // Verifica se está logado
             const token = localStorage.getItem('authToken') || localStorage.getItem('token');
             if (!token) {
-                msgEl.innerHTML     = 'Você precisa <a href="/login" style="color:var(--primary);">fazer login</a> para avaliar.';
-                msgEl.style.color   = '#C45C5C';
-                msgEl.style.display = 'block';
+                msgEl.innerHTML = 'Você precisa <a href="/login" style="color:var(--primary);">fazer login</a> para avaliar.';
+                msgEl.style.color = '#C45C5C'; msgEl.style.display = 'block';
                 return;
             }
-
             try {
                 const res  = await fetch(`/api/reviews/${productId}`, {
-                    method:  'POST',
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body:    JSON.stringify({ rating: parseInt(ratingEl.value), title, comment })
+                    body: JSON.stringify({ rating: parseInt(ratingEl.value), title, comment })
                 });
                 const data = await res.json();
-
                 if (data.success) {
-                    msgEl.textContent   = '✓ Avaliação enviada com sucesso!';
-                    msgEl.style.color   = '#2E8B57';
-                    msgEl.style.display = 'block';
-                    // Recarrega avaliações e fecha o form após 1.5s
-                    setTimeout(() => {
-                        document.getElementById('reviewFormWrap').classList.remove('visible');
-                        msgEl.style.display = 'none';
-                        loadReviews();
-                    }, 1500);
+                    msgEl.textContent = '✓ Avaliação enviada!';
+                    msgEl.style.color = '#2E8B57'; msgEl.style.display = 'block';
+                    setTimeout(() => { document.getElementById('reviewFormWrap').classList.remove('visible'); msgEl.style.display = 'none'; loadReviews(); }, 1500);
                 } else {
-                    msgEl.textContent   = data.message || 'Erro ao enviar avaliação.';
-                    msgEl.style.color   = '#C45C5C';
-                    msgEl.style.display = 'block';
+                    msgEl.textContent = data.message || 'Erro ao enviar.';
+                    msgEl.style.color = '#C45C5C'; msgEl.style.display = 'block';
                 }
             } catch (e) {
-                msgEl.textContent   = 'Erro de conexão. Tente novamente.';
-                msgEl.style.color   = '#C45C5C';
-                msgEl.style.display = 'block';
+                msgEl.textContent = 'Erro de conexão.';
+                msgEl.style.color = '#C45C5C'; msgEl.style.display = 'block';
             }
         };
 
@@ -525,8 +588,7 @@
                     const dropdown = document.getElementById('categoriesDropdown');
                     if (dropdown) {
                         let html = data.data.filter(c => c.status === 'active')
-                            .map(cat => `<li><a href="/products?category=${cat.slug}">${cat.name}</a></li>`)
-                            .join('');
+                            .map(cat => `<li><a href="/products?category=${cat.slug}">${cat.name}</a></li>`).join('');
                         html += `<li class="view-all"><a href="/products">Ver Todas as Categorias</a></li>`;
                         dropdown.innerHTML = html;
                     }
@@ -536,7 +598,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadNavCategories();
-            loadProduct().then(() => loadReviews());
+            loadProduct().then(() => {
+                loadReviews();
+                loadVariations();
+            });
         });
     </script>
 </body>

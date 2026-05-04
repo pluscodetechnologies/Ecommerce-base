@@ -159,9 +159,9 @@ class AdminController {
             .replace(/^-|-$/g, '');
         
         const [result] = await db.execute(
-            `INSERT INTO products (name, slug, description, price, promotional_price, sku, stock, category_id, status, is_featured, images, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-            [name, slug, description || null, price, promotional_price || null, sku || null, stock || 0, category_id || null, status || 'active', is_featured || false, JSON.stringify(images || [])]
+            `INSERT INTO products (name, slug, description, price, promotional_price, sku, stock, category_id, status, is_featured, images, sizes, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+            [name, slug, description || null, price, promotional_price || null, sku || null, stock || 0, category_id || null, status || 'active', is_featured || false, JSON.stringify(images || []), req.body.sizes || null]
         );
         
         res.status(201).json({
@@ -178,7 +178,7 @@ class AdminController {
 async updateProduct(req, res) {
     try {
         const { id } = req.params;
-        const { name, description, price, promotional_price, sku, stock, category_id, status, is_featured, images } = req.body;
+        const { name, description, price, promotional_price, sku, stock, category_id, status, is_featured, images, sizes } = req.body;
         const db = getDB();
         
         const slug = name.toLowerCase()
@@ -193,8 +193,8 @@ async updateProduct(req, res) {
         
         await db.execute(
             `UPDATE products SET name = ?, slug = ?, description = ?, price = ?, promotional_price = ?,
-             sku = ?, stock = ?, category_id = ?, status = ?, is_featured = ?, images = ? WHERE id = ?`,
-            [name, slug, description || null, price, promotional_price || null, sku || null, stock || 0, category_id || null, status, is_featured || false, JSON.stringify(images || []), id]
+             sku = ?, stock = ?, category_id = ?, status = ?, is_featured = ?, images = ?, sizes = ? WHERE id = ?`,
+            [name, slug, description || null, price, promotional_price || null, sku || null, stock || 0, category_id || null, status, is_featured || false, JSON.stringify(images || []), sizes || null, id]
         );
         
         res.json({ success: true, message: 'Produto atualizado com sucesso' });
