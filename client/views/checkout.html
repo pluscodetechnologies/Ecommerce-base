@@ -447,6 +447,72 @@
         }
         document.getElementById('shippingCep').addEventListener('blur', function () { buscaCep(this.value); });
 
+        // ── Restaurar frete e cupom do carrinho ──────────────────────────────
+        async function restoreFromCart() {
+            // Frete
+            const savedShipping = sessionStorage.getItem('cartShipping');
+            if (savedShipping) {
+                try {
+                    const s = JSON.parse(savedShipping);
+                    selectedShipping = s;
+
+                    // Preenche o CEP
+                    if (s.cep) {
+                        const formatted = s.cep.replace(/^(\d{5})(\d{3})$/, '$1-$2');
+                        const cepField  = document.getElementById('shippingCep');
+                        const cepCalc   = document.getElementById('cepCalc');
+                        if (cepField) cepField.value = formatted;
+                        if (cepCalc)  cepCalc.value  = formatted;
+                        // Busca endereço automaticamente
+                        if (typeof buscaCep === 'function') await buscaCep(s.cep);
+                    }
+
+                    // Mostra opção de frete selecionada
+                    const wrap = document.getElementById('shippingOptions');
+                    if (wrap) {
+                        wrap.innerHTML = `
+                            <label class="shipping-opt selected">
+                                <input type="radio" name="shippingOpt" value='${JSON.stringify(s)}' checked>
+                                <div class="shipping-opt-info">
+                                    <div class="shipping-opt-name">${s.name}</div>
+                                    <div class="shipping-opt-days" style="font-size:11px;color:#888;">Selecionado no carrinho</div>
+                                </div>
+                                <div class="shipping-opt-price">R$ ${parseFloat(s.price).toFixed(2).replace('.', ',')}</div>
+                            </label>
+                            <button type="button" onclick="recalcShipping()" style="background:none;border:none;color:#888;font-size:11px;cursor:pointer;margin-top:4px;text-decoration:underline;">Recalcular frete</button>`;
+                    }
+                    updateTotals();
+                } catch(e) { console.warn('restoreFromCart shipping:', e); }
+            }
+
+            // Cupom
+            const savedCoupon = sessionStorage.getItem('cartCoupon');
+            if (savedCoupon) {
+                try {
+                    const c = JSON.parse(savedCoupon);
+                    appliedCoupon = c;
+                    const couponField = document.getElementById('couponCode');
+                    const couponMsg   = document.getElementById('couponMessage');
+                    if (couponField) couponField.value = c.code;
+                    if (couponMsg) {
+                        const label = c.discount_type === 'percentage'
+                            ? `${c.discount_value}% OFF`
+                            : `R$ ${parseFloat(c.discount_value).toFixed(2)} OFF`;
+                        couponMsg.textContent   = `✓ Cupom ${c.code} aplicado — ${label}`;
+                        couponMsg.style.color   = 'var(--success)';
+                        couponMsg.style.display = 'block';
+                    }
+                    updateTotals();
+                } catch(e) { console.warn('restoreFromCart coupon:', e); }
+            }
+        }
+
+        window.recalcShipping = async function() {
+            const cep = (document.getElementById('cepCalc')?.value || '').replace(/\D/g, '');
+            if (cep.length !== 8) return;
+            document.getElementById('calcShippingBtn')?.click();
+        };
+
         // ── Carregar carrinho ─────────────────────────────────────────────────
         async function loadCart() {
             try {
@@ -645,7 +711,9 @@
             }
         });
 
-        loadCart();
+        loadCart().then(() => {
+            restoreFromCart();
+        });
     </script>
 </body>
 </html>

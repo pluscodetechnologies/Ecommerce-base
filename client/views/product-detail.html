@@ -102,6 +102,11 @@
         .btn-add-cart { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 600; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; transition: background 0.2s; }
         .btn-add-cart:hover { background: var(--primary-dark); }
         .btn-add-cart:disabled { background: var(--gray); cursor: not-allowed; }
+        .btn-wishlist { width: 100%; padding: 14px; background: transparent; color: var(--dark); border: 1.5px solid var(--dark); border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; transition: all 0.2s; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-wishlist:hover { background: var(--dark); color: white; }
+        .btn-wishlist.active { border-color: #C45C5C; color: #C45C5C; }
+        .btn-wishlist.active:hover { background: #C45C5C; color: white; }
+        .btn-wishlist i { font-size: 16px; }
 
         /* Reviews */
         .reviews-section { padding: 60px 0; border-top: 1px solid var(--border-light); }
@@ -261,6 +266,7 @@
 
     <script src="/js/auth.js"></script>
     <script src="/js/cart.js"></script>
+    <script src="/js/wishlist.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
@@ -342,6 +348,9 @@
                         <button class="btn-add-cart" id="addToCartBtn" ${stock === 0 ? 'disabled' : ''}>
                             <i class="fas fa-shopping-bag"></i> Adicionar ao Carrinho
                         </button>
+                        <button class="btn-wishlist" id="wishlistBtn">
+                            <i class="far fa-heart"></i> Adicionar aos Favoritos
+                        </button>
                     </div>
                 </div>`;
 
@@ -372,6 +381,28 @@
                     setTimeout(() => btn.innerHTML = '<i class="fas fa-shopping-bag"></i> Adicionar ao Carrinho', 2000);
                 }
             };
+
+            // ── Botão de favoritos ────────────────────────────────────────────
+            const wishlistBtn = document.getElementById('wishlistBtn');
+            if (wishlistBtn) {
+                // Verificar se já é favorito
+                Wishlist.getIds().then(ids => {
+                    const isFav = ids.has(String(productId));
+                    updateWishlistBtn(wishlistBtn, isFav);
+                });
+
+                wishlistBtn.onclick = async () => {
+                    const action = await Wishlist.toggle(productId);
+                    if (action) updateWishlistBtn(wishlistBtn, action === 'added');
+                };
+            }
+
+            function updateWishlistBtn(btn, isFav) {
+                btn.innerHTML = isFav
+                    ? '<i class="fas fa-heart"></i> Salvo nos Favoritos'
+                    : '<i class="far fa-heart"></i> Adicionar aos Favoritos';
+                btn.classList.toggle('active', isFav);
+            }
         }
 
         window.setMainImage = function(index, imgs) {

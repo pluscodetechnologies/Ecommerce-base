@@ -265,6 +265,21 @@
                             <div id="shippingResult"></div>
                         </div>
 
+                        <!-- Cupom -->
+                        <div class="shipping-calc" style="margin-top:16px;">
+                            <h4>Cupom de Desconto</h4>
+                            <div class="shipping-input">
+                                <input type="text" id="couponInput" placeholder="CÓDIGO DO CUPOM" style="text-transform:uppercase;">
+                                <button type="button" id="applyCouponBtn">Aplicar</button>
+                            </div>
+                            <div id="couponMsg" style="font-size:12px;margin-top:6px;display:none;"></div>
+                        </div>
+
+                        <div class="summary-row" id="discountRow" style="display:none;">
+                            <span>Desconto</span>
+                            <span id="discountRowValue" style="color:#2E8B57;">—</span>
+                        </div>
+
                         <div class="summary-total">
                             <span>Total</span>
                             <span id="cartTotal">R$ ${cartData.subtotal.toFixed(2)}</span>
@@ -325,7 +340,79 @@
             });
 
             document.getElementById('calcShippingBtn').addEventListener('click', calcShipping);
-            document.getElementById('checkoutBtn').addEventListener('click', () => window.location.href = '/checkout');
+            document.getElementById('applyCouponBtn').addEventListener('click', applyCoupon);
+            document.getElementById('couponInput').addEventListener('keydown', e => { if (e.key === 'Enter') applyCoupon(); });
+            document.getElementById('checkoutBtn').addEventListener('click', () => {
+                // Garante que cupom está salvo no sessionStorage
+                if (appliedCoupon) {
+                    sessionStorage.setItem('cartCoupon', JSON.stringify(appliedCoupon));
+                } else {
+                    sessionStorage.removeItem('cartCoupon');
+                }
+                window.location.href = '/checkout';
+            });
+        }
+
+        // ── Cupom ────────────────────────────────────────────────────────────────
+        async function applyCoupon() {
+            const input = document.getElementById('couponInput');
+            const msg   = document.getElementById('couponMsg');
+            const btn   = document.getElementById('applyCouponBtn');
+            const code  = input.value.trim().toUpperCase();
+            if (!code) return;
+
+            btn.disabled = true; btn.textContent = '...';
+            msg.style.display = 'none';
+
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const res  = await fetch('/api/coupons/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, userId: user.id || null })
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    const c = result.data;
+                    if (c.min_purchase > 0 && cartData.subtotal < c.min_purchase) {
+                        msg.textContent   = `Pedido mínimo de R$ ${parseFloat(c.min_purchase).toFixed(2)} para este cupom.`;
+                        msg.style.color   = '#C45C5C';
+                        msg.style.display = 'block';
+                        appliedCoupon = null;
+                        sessionStorage.removeItem('cartCoupon');
+                    } else {
+                        appliedCoupon = c;
+                        sessionStorage.setItem('cartCoupon', JSON.stringify(c));
+                        const label = c.discount_type === 'percentage'
+                            ? `${c.discount_value}% OFF`
+                            : `R$ ${parseFloat(c.discount_value).toFixed(2)} OFF`;
+                        msg.textContent   = `✓ Cupom ${c.code} aplicado — ${label}`;
+                        msg.style.color   = '#2E8B57';
+                        msg.style.display = 'block';
+
+                        // Mostra linha de desconto
+                        const discount = calcDiscount(cartData.subtotal);
+                        const discRow  = document.getElementById('discountRow');
+                        if (discRow) {
+                            discRow.style.display = 'flex';
+                            document.getElementById('discountRowValue').textContent = `- R$ ${discount.toFixed(2)}`;
+                        }
+                        updateCartTotal();
+                    }
+                } else {
+                    appliedCoupon = null;
+                    sessionStorage.removeItem('cartCoupon');
+                    msg.textContent   = result.message || 'Cupom inválido.';
+                    msg.style.color   = '#C45C5C';
+                    msg.style.display = 'block';
+                }
+            } catch {
+                msg.textContent = 'Erro ao validar cupom.';
+                msg.style.color = '#C45C5C';
+                msg.style.display = 'block';
+            }
+            btn.disabled = false; btn.textContent = 'Aplicar';
         }
 
         // ── Calcular frete real ───────────────────────────────────────────────
@@ -359,7 +446,7 @@
 
             try {
                 const items = (cartData.items || []).map(i => ({ quantity: i.quantity, weight: 0.3 }));
-                const res   = await fetch('/api/checkout/shipping-proxy', {
+                const res   = await fetch('/api/checkout/shipping', {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body:    JSON.stringify({ zipcode: cep, items })
@@ -414,6 +501,10 @@
         function selectShipping(price, name) {
             selectedShipping = { price, name };
 
+            // Persiste no sessionStorage para o checkout pré-preencher
+            const cep = (document.getElementById('shippingCep')?.value || '').replace(/\D/g, '');
+            sessionStorage.setItem('cartShipping', JSON.stringify({ price, name, cep }));
+
             // Atualiza linha de frete no resumo
             const shippingRow = document.getElementById('shippingRow');
             if (shippingRow) {
@@ -427,9 +518,27 @@
                 }
             }
 
-            // Atualiza total
-            const total = (cartData.subtotal || 0) + price;
+            // Atualiza total (desconta cupom se houver)
+            const discount = appliedCoupon ? calcDiscount(cartData.subtotal) : 0;
+            const total = (cartData.subtotal || 0) + price - discount;
             const totalEl = document.getElementById('cartTotal');
+            if (totalEl) totalEl.textContent = `R$ ${total.toFixed(2)}`;
+        }
+
+        let appliedCoupon = null;
+
+        function calcDiscount(subtotal) {
+            if (!appliedCoupon) return 0;
+            return appliedCoupon.discount_type === 'percentage'
+                ? subtotal * (appliedCoupon.discount_value / 100)
+                : parseFloat(appliedCoupon.discount_value);
+        }
+
+        function updateCartTotal() {
+            const shipping  = selectedShipping ? selectedShipping.price : 0;
+            const discount  = calcDiscount(cartData.subtotal);
+            const total     = (cartData.subtotal || 0) + shipping - discount;
+            const totalEl   = document.getElementById('cartTotal');
             if (totalEl) totalEl.textContent = `R$ ${total.toFixed(2)}`;
         }
 
