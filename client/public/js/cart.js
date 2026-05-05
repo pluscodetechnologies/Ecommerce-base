@@ -33,7 +33,7 @@ function updateCartDisplay() {
     });
 }
 
-async function addToCart(productId, quantity = 1) {
+async function addToCart(productId, quantity = 1, color = null, size = null) {
     try {
         const headers = { 'Content-Type': 'application/json' };
         if (sessionId) headers['X-Session-Id'] = sessionId;
@@ -44,7 +44,7 @@ async function addToCart(productId, quantity = 1) {
         const res = await fetch('/api/cart/add', {
             method: 'POST',
             headers,
-            body: JSON.stringify({ productId, quantity })
+            body: JSON.stringify({ productId, quantity, color, size })
         });
         const data = await res.json();
         

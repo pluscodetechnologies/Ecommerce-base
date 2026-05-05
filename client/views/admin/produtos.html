@@ -85,6 +85,7 @@
                 <div class="user-avatar"><i class="fas fa-user"></i></div>
                 <div class="user-details"><h4 id="adminName">Administrador</h4><p>Admin</p></div>
             </div>
+            <a href="/" target="_blank" class="logout-btn" style="margin-bottom:10px;background:rgba(255,255,255,0.07);"><i class="fas fa-store" style="margin-right:10px;"></i> Ver loja</a>
             <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</a>
         </div>
     </div>
@@ -146,38 +147,21 @@
                     <label>Produto em Destaque (aparece na página inicial)</label>
                 </div>
 
-                <!-- TAMANHOS -->
-                <div style="border-top:1px solid #eee;margin:20px 0 16px;padding-top:20px;">
-                    <div class="form-group">
-                        <label style="font-weight:600;font-size:14px;">Tamanhos disponíveis</label>
-                        <input type="text" id="productSizes" placeholder="Ex: P, M, G, GG, XGG" style="margin-top:6px;">
-                        <p style="font-size:11px;color:#999;margin-top:4px;">Separe por vírgula. Aparecem como botões na página do produto.</p>
-                    </div>
-                </div>
-
-                <!-- CORES -->
-                <div style="border-top:1px solid #eee;margin:0 0 20px;padding-top:20px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                        <label style="font-weight:600;font-size:14px;">Cores disponíveis</label>
-                        <button type="button" id="addColorRow" style="padding:6px 14px;background:#1a1a2e;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">+ Adicionar cor</button>
-                    </div>
-                    <table style="width:100%;border-collapse:collapse;font-size:12px;">
-                        <thead>
-                            <tr style="background:#f5f5f5;">
-                                <th style="padding:8px;text-align:left;border:1px solid #eee;width:120px;">Nome da cor</th>
-                                <th style="padding:8px;text-align:left;border:1px solid #eee;width:100px;">Hex (opcional)</th>
-                                <th style="padding:8px;text-align:left;border:1px solid #eee;width:70px;">Estoque</th>
-                                <th style="padding:8px;text-align:left;border:1px solid #eee;">URLs das imagens (separadas por vírgula)</th>
-                                <th style="padding:8px;width:30px;border:1px solid #eee;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="colorsBody"></tbody>
-                    </table>
-                    <p style="font-size:11px;color:#999;margin-top:6px;">Ao clicar na cor no produto, a galeria troca para as imagens desta cor.</p>
-                </div>
-
-                <button type="submit" class="btn-primary" style="width:100%;">Salvar Produto</button>
             </form>
+
+            <!-- CORES E TAMANHOS — fora do <form> para evitar reset acidental -->
+            <div style="border-top:1px solid #eee;margin:20px 0 20px;padding-top:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div>
+                        <label style="font-weight:600;font-size:14px;">Cores e Tamanhos</label>
+                        <p style="font-size:11px;color:#999;margin-top:2px;">Cada cor pode ter tamanhos com estoques diferentes. Deixe o tamanho em branco para produtos sem variação de tamanho.</p>
+                    </div>
+                    <button type="button" id="addColorRow" style="padding:6px 14px;background:#1a1a2e;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap;">+ Adicionar cor</button>
+                </div>
+                <div id="colorsContainer"></div>
+            </div>
+
+            <button type="button" id="saveProductBtn" class="btn-primary" style="width:100%;margin-top:4px;">Salvar Produto</button>
         </div>
     </div>
 
@@ -264,7 +248,6 @@
                 document.getElementById('productStock').value           = p.stock || 0;
                 document.getElementById('productCategory').value        = p.category_id || '';
                 document.getElementById('productStatus').value          = p.status || 'active';
-                document.getElementById('productSizes').value           = p.sizes || '';
                 document.getElementById('productFeatured').checked      = p.is_featured === 1 || p.is_featured === true;
 
                 let images = [];
@@ -272,7 +255,7 @@
                 document.getElementById('productImages').value = Array.isArray(images) ? images.join(', ') : '';
 
                 modal.style.display = 'flex';
-                loadColorsAdmin(p.id);
+                loadVariationsAdmin(p.id);
             } catch (e) { console.error(e); }
         };
 
@@ -284,8 +267,11 @@
             } catch (e) { console.error(e); }
         };
 
-        productForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        document.getElementById('saveProductBtn').addEventListener('click', async (e) => {
+            // Validação manual (substitui o 'required' do form)
+            if (!document.getElementById('productName').value.trim()) { alert('Informe o nome do produto.'); return; }
+            if (!document.getElementById('productPrice').value) { alert('Informe o preço do produto.'); return; }
+            if (!document.getElementById('productStock').value) { alert('Informe o estoque do produto.'); return; }
             const id          = document.getElementById('productId').value;
             const imagesValue = document.getElementById('productImages').value;
             const images      = imagesValue ? imagesValue.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -301,7 +287,6 @@
                 status:            document.getElementById('productStatus').value,
                 is_featured:       document.getElementById('productFeatured').checked,
                 images,
-                sizes:             document.getElementById('productSizes').value.trim() || null
             };
 
             try {
@@ -310,7 +295,7 @@
                 const res    = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(data) });
                 const result = await res.json();
                 const savedId = id ? parseInt(id) : (result.data?.id || null);
-                if (savedId) await saveColors(savedId);
+                if (savedId) await saveVariations(savedId);
                 modal.style.display = 'none';
                 loadProducts();
             } catch (e) { console.error(e); }
@@ -324,73 +309,215 @@
             });
         });
 
-        // ── Cores ────────────────────────────────────────────────────────────
-        function colorRow(c) {
-            c = c || {};
-            const imgs = Array.isArray(c.images) ? c.images.join(', ') : (c.images || '');
-            const hex  = c.hex || '';
-            return `<tr>
-                <td style="padding:4px;border:1px solid #eee;">
-                    <input type="text" placeholder="Ex: Branco, Preto..." value="${c.name||''}" class="c-name" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:3px;font-size:12px;">
-                </td>
-                <td style="padding:4px;border:1px solid #eee;">
-                    <div style="display:flex;gap:4px;align-items:center;">
-                        <input type="text" placeholder="#ffffff" value="${hex}" class="c-hex" style="flex:1;padding:6px;border:1px solid #ddd;border-radius:3px;font-size:12px;" oninput="previewHex(this)">
-                        <div class="c-preview" style="width:22px;height:22px;border-radius:50%;border:1px solid #ddd;background:${hex||'#fff'};flex-shrink:0;"></div>
-                    </div>
-                </td>
-                <td style="padding:4px;border:1px solid #eee;">
-                    <input type="number" placeholder="0" value="${c.stock||0}" class="c-stock" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:3px;font-size:12px;">
-                </td>
-                <td style="padding:4px;border:1px solid #eee;">
-                    <input type="text" placeholder="https://img1.jpg, https://img2.jpg" value="${imgs}" class="c-images" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:3px;font-size:12px;">
-                </td>
-                <td style="padding:4px;border:1px solid #eee;text-align:center;">
-                    <button type="button" onclick="this.closest('tr').remove()" style="background:#e74c3c;color:white;border:none;width:24px;height:24px;border-radius:3px;cursor:pointer;font-size:14px;">×</button>
-                </td>
-            </tr>`;
-        }
+        // ── Cores + Tamanhos (Variações) ──────────────────────────────────────
 
         window.previewHex = function(input) {
-            const preview = input.closest('div').querySelector('.c-preview');
-            if (preview) preview.style.background = input.value.trim() || '#fff';
+            const preview = input.parentElement.querySelector('.c-preview');
+            if (preview) preview.style.background = input.value.trim() || '#eee';
         };
 
-        document.getElementById('addColorRow').onclick = () => {
-            document.getElementById('colorsBody').insertAdjacentHTML('beforeend', colorRow());
+        window.toggleColorPrice = function(checkbox, priceId) {
+            const input = document.getElementById(priceId);
+            if (!input) return;
+            if (checkbox.checked) {
+                input.style.display = 'none';
+                input.value = '';
+            } else {
+                input.style.display = '';
+                input.focus();
+            }
         };
 
-        async function loadColorsAdmin(productId) {
-            try {
-                const res  = await fetch(`/api/colors/${productId}`, { headers: { Authorization: `Bearer ${token}` } });
-                const data = await res.json();
-                const body = document.getElementById('colorsBody');
-                body.innerHTML = '';
-                if (data.success && data.data.length) {
-                    data.data.forEach(c => body.insertAdjacentHTML('beforeend', colorRow(c)));
-                }
-            } catch (e) { console.error('loadColorsAdmin:', e); }
+        function makeSizeRow(size = '', stock = 0) {
+            return `<div class="size-row" style="display:flex;gap:6px;align-items:center;margin-top:6px;">
+                <input type="text" placeholder="Ex: P, M, G, GG…" value="${size}" class="s-size"
+                    style="flex:1;min-width:60px;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+                <input type="number" min="0" placeholder="Estoque" value="${stock}" class="s-stock"
+                    style="width:80px;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+                <button type="button" onclick="this.closest('.size-row').remove()"
+                    style="background:#e74c3c;color:white;border:none;width:24px;height:24px;border-radius:4px;cursor:pointer;font-size:14px;flex-shrink:0;">×</button>
+            </div>`;
         }
 
-        async function saveColors(productId) {
-            const rows  = document.querySelectorAll('#colorsBody tr');
-            const colors = Array.from(rows).map(row => {
-                const imgsRaw = row.querySelector('.c-images')?.value.trim() || '';
-                return {
-                    name:   row.querySelector('.c-name').value.trim(),
-                    hex:    row.querySelector('.c-hex').value.trim() || null,
-                    stock:  parseInt(row.querySelector('.c-stock').value) || 0,
-                    images: imgsRaw ? imgsRaw.split(',').map(s => s.trim()).filter(Boolean) : [],
-                };
-            }).filter(c => c.name);
+        function makeColorBlock(c) {
+            c = c || {};
+            const hex       = c.hex   || '';
+            const imgs      = Array.isArray(c.images) ? c.images.join(', ') : (c.images || '');
+            const sizes     = c.sizes || [];
+            const hasPrice  = c.price && parseFloat(c.price) > 0;
+            const priceNum  = parseFloat(c.price) || 0;
 
-            if (!colors.length) return;
+            const sizeRowsHtml = sizes.length
+                ? sizes.map(s => makeSizeRow(s.size, s.stock)).join('')
+                : makeSizeRow();
 
-            await fetch(`/api/colors/${productId}`, {
+            const priceId = 'cp_' + Math.random().toString(36).slice(2, 7);
+            const blockId = 'cb_' + Math.random().toString(36).slice(2, 8);
+            return `<div class="color-block" style="border:1px solid #e0e0e0;border-radius:8px;padding:12px;margin-bottom:10px;background:#fafafa;" id="${blockId}">
+                <!-- cabeçalho da cor -->
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <input type="text" placeholder="Nome da cor (ex: Branco)" value="${c.name||''}" class="c-name"
+                        style="flex:1;min-width:100px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-weight:500;">
+                    <div style="display:flex;gap:4px;align-items:center;">
+                        <input type="text" placeholder="#ffffff" value="${hex}" class="c-hex"
+                            style="width:80px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;"
+                            oninput="previewHex(this)">
+                        <div class="c-preview" style="width:24px;height:24px;border-radius:50%;border:1px solid #ccc;background:${hex||'#eee'};flex-shrink:0;"></div>
+                    </div>
+                    <button type="button" onclick="document.getElementById('${blockId}').remove()"
+                        style="background:#e74c3c;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;">Remover cor</button>
+                </div>
+
+                <!-- preço por cor -->
+                <div style="margin-top:8px;display:flex;align-items:center;gap:10px;">
+                    <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#555;cursor:pointer;white-space:nowrap;">
+                        <input type="checkbox" class="c-same-price" ${hasPrice ? '' : 'checked'}
+                            onchange="toggleColorPrice(this,'${priceId}')">
+                        Mesmo preço do produto
+                    </label>
+                    <input type="number" id="${priceId}" min="0" step="0.01" placeholder="Preço desta cor (R$)"
+                        value="${hasPrice ? priceNum.toFixed(2) : ''}" class="c-price"
+                        style="width:160px;padding:5px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;${hasPrice ? '' : 'display:none;'}">
+                </div>
+
+                <!-- imagens da cor -->
+                <div style="margin-top:8px;">
+                    <label style="font-size:11px;color:#888;font-weight:500;">URLs das imagens desta cor (separadas por vírgula)</label>
+                    <input type="text" placeholder="https://img1.jpg, https://img2.jpg" value="${imgs}" class="c-images"
+                        style="width:100%;margin-top:4px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;box-sizing:border-box;">
+                </div>
+
+                <!-- tamanhos -->
+                <div style="margin-top:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <label style="font-size:11px;color:#888;font-weight:500;">Tamanhos e estoques <span style="color:#aaa;">(deixe o tamanho em branco para produto sem tamanho)</span></label>
+                        <button type="button" class="add-size-btn"
+                            style="font-size:11px;padding:3px 10px;background:#1a1a2e;color:white;border:none;border-radius:4px;cursor:pointer;">+ Tamanho</button>
+                    </div>
+                    <div class="sizes-list">
+                        ${sizeRowsHtml}
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        document.getElementById('addColorRow').addEventListener('click', () => {
+            const container = document.getElementById('colorsContainer');
+            const div = document.createElement('div');
+            div.innerHTML = makeColorBlock();
+            const block = div.firstElementChild;
+            container.appendChild(block);
+            block.querySelector('.add-size-btn').addEventListener('click', function() {
+                this.closest('.color-block').querySelector('.sizes-list').insertAdjacentHTML('beforeend', makeSizeRow());
+            });
+        });
+
+        async function loadVariationsAdmin(productId) {
+            try {
+                // Buscar variações e cores em paralelo
+                const [varRes, colRes] = await Promise.all([
+                    fetch(`/api/variations/${productId}`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }),
+                    fetch(`/api/colors/${productId}`,     { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' })
+                ]);
+                const varData = await varRes.json();
+                const colData = await colRes.json();
+
+                if (!varData.success || !varData.data.length) return;
+
+                // Mapa de cores com hex e imagens (product_colors é a fonte de verdade para imagens)
+                const colorMeta = {};
+                if (colData.success) {
+                    colData.data.forEach(c => {
+                        colorMeta[c.name] = { hex: c.hex || '', images: Array.isArray(c.images) ? c.images : [] };
+                    });
+                }
+
+                // Agrupar variações por cor
+                const byColor = {};
+                varData.data.forEach(v => {
+                    const key = v.color || '__sem_cor__';
+                    if (!byColor[key]) {
+                        const meta = colorMeta[v.color] || {};
+                        byColor[key] = {
+                            name:   v.color || '',
+                            hex:    meta.hex    || '',
+                            // imagens: preferir product_colors; fallback para a variação
+                            images: (meta.images && meta.images.length) ? meta.images : (v.images || []),
+                            sizes:  []
+                        };
+                    }
+                    // price_adjustment is per-color (same for all sizes of same color)
+                    if (!byColor[key].price) byColor[key].price = v.price_adjustment || 0;
+                    byColor[key].sizes.push({ size: v.size || '', stock: v.stock || 0 });
+                });
+
+                const container = document.getElementById('colorsContainer');
+                container.innerHTML = '';
+                Object.values(byColor).forEach(c => {
+                    const div = document.createElement('div');
+                    div.innerHTML = makeColorBlock(c);
+                    const block = div.firstElementChild;
+                    container.appendChild(block);
+                    block.querySelector('.add-size-btn').addEventListener('click', function() {
+                        this.closest('.color-block').querySelector('.sizes-list').insertAdjacentHTML('beforeend', makeSizeRow());
+                    });
+                });
+            } catch (e) { console.error('loadVariationsAdmin:', e); }
+        }
+
+        async function saveVariations(productId) {
+            const blocks = document.querySelectorAll('#colorsContainer .color-block');
+            const variations = [];
+
+            blocks.forEach(block => {
+                const colorName = block.querySelector('.c-name').value.trim();
+                const hex       = block.querySelector('.c-hex').value.trim() || null;
+                const imgsRaw   = block.querySelector('.c-images').value.trim();
+                const images    = imgsRaw ? imgsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+                // Preço da cor (0 = mesmo preço do produto)
+                const samePriceChk = block.querySelector('.c-same-price');
+                const colorPrice   = samePriceChk && samePriceChk.checked
+                    ? 0
+                    : (parseFloat(block.querySelector('.c-price')?.value) || 0);
+
+                const sizeRows = block.querySelectorAll('.size-row');
+                if (sizeRows.length === 0) {
+                    variations.push({ color: colorName || null, size: null, stock: 0, price_adjustment: colorPrice, images, hex });
+                } else {
+                    sizeRows.forEach(row => {
+                        const sizeVal  = row.querySelector('.s-size').value.trim();
+                        const stockVal = parseInt(row.querySelector('.s-stock').value) || 0;
+                        variations.push({ color: colorName || null, size: sizeVal || null, stock: stockVal, price_adjustment: colorPrice, images, hex });
+                    });
+                }
+            });
+
+            if (!variations.length) return;
+
+            // Salvar em product_variations
+            await fetch(`/api/variations/${productId}`, {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body:    JSON.stringify({ colors })
+                body:    JSON.stringify({ variations })
             });
+
+            // Sincronizar product_colors (para compatibilidade da galeria)
+            const colorMap = {};
+            variations.forEach(v => {
+                if (v.color && !colorMap[v.color]) {
+                    colorMap[v.color] = { name: v.color, hex: v.hex, images: v.images,
+                        stock: variations.filter(x => x.color === v.color).reduce((s, x) => s + x.stock, 0) };
+                }
+            });
+            const colors = Object.values(colorMap);
+            if (colors.length) {
+                await fetch(`/api/colors/${productId}`, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body:    JSON.stringify({ colors })
+                });
+            }
         }
 
         newProductBtn.addEventListener('click', () => {
@@ -398,8 +525,7 @@
             document.getElementById('productId').value        = '';
             productForm.reset();
             document.getElementById('productStatus').value    = 'active';
-            document.getElementById('colorsBody').innerHTML   = '';
-            document.getElementById('productSizes').value     = '';
+            document.getElementById('colorsContainer').innerHTML = '';
             modal.style.display = 'flex';
         });
 

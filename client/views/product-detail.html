@@ -320,13 +320,13 @@
                         <span class="rating-count" id="productRatingCount">Ver avaliações</span>
                     </div>
                     <div class="product-price-container">
-                        <span class="current-price">R$ ${(promo || price).toFixed(2)}</span>
+                        <span class="current-price" id="displayPrice">R$ ${(promo || price).toFixed(2)}</span>
                         ${promo ? `<span class="old-price">R$ ${price.toFixed(2)}</span><span class="discount-badge">-${Math.round((1-promo/price)*100)}%</span>` : ''}
                     </div>
                     <div class="product-description">${product.description || 'Produto sem descrição.'}</div>
                     <div class="product-meta">
                         <div class="meta-item"><span class="meta-label">Categoria:</span><span class="meta-value">${product.category_name || '-'}</span></div>
-                        <div class="meta-item"><span class="meta-label">Disponibilidade:</span><span class="meta-value stock-status ${stockClass}">${stockStatus}</span></div>
+                        <div class="meta-item"><span class="meta-label">Disponibilidade:</span><span class="meta-value stock-status ${stockClass}" id="stockStatusLabel">${stockStatus}</span></div>
                     </div>
                     <div class="purchase-section">
                         <div id="variationsSection" class="variations-section"></div>
@@ -354,12 +354,18 @@
                 i.value = Math.min(parseInt(i.max) || 99, parseInt(i.value) + 1);
             };
             document.getElementById('addToCartBtn').onclick = async () => {
-                if (window._colors && window._colors.length > 0 && !window._selectedColor) {
+                const hasColors = window._variations.some(v => v.color);
+                const hasSizes  = window._variations.some(v => v.size);
+                if (hasColors && !window._selectedColor) {
                     alert('Selecione uma cor antes de adicionar ao carrinho.');
                     return;
                 }
+                if (hasSizes && !window._selectedSize) {
+                    alert('Selecione um tamanho antes de adicionar ao carrinho.');
+                    return;
+                }
                 const qty = parseInt(document.getElementById('quantity').value);
-                const ok  = await addToCart(productId, qty);
+                const ok  = await addToCart(productId, qty, window._selectedColor, window._selectedSize);
                 if (ok) {
                     const btn = document.getElementById('addToCartBtn');
                     btn.innerHTML = '<i class="fas fa-check"></i> Adicionado!';
@@ -376,7 +382,8 @@
             }
         };
 
-        // ── Tamanhos e Cores ─────────────────────────────────────────────────
+        // ── Tamanhos e Cores (via variações) ─────────────────────────────────
+        window._variations    = [];
         window._colors        = [];
         window._selectedColor = null;
         window._selectedSize  = null;
@@ -384,84 +391,173 @@
 
         async function loadVariations() {
             window._defaultImages = [...(product.images || [])];
-            const section = document.getElementById('variationsSection');
-            let html = '';
 
-            // Tamanhos vêm do campo sizes do produto
-            if (product.sizes) {
-                const sizes = product.sizes.split(',').map(s => s.trim()).filter(Boolean);
-                if (sizes.length) {
-                    html += `<div class="variation-group">
-                        <div class="variation-label">Tamanho: <span id="selectedSizeLabel">Selecione</span></div>
-                        <div class="variation-options">
-                            ${sizes.map(s => `<button class="var-btn" data-type="size" data-value="${s}">${s}</button>`).join('')}
-                        </div>
-                    </div>`;
-                }
-            }
-
-            // Cores vêm da API
             try {
-                const res  = await fetch(`/api/colors/${productId}`);
+                const res  = await fetch(`/api/variations/${productId}`, { cache: 'no-store' });
                 const data = await res.json();
-                if (data.success && data.data.length) {
-                    window._colors = data.data;
-                    html += `<div class="variation-group">
-                        <div class="variation-label">Cor: <span id="selectedColorLabel">Selecione</span></div>
-                        <div class="variation-options">
-                            ${data.data.map(c => {
-                                if (c.hex) {
-                                    return `<button class="var-btn color-btn" data-type="color" data-value="${c.name}" style="background:${c.hex};border-color:${c.hex};" title="${c.name}"></button>`;
-                                }
-                                return `<button class="var-btn" data-type="color" data-value="${c.name}">${c.name}</button>`;
-                            }).join('')}
-                        </div>
-                    </div>`;
+                if (data.success) window._variations = data.data;
+            } catch (e) { console.error('Erro ao carregar variações:', e); }
+
+            try {
+                const res  = await fetch(`/api/colors/${productId}`, { cache: 'no-store' });
+                const data = await res.json();
+                if (data.success) {
+                    // Garantir que images é sempre array
+                    window._colors = data.data.map(c => ({
+                        ...c,
+                        images: Array.isArray(c.images) ? c.images
+                               : (typeof c.images === 'string' ? JSON.parse(c.images) : [])
+                    }));
                 }
             } catch (e) { console.error('Erro ao carregar cores:', e); }
+
+            renderVariationSection();
+        }
+
+        function renderVariationSection() {
+            const section = document.getElementById('variationsSection');
+            const vars    = window._variations;
+            if (!vars.length && !window._colors.length) { section.innerHTML = ''; return; }
+
+            const colorNames = [...new Set(vars.map(v => v.color).filter(Boolean))];
+            const hasSizes   = vars.some(v => v.size);
+
+            let html = '';
+
+            if (colorNames.length) {
+                html += `<div class="variation-group">
+                    <div class="variation-label">Cor: <span id="selectedColorLabel">Selecione</span></div>
+                    <div class="variation-options">`;
+                colorNames.forEach(name => {
+                    const colorMeta = window._colors.find(c => c.name === name);
+                    if (colorMeta && colorMeta.hex) {
+                        html += `<button class="var-btn color-btn" data-type="color" data-value="${name}"
+                            style="background:${colorMeta.hex};border-color:${colorMeta.hex};" title="${name}"></button>`;
+                    } else {
+                        html += `<button class="var-btn" data-type="color" data-value="${name}">${name}</button>`;
+                    }
+                });
+                html += `</div></div>`;
+            }
+
+            if (hasSizes) {
+                html += `<div class="variation-group" id="sizesGroup">
+                    <div class="variation-label">Tamanho: <span id="selectedSizeLabel">Selecione</span></div>
+                    <div class="variation-options" id="sizeOptions"></div>
+                </div>`;
+            }
 
             if (!html) return;
             section.innerHTML = html;
 
-            section.querySelectorAll('.var-btn').forEach(btn => {
+            if (hasSizes) renderSizes(null);
+
+            section.querySelectorAll('.var-btn[data-type="color"]').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const type = btn.dataset.type;
-                    section.querySelectorAll(`.var-btn[data-type="${type}"]`).forEach(b => b.classList.remove('selected'));
+                    section.querySelectorAll('.var-btn[data-type="color"]').forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
+                    window._selectedColor = btn.dataset.value;
+                    window._selectedSize  = null;
+                    document.getElementById('selectedColorLabel').textContent = btn.dataset.value;
 
-                    if (type === 'size') {
-                        window._selectedSize = btn.dataset.value;
-                        const lbl = document.getElementById('selectedSizeLabel');
-                        if (lbl) lbl.textContent = btn.dataset.value;
+                    const colorMeta = window._colors.find(c => c.name === btn.dataset.value);
+                    swapGallery(colorMeta && colorMeta.images && colorMeta.images.length ? colorMeta.images : window._defaultImages);
+
+                    // Atualizar preço se a cor tiver preço diferente
+                    const variation = window._variations.find(v => v.color === btn.dataset.value);
+                    const priceEl = document.getElementById('displayPrice');
+                    const adjPrice = parseFloat(variation?.price_adjustment) || 0;
+                    if (priceEl && adjPrice > 0) {
+                        priceEl.textContent = `R$ ${adjPrice.toFixed(2)}`;
+                    } else if (priceEl) {
+                        priceEl.textContent = `R$ ${(promo || price).toFixed(2)}`;
                     }
 
-                    if (type === 'color') {
-                        window._selectedColor = btn.dataset.value;
-                        const lbl = document.getElementById('selectedColorLabel');
-                        if (lbl) lbl.textContent = btn.dataset.value;
-
-                        const color = window._colors.find(c => c.name === btn.dataset.value);
-                        swapGallery(color && color.images && color.images.length ? color.images : window._defaultImages);
-
-                        if (color) {
-                            const warning  = document.getElementById('stockWarning');
-                            const addBtn   = document.getElementById('addToCartBtn');
-                            const qtyInput = document.getElementById('quantity');
-                            qtyInput.max    = color.stock;
-                            addBtn.disabled = color.stock === 0;
-                            if (color.stock === 0) {
-                                warning.textContent = 'Esta cor está esgotada.';
-                                warning.classList.add('visible');
-                            } else if (color.stock <= 3) {
-                                warning.textContent = `Apenas ${color.stock} restante${color.stock > 1 ? 's' : ''}!`;
-                                warning.classList.add('visible');
-                            } else {
-                                warning.classList.remove('visible');
-                            }
-                        }
-                    }
+                    if (hasSizes) renderSizes(btn.dataset.value);
+                    updateStockDisplay();
                 });
             });
+        }
+
+        function renderSizes(filterColor) {
+            const optionsEl = document.getElementById('sizeOptions');
+            if (!optionsEl) return;
+            const lbl = document.getElementById('selectedSizeLabel');
+            if (lbl) lbl.textContent = 'Selecione';
+            window._selectedSize = null;
+
+            const relevant = filterColor
+                ? window._variations.filter(v => v.color === filterColor && v.size)
+                : window._variations.filter(v => v.size);
+
+            const sizeMap = {};
+            relevant.forEach(v => {
+                if (!sizeMap[v.size]) sizeMap[v.size] = 0;
+                sizeMap[v.size] += v.stock;
+            });
+
+            if (!Object.keys(sizeMap).length) { optionsEl.innerHTML = ''; return; }
+
+            optionsEl.innerHTML = Object.entries(sizeMap).map(([size, stock]) =>
+                `<button class="var-btn${stock === 0 ? '' : ''}" data-type="size" data-value="${size}"
+                    style="${stock === 0 ? 'opacity:0.45;text-decoration:line-through;cursor:not-allowed;' : ''}"
+                    ${stock === 0 ? 'disabled' : ''}
+                    title="${stock === 0 ? 'Esgotado' : stock + ' em estoque'}">${size}</button>`
+            ).join('');
+
+            optionsEl.querySelectorAll('.var-btn[data-type="size"]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    optionsEl.querySelectorAll('.var-btn[data-type="size"]').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    window._selectedSize = btn.dataset.value;
+                    if (lbl) lbl.textContent = btn.dataset.value;
+                    updateStockDisplay();
+                });
+            });
+        }
+
+        function updateStockDisplay() {
+            const warning     = document.getElementById('stockWarning');
+            const addBtn      = document.getElementById('addToCartBtn');
+            const qtyInput    = document.getElementById('quantity');
+            const statusLabel = document.getElementById('stockStatusLabel');
+            if (!warning || !addBtn) return;
+
+            const color = window._selectedColor;
+            const size  = window._selectedSize;
+
+            const match = window._variations.find(v =>
+                (!color || v.color === color) && (!size || v.size === size)
+            );
+
+            if (match) {
+                qtyInput.max    = match.stock;
+                qtyInput.value  = Math.min(parseInt(qtyInput.value) || 1, match.stock || 1);
+                addBtn.disabled = match.stock === 0;
+
+                // Atualiza o label de Disponibilidade com o estoque do tamanho selecionado
+                if (statusLabel) {
+                    statusLabel.className = 'meta-value stock-status';
+                    if (match.stock === 0) {
+                        statusLabel.textContent = 'Esgotado';
+                        statusLabel.classList.add('out');
+                    } else if (match.stock <= 5) {
+                        statusLabel.textContent = `Apenas ${match.stock} unidade${match.stock > 1 ? 's' : ''} restante${match.stock > 1 ? 's' : ''}`;
+                        statusLabel.classList.add('low');
+                    } else {
+                        statusLabel.textContent = `${match.stock} unidades disponíveis`;
+                    }
+                }
+
+                if (match.stock === 0) {
+                    warning.textContent = 'Esta combinação está esgotada.';
+                    warning.classList.add('visible');
+                } else {
+                    warning.classList.remove('visible');
+                }
+            } else {
+                warning.classList.remove('visible');
+            }
         }
 
         function swapGallery(images) {

@@ -15,10 +15,12 @@ router.get('/:productId', async (req, res) => {
             [req.params.productId]
         );
 
-        // Parse images JSON
         variations.forEach(v => {
-            try { v.images = v.images ? JSON.parse(v.images) : []; }
-            catch { v.images = []; }
+            // mysql2 com coluna JSON já retorna objeto; se for string, parseia
+            if (typeof v.images === 'string') {
+                try { v.images = JSON.parse(v.images); } catch { v.images = []; }
+            }
+            if (!Array.isArray(v.images)) v.images = [];
         });
 
         res.json({ success: true, data: variations });
@@ -46,14 +48,14 @@ router.post('/:productId', authMiddleware, adminMiddleware, async (req, res) => 
         if (variations && variations.length) {
             for (const v of variations) {
                 if (!v.size && !v.color) continue;
-                const imagesJson = JSON.stringify(Array.isArray(v.images) ? v.images : []);
+                const imgs = Array.isArray(v.images) ? v.images : [];
                 await connection.execute(
                     `INSERT INTO product_variations (product_id, size, color, images, stock, price_adjustment, sku)
                      VALUES (?, ?, ?, ?, ?, ?, ?)`,
                     [productId,
                      v.size  || null,
                      v.color || null,
-                     imagesJson,
+                     JSON.stringify(imgs),
                      parseInt(v.stock) || 0,
                      parseFloat(v.price_adjustment) || 0,
                      v.sku || null]

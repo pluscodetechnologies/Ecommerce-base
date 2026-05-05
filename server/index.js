@@ -24,6 +24,14 @@ app.use('/js',      express.static(path.join(__dirname, '../client/public/js')))
 app.use('/images',  express.static(path.join(__dirname, '../client/public/images')));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// ── Desabilitar cache para todas as rotas /api ────────────────────────────────
+app.use('/api', (req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    next();
+});
+
 // ── Rotas da API ──────────────────────────────────────────────────────────────
 const authRoutes      = require('./routes/auth');
 const adminRoutes     = require('./routes/admin');

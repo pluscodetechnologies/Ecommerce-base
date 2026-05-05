@@ -34,7 +34,7 @@ class CartController {
     
     async addItem(req, res) {
         try {
-            const { productId, quantity } = req.body;
+            const { productId, quantity, color, size } = req.body;
             const userId = req.userId || null;
             let sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
             
@@ -44,7 +44,7 @@ class CartController {
             }
             
             const cart = await Cart.getOrCreateCart(userId, sessionId);
-            await Cart.addItem(cart.id, productId, quantity || 1);
+            await Cart.addItem(cart.id, productId, quantity || 1, color || null, size || null);
             
             const items = await Cart.getCartItems(cart.id);
             const totals = await Cart.getCartTotal(cart.id);
