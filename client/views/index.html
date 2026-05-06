@@ -142,6 +142,116 @@
         
         /* Hero */
         .hero { margin-top: 120px; height: 500px; position: relative; overflow: hidden; }
+
+        /* Search Bar — inline no header */
+        .header-search {
+            flex: 1;
+            max-width: 380px;
+            margin: 0 32px;
+            position: relative;
+        }
+        .search-input-row {
+            display: flex;
+            align-items: stretch;
+            border: 1.5px solid var(--border-light);
+            border-radius: 3px;
+            background: #f7f5f2;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            overflow: hidden;
+            height: 38px;
+        }
+        .search-input-row:focus-within {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 2px 8px rgba(139,115,85,0.13);
+        }
+        .search-icon {
+            display: flex;
+            align-items: center;
+            padding: 0 11px;
+            color: var(--gray);
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+        .search-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 0;
+            font-size: 13px;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--dark);
+            outline: none;
+            min-width: 0;
+        }
+        .search-input::placeholder { color: #b0aba5; }
+        .search-clear {
+            display: none;
+            align-items: center;
+            background: none;
+            border: none;
+            padding: 0 10px;
+            color: #bbb;
+            cursor: pointer;
+            font-size: 12px;
+            flex-shrink: 0;
+            transition: color 0.15s;
+        }
+        .search-clear:hover { color: var(--gray); }
+        .search-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 16px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+            font-family: 'Montserrat', sans-serif;
+            flex-shrink: 0;
+        }
+        .search-btn:hover { background: var(--primary-dark); }
+        .search-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 2px);
+            left: 0; right: 0;
+            background: white;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+            border: 1.5px solid var(--primary);
+            border-top: none;
+            overflow: hidden;
+            z-index: 2000;
+        }
+        .search-dropdown.open { display: block; }
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            text-decoration: none;
+            color: var(--dark);
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.12s;
+        }
+        .search-result-item:last-of-type { border-bottom: none; }
+        .search-result-item:hover { background: #faf8f5; }
+        .search-result-item:hover .search-result-name { color: var(--primary); }
+        .search-result-thumb { width: 38px; height: 48px; border-radius: 3px; object-fit: cover; flex-shrink: 0; background: var(--border-light); }
+        .search-result-info { flex: 1; min-width: 0; }
+        .search-result-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.12s; }
+        .search-result-cat { font-size: 11px; color: var(--gray); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .search-result-price { font-size: 13px; font-weight: 600; color: var(--primary); white-space: nowrap; text-align: right; }
+        .search-result-price .old { font-size: 10px; color: var(--gray); text-decoration: line-through; display: block; font-weight: 400; }
+        .search-footer { padding: 10px 14px; background: #faf8f5; text-align: center; }
+        .search-footer a { font-size: 11px; color: var(--primary); font-weight: 700; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; }
+        .search-footer a:hover { text-decoration: underline; }
+        .search-empty { padding: 18px 14px; text-align: center; color: var(--gray); font-size: 13px; }
+        .search-loading { padding: 16px 14px; text-align: center; color: var(--gray); font-size: 12px; }
         .hero-slider { height: 100%; position: relative; }
         .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; }
         .slide.active { display: block; }
@@ -282,6 +392,15 @@
                         <h1>VELVET</h1>
                         <span>ATELIER</span>
                     </a>
+                    <div class="header-search" id="searchWrapper">
+                        <div class="search-input-row">
+                            <span class="search-icon"><i class="fas fa-search"></i></span>
+                            <input type="text" class="search-input" id="searchInput" placeholder="Buscar produtos..." autocomplete="off">
+                            <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Limpar">&#10005;</button>
+                            <button class="search-btn" onclick="submitSearch()">Buscar</button>
+                        </div>
+                        <div class="search-dropdown" id="searchDropdown"></div>
+                    </div>
                     <nav class="nav-menu">
     <ul>
         <li><a href="/" class="active">Início</a></li>
@@ -590,13 +709,16 @@ document.addEventListener('DOMContentLoaded', loadNavCategories);
                 const dotsContainer = document.getElementById('sliderDots');
 
                 slider.innerHTML = heroBanners.map((b, i) => `
-                    <div class="slide ${i === 0 ? 'active' : ''}">
+                    <div class="slide ${i === 0 ? 'active' : ''}" ${b.link ? `onclick="window.location.href='${b.link}'" style="cursor:pointer;"` : ''}>
                         <img src="${b.image_url}" alt="${b.title}">
                         <div class="slide-overlay"></div>
                         <div class="slide-content">
                             ${b.subtitle ? `<span class="slide-subtitle">${b.subtitle}</span>` : ''}
                             <h2 class="slide-title">${b.title}</h2>
-                            <a href="/products" class="btn btn-primary">Explorar Coleção</a>
+                            ${b.link
+                                ? `<a href="${b.link}" class="btn btn-primary" onclick="event.stopPropagation()">Ver produto</a>`
+                                : `<a href="/products" class="btn btn-primary">Explorar Coleção</a>`
+                            }
                         </div>
                     </div>
                 `).join('');
@@ -622,6 +744,94 @@ document.addEventListener('DOMContentLoaded', loadNavCategories);
         document.getElementById('categoriesNext').onclick = () => goToPage(currentCategoryPage + 1);
         
         document.getElementById('newsletterForm').onsubmit = (e) => { e.preventDefault(); alert('Obrigada!'); e.target.reset(); };
+    </script>
+
+    <!-- Search bar JS -->
+    <script>
+    (function() {
+        const input    = document.getElementById('searchInput');
+        const dropdown = document.getElementById('searchDropdown');
+        const clearBtn = document.getElementById('searchClear');
+        let debounceTimer = null;
+        let lastQuery = '';
+
+        function fmt(n) { return 'R$ ' + parseFloat(n).toFixed(2).replace('.', ','); }
+
+        function renderResults(products, query) {
+            if (!products.length) {
+                dropdown.innerHTML = `<div class="search-empty"><i class="fas fa-search" style="font-size:24px;opacity:0.3;display:block;margin-bottom:10px;"></i>Nenhum produto encontrado para "<strong>${query}</strong>"</div>`;
+                return;
+            }
+            const items = products.slice(0, 6).map(p => {
+                const price = parseFloat(p.promotional_price || p.price);
+                const oldPrice = p.promotional_price ? `<span class="old">${fmt(p.price)}</span>` : '';
+                let imgs = [];
+                try { imgs = typeof p.images === 'string' ? JSON.parse(p.images) : (p.images || []); } catch(e){}
+                const thumb = (imgs[0] || p.main_image) || '/images/placeholder.jpg';
+                return `<a class="search-result-item" href="/product?id=${p.id}">
+                    <img class="search-result-thumb" src="${thumb}" alt="${p.name}" onerror="this.src='/images/placeholder.jpg'">
+                    <div class="search-result-info">
+                        <div class="search-result-name">${p.name}</div>
+                        <div class="search-result-cat">${p.category_name || 'Sem categoria'}</div>
+                    </div>
+                    <div class="search-result-price">${oldPrice}${fmt(price)}</div>
+                </a>`;
+            }).join('');
+
+            const total = products.length;
+            const footer = `<div class="search-footer"><a href="/products?search=${encodeURIComponent(query)}">Ver todos os ${total} resultado${total !== 1 ? 's' : ''} →</a></div>`;
+            dropdown.innerHTML = items + (total > 0 ? footer : '');
+        }
+
+        async function doSearch(query) {
+            if (!query.trim()) { closeDropdown(); return; }
+            dropdown.innerHTML = '<div class="search-loading"><i class="fas fa-spinner fa-spin"></i> Buscando...</div>';
+            dropdown.classList.add('open');
+            try {
+                const r = await fetch(`/api/products?search=${encodeURIComponent(query)}&limit=20`);
+                const d = await r.json();
+                if (input.value.trim() === query) renderResults(d.data || [], query);
+            } catch(e) {
+                dropdown.innerHTML = '<div class="search-empty">Erro ao buscar. Tente novamente.</div>';
+            }
+        }
+
+        function closeDropdown() {
+            dropdown.classList.remove('open');
+            dropdown.innerHTML = '';
+        }
+
+        window.submitSearch = function() {
+            const q = input.value.trim();
+            if (q) window.location.href = `/products?search=${encodeURIComponent(q)}`;
+        };
+
+        window.clearSearch = function() {
+            input.value = '';
+            clearBtn.style.display = 'none';
+            closeDropdown();
+            input.focus();
+        };
+
+        input.addEventListener('input', function() {
+            const q = this.value.trim();
+            clearBtn.style.display = q ? 'block' : 'none';
+            clearTimeout(debounceTimer);
+            if (!q) { closeDropdown(); lastQuery = ''; return; }
+            if (q === lastQuery) return;
+            lastQuery = q;
+            debounceTimer = setTimeout(() => doSearch(q), 280);
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); submitSearch(); }
+            if (e.key === 'Escape') closeDropdown();
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!document.getElementById('searchWrapper').contains(e.target)) closeDropdown();
+        });
+    })();
     </script>
 </body>
 </html>

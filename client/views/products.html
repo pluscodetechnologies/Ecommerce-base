@@ -246,6 +246,10 @@
             </div>
         </div>
     </header>
+                <div class="search-dropdown" id="searchDropdown"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="page-header">
         <div class="container">
@@ -342,6 +346,7 @@
         let page = 1, totalPages = 1, category = '', sort = 'newest';
         const urlParams = new URLSearchParams(window.location.search);
         category = urlParams.get('category') || '';
+        const searchQuery = urlParams.get('search') || '';
 
         async function loadNavCategories() {
             try {
@@ -388,6 +393,7 @@
                 else if (category === 'mais-vendidos') { url += '&sort=best-sellers'; }
                 else if (category) { url += `&category=${encodeURIComponent(category)}`; }
                 if (urlParams.get('sale') === 'true') { url += '&onSale=true'; document.getElementById('pageTitle').textContent = 'Ofertas'; }
+                if (searchQuery) { url += `&search=${encodeURIComponent(searchQuery)}`; document.getElementById('pageTitle').textContent = `Resultados para "${searchQuery}"`; }
                 if (sort === 'price-asc') url += '&sort=price-asc';
                 if (sort === 'price-desc') url += '&sort=price-desc';
                 if (sort === 'best-sellers') url += '&sort=best-sellers';
@@ -479,5 +485,6 @@
             }
         })();
     </script>
+
 </body>
 </html>
