@@ -43,9 +43,6 @@
         .search-box { display: flex; align-items: center; background: #f5f7fa; padding: 9px 14px; border-radius: 10px; flex: 1; min-width: 200px; }
         .search-box i { color: #aaa; margin-right: 9px; font-size: 13px; }
         .search-box input { border: none; background: none; outline: none; width: 100%; font-family: 'Poppins', sans-serif; font-size: 13px; }
-        .drag-hint { font-size: 12px; color: #aaa; display: flex; align-items: center; gap: 6px; margin-left: auto; white-space: nowrap; }
-        .drag-hint i { font-size: 11px; }
-
         /* ── Abas de categoria ── */
         .category-tabs-wrap { margin-bottom: 6px; overflow-x: auto; padding-bottom: 4px; }
         .category-tabs { display: flex; gap: 6px; min-width: max-content; }
@@ -66,14 +63,6 @@
         td { padding: 12px 16px; border-bottom: 1px solid #f7f8fa; vertical-align: middle; font-size: 13px; }
         tr:last-child td { border-bottom: none; }
 
-        /* Drag handle */
-        .drag-handle { color: #ccc; cursor: grab; font-size: 16px; padding: 4px 6px; border-radius: 4px; transition: color 0.2s; }
-        .drag-handle:hover { color: #888; }
-        tr.dragging { opacity: 0.4; }
-        tr.drag-over { outline: 2px dashed #1a1a2e; outline-offset: -2px; background: #f0f4ff; }
-        tr.drag-over td { background: transparent; }
-        .sort-indicator { font-size: 10px; color: #bbb; background: #f5f7fa; padding: 2px 7px; border-radius: 8px; margin-left: 4px; }
-
         .product-image { width: 48px; height: 60px; border-radius: 6px; object-fit: cover; }
         .product-name-cell { display: flex; flex-direction: column; gap: 2px; }
         .product-name-cell strong { font-size: 13px; color: #1a1a2e; }
@@ -91,14 +80,6 @@
         .empty-state { text-align: center; padding: 50px 20px; color: #bbb; }
         .empty-state i { font-size: 40px; display: block; margin-bottom: 12px; opacity: 0.3; }
         .empty-state p { font-size: 13px; }
-
-        /* Save order button */
-        .save-order-bar { display: none; background: #1a1a2e; color: white; padding: 12px 20px; border-radius: 0 0 16px 16px; align-items: center; justify-content: space-between; font-size: 13px; }
-        .save-order-bar.visible { display: flex; }
-        .btn-save-order { background: white; color: #1a1a2e; border: none; padding: 8px 18px; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 7px; }
-        .btn-save-order:hover { background: #f0f0f0; }
-        .btn-discard-order { background: transparent; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.3); padding: 8px 14px; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 13px; cursor: pointer; margin-left: 8px; }
-        .btn-discard-order:hover { color: white; border-color: white; }
 
         /* ── Modal ── */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
@@ -163,8 +144,7 @@
                 <i class="fas fa-search"></i>
                 <input type="text" placeholder="Buscar produtos..." id="searchInput">
             </div>
-            <div class="drag-hint"><i class="fas fa-grip-vertical"></i> Arraste as linhas para reordenar</div>
-        </div>
+</div>
 
         <!-- Abas de categoria -->
         <div class="category-tabs-wrap">
@@ -180,8 +160,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width:36px;"></th>
-                        <th style="width:60px;">Foto</th>
+<th style="width:60px;">Foto</th>
                         <th>Nome</th>
                         <th>Categoria</th>
                         <th>Preço</th>
@@ -192,13 +171,7 @@
                 </thead>
                 <tbody id="productsTableBody"></tbody>
             </table>
-            <div class="save-order-bar" id="saveOrderBar">
-                <span><i class="fas fa-sort" style="margin-right:8px;"></i> Ordem alterada — salvar mudanças?</span>
-                <div>
-                    <button class="btn-discard-order" id="discardOrderBtn">Descartar</button>
-                    <button class="btn-save-order" id="saveOrderBtn"><i class="fas fa-save"></i> Salvar Ordem</button>
-                </div>
-            </div>
+
         </div>
     </div>
 
@@ -281,9 +254,6 @@
     let allCategories = [];
     let activeCategory = null; // null = todos
     let searchTerm    = '';
-    let orderChanged  = false;
-    let originalOrder = []; // snapshot para descartar
-
     // ── Categorias ───────────────────────────────────────────────────────────
     async function loadCategories() {
         const res    = await fetch('/api/admin/categories', { headers: { Authorization: 'Bearer ' + token } });
@@ -332,10 +302,6 @@
     }
 
     window.setCategory = function(catId) {
-        if (orderChanged) {
-            if (!confirm('Você tem alterações de ordem não salvas. Descartar e trocar de categoria?')) return;
-            discardOrder();
-        }
         activeCategory = catId;
         renderCategoryTabs();
         renderTable();
@@ -398,8 +364,7 @@
             const promoPrice = p.promotional_price ? parseFloat(p.promotional_price) : null;
             const isFeatured = p.is_featured === 1 || p.is_featured === true;
 
-            return '<tr data-id="' + p.id + '" data-idx="' + idx + '" draggable="true">' +
-                '<td><span class="drag-handle" title="Arraste para reordenar"><i class="fas fa-grip-vertical"></i></span></td>' +
+            return '<tr data-id="' + p.id + '">' +
                 '<td><img src="' + img + '" class="product-image" alt="' + (p.name || '') + '"></td>' +
                 '<td><div class="product-name-cell"><strong>' + (p.name || '') + '</strong>' +
                     (p.sku ? '<span class="product-sku">SKU: ' + p.sku + '</span>' : '') +
@@ -418,128 +383,8 @@
             '</tr>';
         }).join('');
 
-        initDragDrop();
     }
 
-    // ── Drag & Drop ──────────────────────────────────────────────────────────
-    let dragSrc = null;
-
-    function initDragDrop() {
-        const tbody = document.getElementById('productsTableBody');
-        const rows  = Array.from(tbody.querySelectorAll('tr[data-id]'));
-
-        rows.forEach(function(row) {
-            row.addEventListener('dragstart', function(e) {
-                dragSrc = row;
-                row.classList.add('dragging');
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', row.dataset.id);
-            });
-
-            row.addEventListener('dragend', function() {
-                row.classList.remove('dragging');
-                tbody.querySelectorAll('tr').forEach(function(r) { r.classList.remove('drag-over'); });
-            });
-
-            row.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                if (dragSrc && row !== dragSrc) {
-                    tbody.querySelectorAll('tr').forEach(function(r) { r.classList.remove('drag-over'); });
-                    row.classList.add('drag-over');
-                }
-            });
-
-            row.addEventListener('dragleave', function() {
-                row.classList.remove('drag-over');
-            });
-
-            row.addEventListener('drop', function(e) {
-                e.preventDefault();
-                row.classList.remove('drag-over');
-                if (!dragSrc || dragSrc === row) return;
-
-                // Reorder DOM
-                const tbody = row.closest('tbody');
-                const allRows = Array.from(tbody.querySelectorAll('tr[data-id]'));
-                const srcIdx = allRows.indexOf(dragSrc);
-                const tgtIdx = allRows.indexOf(row);
-
-                if (srcIdx < tgtIdx) {
-                    row.parentNode.insertBefore(dragSrc, row.nextSibling);
-                } else {
-                    row.parentNode.insertBefore(dragSrc, row);
-                }
-
-                // Sync allProducts array order
-                syncProductsFromDOM();
-                markOrderChanged();
-            });
-        });
-    }
-
-    function syncProductsFromDOM() {
-        const tbody = document.getElementById('productsTableBody');
-        const rows  = Array.from(tbody.querySelectorAll('tr[data-id]'));
-        const idOrder = rows.map(function(r) { return parseInt(r.dataset.id); });
-
-        // Rebuild allProducts keeping non-filtered ones in place
-        const filtered = getFilteredProducts().map(function(p) { return p; });
-        const reordered = idOrder.map(function(id) { return allProducts.find(function(p) { return p.id === id; }); }).filter(Boolean);
-
-        // Replace filtered slice in allProducts with reordered
-        const filteredIds = new Set(filtered.map(function(p) { return p.id; }));
-        const others = allProducts.filter(function(p) { return !filteredIds.has(p.id); });
-
-        // Merge: keep others, replace filtered with reordered
-        allProducts = reordered.concat(others);
-    }
-
-    function markOrderChanged() {
-        if (!orderChanged) {
-            originalOrder = allProducts.map(function(p) { return p.id; });
-        }
-        orderChanged = true;
-        document.getElementById('saveOrderBar').classList.add('visible');
-    }
-
-    function discardOrder() {
-        if (originalOrder.length) {
-            allProducts = originalOrder.map(function(id) { return allProducts.find(function(p) { return p.id === id; }); }).filter(Boolean);
-        }
-        orderChanged = false;
-        document.getElementById('saveOrderBar').classList.remove('visible');
-        renderTable();
-    }
-
-    document.getElementById('discardOrderBtn').addEventListener('click', function() { discardOrder(); });
-
-    document.getElementById('saveOrderBtn').addEventListener('click', async function() {
-        const tbody = document.getElementById('productsTableBody');
-        const rows  = Array.from(tbody.querySelectorAll('tr[data-id]'));
-
-        // Build payload: reassign sort_order 0..N for current category
-        const items = rows.map(function(r, idx) { return { id: parseInt(r.dataset.id), sort_order: idx }; });
-
-        try {
-            const res = await fetch('/api/admin/products/reorder', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-                body: JSON.stringify({ items: items })
-            });
-            const result = await res.json();
-            if (result.success) {
-                showToast('Ordem salva com sucesso!');
-                orderChanged = false;
-                document.getElementById('saveOrderBar').classList.remove('visible');
-                await loadProducts();
-            } else {
-                showToast(result.message || 'Erro ao salvar ordem', 'error');
-            }
-        } catch(e) {
-            showToast('Erro de conexão', 'error');
-        }
-    });
 
     // ── Busca ────────────────────────────────────────────────────────────────
     document.getElementById('searchInput').addEventListener('input', function(e) {
@@ -623,8 +468,10 @@
     });
 
     // ── Variações (Cores + Tamanhos) ─────────────────────────────────────────
+    // ── Cores + Tamanhos (Variações) ─────────────────────────────────────────
+
     window.previewHex = function(input) {
-        const preview = input.parentElement.querySelector('.c-preview');
+        const preview = input.closest('.color-block').querySelector('.c-preview');
         if (preview) preview.style.background = input.value.trim() || '#eee';
     };
 
@@ -635,8 +482,17 @@
         else { input.style.display = ''; input.focus(); }
     };
 
+    window.toggleColorBody = function(btn) {
+        const block = btn.closest('.color-block');
+        const body  = block.querySelector('.c-body');
+        const icon  = btn.querySelector('.chevron');
+        const open  = body.style.display !== 'none';
+        body.style.display = open ? 'none' : 'block';
+        icon.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+    };
+
     function makeSizeRow(size, stock) {
-        size = size || ''; stock = stock || 0;
+        size = size || ''; stock = stock !== undefined ? stock : '';
         return '<div class="size-row" style="display:flex;gap:6px;align-items:center;margin-top:6px;">' +
             '<input type="text" placeholder="Ex: P, M, G, GG…" value="' + size + '" class="s-size" style="flex:1;min-width:60px;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">' +
             '<input type="number" min="0" placeholder="Estoque" value="' + stock + '" class="s-stock" style="width:80px;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">' +
@@ -644,70 +500,192 @@
         '</div>';
     }
 
-    function makeColorBlock(c) {
+    function makeColorBlock(c, expanded) {
         c = c || {};
+        expanded = expanded !== undefined ? expanded : false; // collapsed por padrão
         const hex      = c.hex || '';
         const imgs     = Array.isArray(c.images) ? c.images.join(', ') : (c.images || '');
         const sizes    = c.sizes || [];
         const hasPrice = c.price && parseFloat(c.price) > 0;
         const priceNum = parseFloat(c.price) || 0;
         const sizeRowsHtml = sizes.length ? sizes.map(function(s) { return makeSizeRow(s.size, s.stock); }).join('') : makeSizeRow();
-        const priceId = 'cp_' + Math.random().toString(36).slice(2, 7);
-        const blockId = 'cb_' + Math.random().toString(36).slice(2, 8);
+        const priceId  = 'cp_' + Math.random().toString(36).slice(2, 7);
+        const blockId  = 'cb_' + Math.random().toString(36).slice(2, 8);
+        const colorName = c.name || '';
+        const previewBg = hex || '#e0e0e0';
 
-        return '<div class="color-block" style="border:1px solid #e0e0e0;border-radius:8px;padding:12px;margin-bottom:10px;background:#fafafa;" id="' + blockId + '">' +
-            '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
-                '<input type="text" placeholder="Nome da cor (ex: Branco)" value="' + (c.name || '') + '" class="c-name" style="flex:1;min-width:100px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-weight:500;">' +
-                '<div style="display:flex;gap:4px;align-items:center;">' +
-                    '<input type="text" placeholder="#ffffff" value="' + hex + '" class="c-hex" style="width:80px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;" oninput="previewHex(this)">' +
-                    '<div class="c-preview" style="width:24px;height:24px;border-radius:50%;border:1px solid #ccc;background:' + (hex || '#eee') + ';flex-shrink:0;"></div>' +
+        return (
+            '<div class="color-block" id="' + blockId + '" style="border:1.5px solid #e8e8e8;border-radius:10px;margin-bottom:8px;background:white;overflow:hidden;">' +
+
+            // ── Header (sempre visível) ──────────────────────────────────────
+            '<div class="c-header" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;user-select:none;background:#fafafa;border-bottom:1px solid ' + (expanded ? '#e8e8e8' : 'transparent') + ';" onclick="toggleColorBody(this)">' +
+                '<span class="color-drag-handle" title="Arrastar para reordenar" onclick="event.stopPropagation()" style="cursor:grab;color:#ccc;font-size:15px;padding:2px 4px;flex-shrink:0;">⠿</span>' +
+                '<div class="c-preview" style="width:20px;height:20px;border-radius:50%;border:1.5px solid #ddd;background:' + previewBg + ';flex-shrink:0;"></div>' +
+                '<span class="c-name-label" style="flex:1;font-size:13px;font-weight:600;color:#1a1a2e;">' + (colorName || '<span style=\"color:#bbb;font-weight:400;\">Nova cor</span>') + '</span>' +
+                '<span style="font-size:11px;color:#aaa;margin-right:4px;">' + (sizes.length ? sizes.length + ' tamanho' + (sizes.length > 1 ? 's' : '') : '') + '</span>' +
+                '<svg class="chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;transition:transform 0.2s;transform:' + (expanded ? 'rotate(180deg)' : 'rotate(0deg)') + ';"><path d="M2 4.5L7 9.5L12 4.5" stroke="#aaa" stroke-width="1.8" stroke-linecap="round"/></svg>' +
+            '</div>' +
+
+            // ── Body (expansível) ────────────────────────────────────────────
+            '<div class="c-body" style="padding:12px;display:' + (expanded ? 'block' : 'none') + ';">' +
+
+                // Nome + hex + remover
+                '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">' +
+                    '<input type="text" placeholder="Nome da cor (ex: Branco)" value="' + colorName + '" class="c-name" ' +
+                        'style="flex:1;min-width:100px;padding:7px 10px;border:1.5px solid #e0e0e0;border-radius:7px;font-size:13px;font-weight:500;" ' +
+                        'oninput="this.closest(\'.color-block\').querySelector(\'.c-name-label\').textContent = this.value || \'Nova cor\'">' +
+                    '<div style="display:flex;gap:5px;align-items:center;">' +
+                        '<input type="text" placeholder="#ffffff" value="' + hex + '" class="c-hex" ' +
+                            'style="width:82px;padding:7px 8px;border:1.5px solid #e0e0e0;border-radius:7px;font-size:12px;" ' +
+                            'oninput="previewHex(this)">' +
+                        '<div class="c-preview-body" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #ddd;background:' + previewBg + ';flex-shrink:0;"></div>' +
+                    '</div>' +
+                    '<button type="button" onclick="document.getElementById(\'' + blockId + '\').remove()" ' +
+                        'style="background:#ffebee;color:#c62828;border:none;padding:7px 12px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;">Remover</button>' +
                 '</div>' +
-                '<button type="button" onclick="document.getElementById(\'' + blockId + '\').remove()" style="background:#e74c3c;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;">Remover cor</button>' +
-            '</div>' +
-            '<div style="margin-top:8px;display:flex;align-items:center;gap:10px;">' +
-                '<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#555;cursor:pointer;white-space:nowrap;">' +
-                    '<input type="checkbox" class="c-same-price" ' + (hasPrice ? '' : 'checked') + ' onchange="toggleColorPrice(this,\'' + priceId + '\')"> Mesmo preço do produto' +
-                '</label>' +
-                '<input type="number" id="' + priceId + '" min="0" step="0.01" placeholder="Preço desta cor (R$)" value="' + (hasPrice ? priceNum.toFixed(2) : '') + '" class="c-price" style="width:160px;padding:5px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;' + (hasPrice ? '' : 'display:none;') + '">' +
-            '</div>' +
-            '<div style="margin-top:8px;">' +
-                '<label style="font-size:11px;color:#888;font-weight:500;">URLs das imagens desta cor (separadas por vírgula)</label>' +
-                '<input type="text" placeholder="https://img1.jpg, https://img2.jpg" value="' + imgs + '" class="c-images" style="width:100%;margin-top:4px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;box-sizing:border-box;">' +
-            '</div>' +
-            '<div style="margin-top:10px;">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
-                    '<label style="font-size:11px;color:#888;font-weight:500;">Tamanhos e estoques</label>' +
-                    '<button type="button" class="add-size-btn" style="font-size:11px;padding:3px 10px;background:#1a1a2e;color:white;border:none;border-radius:4px;cursor:pointer;">+ Tamanho</button>' +
+
+                // Preço
+                '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">' +
+                    '<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#555;cursor:pointer;white-space:nowrap;">' +
+                        '<input type="checkbox" class="c-same-price" ' + (hasPrice ? '' : 'checked') + ' onchange="toggleColorPrice(this,\'' + priceId + '\')"> Mesmo preço do produto' +
+                    '</label>' +
+                    '<input type="number" id="' + priceId + '" min="0" step="0.01" placeholder="Preço desta cor (R$)" value="' + (hasPrice ? priceNum.toFixed(2) : '') + '" class="c-price" ' +
+                        'style="width:160px;padding:6px 10px;border:1.5px solid #e0e0e0;border-radius:7px;font-size:12px;' + (hasPrice ? '' : 'display:none;') + '">' +
                 '</div>' +
-                '<div class="sizes-list">' + sizeRowsHtml + '</div>' +
-            '</div>' +
-        '</div>';
+
+                // Imagens
+                '<div style="margin-bottom:10px;">' +
+                    '<label style="font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">URLs das imagens (separadas por vírgula)</label>' +
+                    '<input type="text" placeholder="https://img1.jpg, https://img2.jpg" value="' + imgs + '" class="c-images" ' +
+                        'style="width:100%;margin-top:5px;padding:7px 10px;border:1.5px solid #e0e0e0;border-radius:7px;font-size:12px;box-sizing:border-box;">' +
+                '</div>' +
+
+                // Tamanhos
+                '<div>' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+                        '<label style="font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">Tamanhos e estoques</label>' +
+                        '<button type="button" class="add-size-btn" style="font-size:11px;padding:4px 10px;background:#1a1a2e;color:white;border:none;border-radius:5px;cursor:pointer;">+ Tamanho</button>' +
+                    '</div>' +
+                    '<div class="sizes-list">' + sizeRowsHtml + '</div>' +
+                '</div>' +
+
+            '</div>' + // fim c-body
+            '</div>'   // fim color-block
+        );
     }
 
-    document.getElementById('addColorRow').addEventListener('click', function() {
-        const container = document.getElementById('colorsContainer');
+    function appendColorBlock(container, c, expanded) {
         const div = document.createElement('div');
-        div.innerHTML = makeColorBlock();
+        div.innerHTML = makeColorBlock(c, expanded);
         const block = div.firstElementChild;
         container.appendChild(block);
         block.querySelector('.add-size-btn').addEventListener('click', function() {
             this.closest('.color-block').querySelector('.sizes-list').insertAdjacentHTML('beforeend', makeSizeRow());
         });
+        // Sync header preview when hex changes in body
+        const hexInput  = block.querySelector('.c-hex');
+        const prevHead  = block.querySelector('.c-preview');
+        const prevBody  = block.querySelector('.c-preview-body');
+        hexInput.addEventListener('input', function() {
+            const v = this.value.trim() || '#e0e0e0';
+            prevHead.style.background = v;
+            if (prevBody) prevBody.style.background = v;
+        });
+        return block;
+    }
+
+    // ── Drag & drop entre cores ───────────────────────────────────────────────
+    // Estratégia: o handle faz mousedown → habilita draggable no bloco pai →
+    // dragstart/end/over/drop são delegados no container (event delegation),
+    // sem precisar re-registrar listeners a cada novo bloco adicionado.
+
+    let colorDragSrc = null;
+    const colorsContainer = document.getElementById('colorsContainer');
+
+    // Mousedown no handle: habilita draggable no bloco
+    colorsContainer.addEventListener('mousedown', function(e) {
+        const handle = e.target.closest('.color-drag-handle');
+        if (!handle) return;
+        const block = handle.closest('.color-block');
+        if (block) block.draggable = true;
+    });
+
+    // Mouseup em qualquer lugar: desabilita draggable (para não interferir com clicks)
+    document.addEventListener('mouseup', function() {
+        colorsContainer.querySelectorAll('.color-block[draggable="true"]').forEach(function(b) {
+            b.draggable = false;
+        });
+    });
+
+    colorsContainer.addEventListener('dragstart', function(e) {
+        const block = e.target.closest('.color-block');
+        if (!block) return;
+        colorDragSrc = block;
+        block.style.opacity = '0.4';
+        e.dataTransfer.effectAllowed = 'move';
+    });
+
+    colorsContainer.addEventListener('dragend', function() {
+        if (colorDragSrc) { colorDragSrc.style.opacity = ''; colorDragSrc.draggable = false; }
+        colorDragSrc = null;
+        colorsContainer.querySelectorAll('.color-block').forEach(function(b) { b.style.outline = ''; });
+    });
+
+    colorsContainer.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        const block = e.target.closest('.color-block');
+        if (!block || !colorDragSrc || block === colorDragSrc) return;
+        colorsContainer.querySelectorAll('.color-block').forEach(function(b) { b.style.outline = ''; });
+        block.style.outline = '2px dashed #1a1a2e';
+    });
+
+    colorsContainer.addEventListener('dragleave', function(e) {
+        const block = e.target.closest('.color-block');
+        if (block) block.style.outline = '';
+    });
+
+    colorsContainer.addEventListener('drop', function(e) {
+        e.preventDefault();
+        const block = e.target.closest('.color-block');
+        if (!block) return;
+        block.style.outline = '';
+        if (!colorDragSrc || colorDragSrc === block) return;
+        const blocks = Array.from(colorsContainer.querySelectorAll('.color-block'));
+        const srcIdx = blocks.indexOf(colorDragSrc);
+        const tgtIdx = blocks.indexOf(block);
+        if (srcIdx < tgtIdx) colorsContainer.insertBefore(colorDragSrc, block.nextSibling);
+        else                  colorsContainer.insertBefore(colorDragSrc, block);
+        colorDragSrc.style.opacity = '';
+        colorDragSrc.draggable = false;
+        colorDragSrc = null;
+    });
+
+    document.getElementById('addColorRow').addEventListener('click', function() {
+        const container = document.getElementById('colorsContainer');
+        appendColorBlock(container, {}, true); // nova cor já abre expandida
     });
 
     async function loadVariationsAdmin(productId) {
         try {
             const [varRes, colRes] = await Promise.all([
                 fetch('/api/variations/' + productId, { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' }),
-                fetch('/api/colors/' + productId,     { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' })
+                fetch('/api/colors/'     + productId, { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' })
             ]);
             const varData = await varRes.json();
             const colData = await colRes.json();
             if (!varData.success || !varData.data.length) return;
+
+            // Mapa de metadados por nome (hex, images) — já vem ordenado por sort_order da API
             const colorMeta = {};
+            const colorOrder = []; // preserva a ordem retornada pela API
             if (colData.success) {
-                colData.data.forEach(function(c) { colorMeta[c.name] = { hex: c.hex || '', images: Array.isArray(c.images) ? c.images : [] }; });
+                colData.data.forEach(function(c) {
+                    colorMeta[c.name] = { hex: c.hex || '', images: Array.isArray(c.images) ? c.images : [] };
+                    colorOrder.push(c.name);
+                });
             }
+
+            // Agrupa variações por cor
             const byColor = {};
             varData.data.forEach(function(v) {
                 const key = v.color || '__sem_cor__';
@@ -718,54 +696,75 @@
                 if (!byColor[key].price) byColor[key].price = v.price_adjustment || 0;
                 byColor[key].sizes.push({ size: v.size || '', stock: v.stock || 0 });
             });
+
+            // Renderiza na ordem do sort_order (colorOrder), depois qualquer cor não listada
+            const ordered = colorOrder.map(function(n) { return byColor[n]; }).filter(Boolean);
+            const rest     = Object.keys(byColor).filter(function(k) { return !colorOrder.includes(k); }).map(function(k) { return byColor[k]; });
+
             const container = document.getElementById('colorsContainer');
             container.innerHTML = '';
-            Object.values(byColor).forEach(function(c) {
-                const div = document.createElement('div');
-                div.innerHTML = makeColorBlock(c);
-                const block = div.firstElementChild;
-                container.appendChild(block);
-                block.querySelector('.add-size-btn').addEventListener('click', function() {
-                    this.closest('.color-block').querySelector('.sizes-list').insertAdjacentHTML('beforeend', makeSizeRow());
-                });
-            });
+            ordered.concat(rest).forEach(function(c) { appendColorBlock(container, c, false); });
         } catch(e) { console.error(e); }
     }
 
     async function saveVariations(productId) {
-        const blocks = document.querySelectorAll('#colorsContainer .color-block');
-        const variations = [];
-        blocks.forEach(function(block) {
-            const colorName = block.querySelector('.c-name').value.trim();
-            const hex       = block.querySelector('.c-hex').value.trim() || null;
-            const imgsRaw   = block.querySelector('.c-images').value.trim();
-            const images    = imgsRaw ? imgsRaw.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
-            const samePriceChk = block.querySelector('.c-same-price');
-            const colorPrice   = samePriceChk && samePriceChk.checked ? 0 : (parseFloat(block.querySelector('.c-price') && block.querySelector('.c-price').value) || 0);
-            const sizeRows = block.querySelectorAll('.size-row');
-            if (sizeRows.length === 0) {
-                variations.push({ color: colorName || null, size: null, stock: 0, price_adjustment: colorPrice, images: images, hex: hex });
-            } else {
-                sizeRows.forEach(function(row) {
-                    const sizeVal  = row.querySelector('.s-size').value.trim();
-                    const stockVal = parseInt(row.querySelector('.s-stock').value) || 0;
-                    variations.push({ color: colorName || null, size: sizeVal || null, stock: stockVal, price_adjustment: colorPrice, images: images, hex: hex });
-                });
-            }
-        });
-        if (!variations.length) return;
-        await fetch('/api/variations/' + productId, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ variations: variations }) });
-        const colorMap = {};
-        variations.forEach(function(v) {
-            if (v.color && !colorMap[v.color]) {
-                colorMap[v.color] = { name: v.color, hex: v.hex, images: v.images, stock: variations.filter(function(x) { return x.color === v.color; }).reduce(function(s, x) { return s + x.stock; }, 0) };
-            }
-        });
-        const colors = Object.values(colorMap);
-        if (colors.length) {
-            await fetch('/api/colors/' + productId, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ colors: colors }) });
+    const blocks = document.querySelectorAll('#colorsContainer .color-block');
+    const variations = [];
+    // colors montado diretamente na ordem do DOM — sem intermediários
+    const colors = [];
+    const seenColors = {};
+    let orderIndex = 0; // ← ADICIONADO: contador para sort_order
+
+    blocks.forEach(function(block) {
+        const colorName = block.querySelector('.c-name').value.trim();
+        const hex       = block.querySelector('.c-hex').value.trim() || null;
+        const imgsRaw   = block.querySelector('.c-images').value.trim();
+        const images    = imgsRaw ? imgsRaw.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+        const samePriceChk = block.querySelector('.c-same-price');
+        const colorPrice   = samePriceChk && samePriceChk.checked ? 0 : (parseFloat((block.querySelector('.c-price') || {}).value) || 0);
+        const sizeRows = block.querySelectorAll('.size-row');
+
+        // Adiciona à lista de cores na ordem exata do DOM (sem deduplicar via Map)
+        if (colorName && !seenColors[colorName]) {
+            seenColors[colorName] = true;
+            var totalStock = 0;
+            sizeRows.forEach(function(r) { totalStock += parseInt(r.querySelector('.s-stock').value) || 0; });
+            colors.push({ 
+                name: colorName, 
+                hex: hex, 
+                images: images, 
+                stock: totalStock,
+                sort_order: orderIndex++  // ← ADICIONADO: envia a ordem explícita
+            });
         }
+
+        if (sizeRows.length === 0) {
+            variations.push({ color: colorName || null, size: null, stock: 0, price_adjustment: colorPrice, images: images, hex: hex });
+        } else {
+            sizeRows.forEach(function(row) {
+                const sizeVal  = row.querySelector('.s-size').value.trim();
+                const stockVal = parseInt(row.querySelector('.s-stock').value) || 0;
+                variations.push({ color: colorName || null, size: sizeVal || null, stock: stockVal, price_adjustment: colorPrice, images: images, hex: hex });
+            });
+        }
+    });
+
+    if (!variations.length) return;
+
+    await fetch('/api/variations/' + productId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ variations: variations })
+    });
+
+    if (colors.length) {
+        await fetch('/api/colors/' + productId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+            body: JSON.stringify({ colors: colors })
+        });
     }
+}
 
     // ── Init ─────────────────────────────────────────────────────────────────
     loadCategories();

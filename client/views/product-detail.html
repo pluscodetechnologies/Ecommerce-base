@@ -549,7 +549,12 @@
             const vars    = window._variations;
             if (!vars.length && !window._colors.length) { section.innerHTML = ''; return; }
 
-            const colorNames = [...new Set(vars.map(v => v.color).filter(Boolean))];
+            // Ordena as cores pelo sort_order de product_colors (window._colors já vem ordenado pela API)
+            const allColorNames = [...new Set(vars.map(v => v.color).filter(Boolean))];
+            const colorNames = [
+                ...window._colors.map(c => c.name).filter(n => allColorNames.includes(n)),
+                ...allColorNames.filter(n => !window._colors.some(c => c.name === n))
+            ];
             const hasSizes   = vars.some(v => v.size);
 
             let html = '';

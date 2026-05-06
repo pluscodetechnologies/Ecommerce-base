@@ -119,7 +119,7 @@ class AdminController {
                 params.push(`%${search}%`, `%${search}%`);
             }
             
-            query += ' ORDER BY p.sort_order ASC, p.created_at DESC LIMIT ' + limit + ' OFFSET ' + offset;
+            query += ' ORDER BY p.created_at DESC LIMIT ' + limit + ' OFFSET ' + offset;
             
             const [products] = await db.execute(query, params);
             const [total] = await db.execute('SELECT COUNT(*) as count FROM products');
@@ -203,23 +203,6 @@ async updateProduct(req, res) {
         res.status(500).json({ success: false, message: 'Erro ao atualizar produto' });
     }
 }
-
-    async reorderProducts(req, res) {
-        try {
-            const db = getDB();
-            const { items } = req.body; // [{ id, sort_order }, ...]
-            if (!Array.isArray(items) || !items.length) {
-                return res.status(400).json({ success: false, message: 'items obrigatório' });
-            }
-            for (const item of items) {
-                await db.execute('UPDATE products SET sort_order = ? WHERE id = ?', [item.sort_order, item.id]);
-            }
-            res.json({ success: true, message: 'Ordem salva' });
-        } catch (error) {
-            console.error('Erro ao reordenar produtos:', error);
-            res.status(500).json({ success: false, message: 'Erro ao reordenar' });
-        }
-    }
 
     async deleteProduct(req, res) {
         try {

@@ -33,7 +33,7 @@ CREATE TABLE `banners` (
   `is_active` tinyint(1) DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,7 +42,7 @@ CREATE TABLE `banners` (
 
 LOCK TABLES `banners` WRITE;
 /*!40000 ALTER TABLE `banners` DISABLE KEYS */;
-INSERT INTO `banners` VALUES (2,'Teste','teste','https://static.zattini.com.br/bnn/l_zattini/2026-04-23/7627_crocsday_abr_desk_1922x500.gif',NULL,'hero',0,1,'2026-04-24 14:14:33');
+INSERT INTO `banners` VALUES (2,'Teste','teste','https://static.zattini.com.br/bnn/l_zattini/2026-04-23/7627_crocsday_abr_desk_1922x500.gif','/product?id=2','hero',2,1,'2026-04-24 14:14:33'),(4,'Teste Imagem 2','teste 2','https://flordecarlota.cdn.magazord.com.br/img/2026/04/banner/4195/desk.png','/product?id=3','hero',0,1,'2026-05-06 15:22:02');
 /*!40000 ALTER TABLE `banners` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -68,7 +68,7 @@ CREATE TABLE `cart_items` (
   CONSTRAINT `cart_items_ibfk_1` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `cart_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   CONSTRAINT `cart_items_ibfk_3` FOREIGN KEY (`variation_id`) REFERENCES `product_variations` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -77,6 +77,7 @@ CREATE TABLE `cart_items` (
 
 LOCK TABLES `cart_items` WRITE;
 /*!40000 ALTER TABLE `cart_items` DISABLE KEYS */;
+INSERT INTO `cart_items` VALUES (34,2,3,NULL,1,0.10,'2026-05-05 15:46:44');
 /*!40000 ALTER TABLE `cart_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -105,7 +106,7 @@ CREATE TABLE `carts` (
 
 LOCK TABLES `carts` WRITE;
 /*!40000 ALTER TABLE `carts` DISABLE KEYS */;
-INSERT INTO `carts` VALUES (1,NULL,'0f7938d9-0675-4315-987c-625bddf49b37','2026-04-23 00:38:59','2026-04-28 21:23:49'),(2,NULL,'451b54b2-f171-4235-bfb4-74478741f227','2026-04-24 16:15:50','2026-05-04 18:39:12');
+INSERT INTO `carts` VALUES (1,NULL,'0f7938d9-0675-4315-987c-625bddf49b37','2026-04-23 00:38:59','2026-04-28 21:23:49'),(2,NULL,'451b54b2-f171-4235-bfb4-74478741f227','2026-04-24 16:15:50','2026-05-05 15:46:44');
 /*!40000 ALTER TABLE `carts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -195,10 +196,12 @@ CREATE TABLE `coupons` (
   `starts_at` timestamp NULL DEFAULT NULL,
   `expires_at` timestamp NULL DEFAULT NULL,
   `status` enum('active','inactive') DEFAULT 'active',
+  `coupon_type` varchar(50) DEFAULT NULL COMMENT 'Tipo especial pré-definido: first_purchase, etc.',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `code` (`code`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `code` (`code`),
+  KEY `idx_coupon_type` (`coupon_type`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -207,7 +210,7 @@ CREATE TABLE `coupons` (
 
 LOCK TABLES `coupons` WRITE;
 /*!40000 ALTER TABLE `coupons` DISABLE KEYS */;
-INSERT INTO `coupons` VALUES (1,'TESTE','testando cupom','fixed',15.00,1.00,1,0,'2026-04-24 14:15:00','2026-04-25 14:15:00','active','2026-04-24 14:15:38');
+INSERT INTO `coupons` VALUES (1,'TESTE','testando cupom','fixed',15.00,1.00,1,0,'2026-04-24 14:15:00','2026-04-25 14:15:00','active',NULL,'2026-04-24 14:15:38'),(3,'PRIMEIRACOMPRA','Cupom de Primeira Compra','percentage',10.00,0.00,NULL,0,NULL,NULL,'active','first_purchase','2026-05-06 18:32:48');
 /*!40000 ALTER TABLE `coupons` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -306,11 +309,12 @@ CREATE TABLE `product_colors` (
   `hex` varchar(20) DEFAULT NULL,
   `stock` int DEFAULT '0',
   `images` json DEFAULT NULL,
+  `sort_order` int DEFAULT '0' COMMENT 'Ordem de exibição das cores',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_product` (`product_id`),
   CONSTRAINT `product_colors_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -319,7 +323,7 @@ CREATE TABLE `product_colors` (
 
 LOCK TABLES `product_colors` WRITE;
 /*!40000 ALTER TABLE `product_colors` DISABLE KEYS */;
-INSERT INTO `product_colors` VALUES (1,3,'Branco','#ffffff',6,'[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716138/Branco_u1wfae.jpg\"]','2026-05-04 18:38:46');
+INSERT INTO `product_colors` VALUES (33,3,'Azul marinho','#000080',17,'[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716142/Marinho_mlcxp9.jpg\"]','2026-05-06 18:41:23'),(34,3,'Branco','#ffff',20,'[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716138/Branco_u1wfae.jpg\"]','2026-05-06 18:41:23');
 /*!40000 ALTER TABLE `product_colors` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -406,7 +410,7 @@ CREATE TABLE `product_variations` (
   PRIMARY KEY (`id`),
   KEY `product_id` (`product_id`),
   CONSTRAINT `product_variations_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=121 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -415,7 +419,7 @@ CREATE TABLE `product_variations` (
 
 LOCK TABLES `product_variations` WRITE;
 /*!40000 ALTER TABLE `product_variations` DISABLE KEYS */;
-INSERT INTO `product_variations` VALUES (19,3,NULL,'G','Branco','[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716138/Branco_u1wfae.jpg\"]',10,0.00,'2026-05-04 18:21:50'),(20,3,NULL,'M','Branco','[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716138/Branco_u1wfae.jpg\"]',10,0.00,'2026-05-04 18:21:50'),(21,3,NULL,'P','Branco','[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716138/Branco_u1wfae.jpg\"]',10,0.00,'2026-05-04 18:21:50');
+INSERT INTO `product_variations` VALUES (115,3,NULL,'G','Azul marinho','[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716142/Marinho_mlcxp9.jpg\"]',2,0.00,'2026-05-06 18:41:23'),(116,3,NULL,'M','Azul marinho','[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716142/Marinho_mlcxp9.jpg\"]',5,0.00,'2026-05-06 18:41:23'),(117,3,NULL,'P','Azul marinho','[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716142/Marinho_mlcxp9.jpg\"]',10,0.00,'2026-05-06 18:41:23'),(118,3,NULL,'G','Branco','[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716138/Branco_u1wfae.jpg\"]',10,0.90,'2026-05-06 18:41:23'),(119,3,NULL,'M','Branco','[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716138/Branco_u1wfae.jpg\"]',5,0.90,'2026-05-06 18:41:23'),(120,3,NULL,'P','Branco','[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716138/Branco_u1wfae.jpg\"]',5,0.90,'2026-05-06 18:41:23');
 /*!40000 ALTER TABLE `product_variations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -439,6 +443,7 @@ CREATE TABLE `products` (
   `category_id` int DEFAULT NULL,
   `status` enum('active','inactive','draft') DEFAULT 'active',
   `is_featured` tinyint(1) DEFAULT '0',
+  `sort_order` int DEFAULT '0' COMMENT 'Ordem de exibição dentro da categoria',
   `images` json DEFAULT NULL,
   `sales_count` int DEFAULT '0',
   `views_count` int DEFAULT '0',
@@ -447,9 +452,9 @@ CREATE TABLE `products` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `slug` (`slug`),
   UNIQUE KEY `sku` (`sku`),
-  KEY `category_id` (`category_id`),
+  KEY `idx_product_sort` (`category_id`,`sort_order`),
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -458,7 +463,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (2,'teste','teste',NULL,123.00,109.00,NULL,12,NULL,5,'active',0,'[\"https://res.cloudinary.com/dr79k8vl1/image/upload/v1776717067/Preto_Algod%C3%A3o_bxxfmu.jpg\", \"https://res.cloudinary.com/dr79k8vl1/image/upload/v1776717068/Verde_Escuro_ug4owv.jpg\"]',1,0,'2026-04-22 01:58:03','2026-04-23 17:04:23'),(3,'teste checkout','teste-checkout','testando a descrição do produto',0.10,NULL,NULL,5,'P, M, G, GG',4,'active',0,'[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716133/Preto_Algod%C3%A3o_tij4bd.jpg\"]',5,0,'2026-04-23 17:07:27','2026-05-04 18:38:12');
+INSERT INTO `products` VALUES (2,'teste','teste',NULL,123.00,109.00,NULL,12,NULL,5,'active',0,0,'[\"https://res.cloudinary.com/dr79k8vl1/image/upload/v1776717067/Preto_Algod%C3%A3o_bxxfmu.jpg\", \"https://res.cloudinary.com/dr79k8vl1/image/upload/v1776717068/Verde_Escuro_ug4owv.jpg\"]',1,0,'2026-04-22 01:58:03','2026-05-06 20:11:26'),(3,'teste checkout','teste-checkout','testando a descrição do produto',0.10,NULL,NULL,5,NULL,4,'active',0,10,'[\"https://res.cloudinary.com/dyhvs3usc/image/upload/v1776716133/Preto_Algod%C3%A3o_tij4bd.jpg\"]',5,0,'2026-04-23 17:07:27','2026-05-06 20:11:26');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -476,7 +481,7 @@ CREATE TABLE `store_alerts` (
   `is_active` tinyint(1) DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -485,7 +490,7 @@ CREATE TABLE `store_alerts` (
 
 LOCK TABLES `store_alerts` WRITE;
 /*!40000 ALTER TABLE `store_alerts` DISABLE KEYS */;
-INSERT INTO `store_alerts` VALUES (1,'CUPOM','Use VELVET20 e ganhe desconto na primeira compra',1,'2026-04-24 14:36:14');
+INSERT INTO `store_alerts` VALUES (1,'CUPOM','Use VELVET20 e ganhe desconto na primeira compra',1,'2026-04-24 14:36:14'),(2,'TESTE','Tô testando essa mensagem',1,'2026-05-05 03:12:20');
 /*!40000 ALTER TABLE `store_alerts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -584,7 +589,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Lucas Alves Resende','lucas@gmail.com','$2b$10$2RjBQZYWViGIelS6fjQ/Ue0dhp4StSzXWp8vEyTSgneXSOVNtyLli','(32) 99943-0189',NULL,'user',NULL,NULL,NULL,NULL,'2026-04-21 18:07:40',NULL),(4,'Administrador','admin@velvetstore.com','$2b$10$DOqnFImbRCDjiAdwRN38Rug4sBEuN5H1fHo5gFeRSh86/ox1DoKGm',NULL,NULL,'admin','585b7305ebc8674d09c59da8147b692929c3407b4b40ad4eb06b926fe5dd01d6','2026-04-24 12:59:34',NULL,NULL,'2026-04-21 18:17:16','2026-04-24 14:59:34'),(5,'João Gabriel','joao@gmail.com','$2b$10$iD2ZX.m5XH6mqtyUt54OUOIeMxZPnyLHtjVGVPd5LTLqpxFQXILkC','(31) 999970-7070','111.111.111-11','user',NULL,NULL,NULL,NULL,'2026-04-24 16:17:09',NULL);
+INSERT INTO `users` VALUES (1,'Lucas Alves Resende','lucas@gmail.com','$2b$10$2RjBQZYWViGIelS6fjQ/Ue0dhp4StSzXWp8vEyTSgneXSOVNtyLli','(32) 99943-0189',NULL,'user',NULL,NULL,NULL,NULL,'2026-04-21 18:07:40',NULL),(4,'Administrador','admin@velvetstore.com','$2b$10$DOqnFImbRCDjiAdwRN38Rug4sBEuN5H1fHo5gFeRSh86/ox1DoKGm',NULL,NULL,'admin','6770fe6389c7ea8149ce14163c99976ed73e53c9f1295499fe8b86e7a5a9613f','2026-05-05 01:02:25',NULL,NULL,'2026-04-21 18:17:16','2026-05-05 03:02:24'),(5,'João Gabriel','joao@gmail.com','$2b$10$iD2ZX.m5XH6mqtyUt54OUOIeMxZPnyLHtjVGVPd5LTLqpxFQXILkC','(31) 999970-7070','111.111.111-11','user',NULL,NULL,NULL,NULL,'2026-04-24 16:17:09',NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -606,7 +611,7 @@ CREATE TABLE `wishlists` (
   KEY `idx_user` (`user_id`),
   CONSTRAINT `wishlists_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `wishlists_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -627,4 +632,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-04 22:50:29
+-- Dump completed on 2026-05-06 17:15:36

@@ -11,7 +11,6 @@ router.get('/orders', adminController.getOrders.bind(adminController));
 router.put('/orders/:id/status', adminController.updateOrderStatus.bind(adminController));
 router.get('/products', adminController.getProducts.bind(adminController));
 router.post('/products', adminController.createProduct.bind(adminController));
-router.post('/products/reorder', adminController.reorderProducts.bind(adminController));
 router.put('/products/:id', adminController.updateProduct.bind(adminController));
 router.delete('/products/:id', adminController.deleteProduct.bind(adminController));
 router.get('/categories', adminController.getCategories.bind(adminController));
