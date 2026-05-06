@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Velvet Store</title>
+    <title>Login | Velvet Atelier</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .header-top { background: #1A1817 !important; color: white; text-align: center; padding: 8px 0; font-size: 13px; }
+        .header-top p { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
         .auth-container {
             min-height: calc(100vh - 200px);
             display: flex;
@@ -224,9 +226,9 @@
 </head>
 <body>
     <header class="header">
-        <div class="header-top">
+        <div class="header-top" id="headerTop" style="display:none">
             <div class="container">
-                <p>Frete Grátis para todo Brasil em compras acima de R$ 299 ✨</p>
+                <p id="headerTopText">FRETE GRÁTIS PARA TODO BRASIL EM COMPRAS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p>
             </div>
         </div>
         
@@ -235,7 +237,7 @@
                 <div class="header-wrapper">
                     <a href="/" class="logo">
                         <h1>VELVET</h1>
-                        <span>store</span>
+                        <span>ATELIER</span>
                     </a>
                     
                     <div class="header-actions">
@@ -559,6 +561,35 @@
                 alert('Erro ao enviar email de recuperação');
             }
         });
+
+        // Alertas rotativos no topo — só exibe se houver alertas cadastrados no admin
+        (async () => {
+            try {
+                const r = await fetch('/api/alerts');
+                const d = await r.json();
+                const headerTop = document.getElementById('headerTop');
+                const textEl = document.getElementById('headerTopText');
+                if (d.success && d.data.length) {
+                    const alerts = d.data;
+                    let idx = 0;
+                    function showAlert(a) {
+                        const text = a.title ? `${a.title} — ${a.message}` : a.message;
+                        textEl.style.opacity = '0';
+                        setTimeout(() => { textEl.textContent = text; textEl.style.opacity = '1'; }, 300);
+                    }
+                    textEl.style.transition = 'opacity 0.3s ease';
+                    headerTop.style.display = '';
+                    showAlert(alerts[0]);
+                    if (alerts.length > 1) {
+                        setInterval(() => { idx = (idx + 1) % alerts.length; showAlert(alerts[idx]); }, 5000);
+                    }
+                } else {
+                    headerTop.style.display = 'none';
+                }
+            } catch (e) {
+                document.getElementById('headerTop').style.display = 'none';
+            }
+        })();
     </script>
 </body>
 </html>

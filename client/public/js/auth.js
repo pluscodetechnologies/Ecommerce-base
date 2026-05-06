@@ -52,9 +52,9 @@ class AuthManager {
                             <i class="fas fa-shopping-bag"></i>
                             Meus Pedidos
                         </a>
-                        <a href="/account?tab=addresses">
-                            <i class="fas fa-map-marker-alt"></i>
-                            Endereços
+                        <a href="/account?tab=favorites">
+                            <i class="fas fa-heart"></i>
+                            Favoritos
                         </a>
                         <div class="divider"></div>
                         <a href="#" class="logout-btn" id="logoutBtn">

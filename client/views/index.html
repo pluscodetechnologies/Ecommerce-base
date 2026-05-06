@@ -269,7 +269,7 @@
 </head>
 <body>
     <header class="header">
-        <div class="header-top" id="headerTop">
+        <div class="header-top" id="headerTop" style="display:none">
             <div class="container">
                 <p id="headerTopText">FRETE GRÁTIS PARA TODO BRASIL EM COMPRAS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p>
             </div>
@@ -540,34 +540,32 @@ document.addEventListener('DOMContentLoaded', loadNavCategories);
             try { const r = await fetch('/api/products/featured'); const d = await r.json(); if (d.success) renderProducts('featuredProducts', d.data); } catch (e) {}
             try { const r = await fetch('/api/products/new-arrivals'); const d = await r.json(); if (d.success) renderProducts('newArrivals', d.data); } catch (e) {}
 
-            // Alertas rotativos no topo
+            // Alertas rotativos no topo — só exibe se houver alertas cadastrados no admin
             try {
                 const r = await fetch('/api/alerts');
                 const d = await r.json();
+                const headerTop = document.getElementById('headerTop');
+                const textEl = document.getElementById('headerTopText');
                 if (d.success && d.data.length) {
-                    const textEl = document.getElementById('headerTopText');
                     const alerts = d.data;
                     let idx = 0;
-
                     function showAlert(a) {
                         const text = a.title ? `${a.title} — ${a.message}` : a.message;
                         textEl.style.opacity = '0';
-                        setTimeout(() => {
-                            textEl.textContent = text;
-                            textEl.style.opacity = '1';
-                        }, 300);
+                        setTimeout(() => { textEl.textContent = text; textEl.style.opacity = '1'; }, 300);
                     }
-
                     textEl.style.transition = 'opacity 0.3s ease';
+                    headerTop.style.display = '';
                     showAlert(alerts[0]);
                     if (alerts.length > 1) {
-                        setInterval(() => {
-                            idx = (idx + 1) % alerts.length;
-                            showAlert(alerts[idx]);
-                        }, 5000);
+                        setInterval(() => { idx = (idx + 1) % alerts.length; showAlert(alerts[idx]); }, 5000);
                     }
+                } else {
+                    headerTop.style.display = 'none';
                 }
-            } catch (e) {}
+            } catch (e) {
+                document.getElementById('headerTop').style.display = 'none';
+            }
         });
         
         let slide = 0, slides = [], dots = [];

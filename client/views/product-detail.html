@@ -54,16 +54,23 @@
         .product-detail { padding: 40px 0 60px; }
         .product-container { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
         .product-gallery { position: relative; }
-        .main-image { width: 100%; aspect-ratio: 3/4; overflow: hidden; border-radius: 8px; background: #F5F3F1; }
+        .main-image { width: 100%; aspect-ratio: 3/4; overflow: hidden; border-radius: 8px; background: #F5F3F1; cursor: zoom-in; }
         .main-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
         .main-image:hover img { transform: scale(1.03); }
+
+        /* Lightbox */
+        .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 9999; align-items: center; justify-content: center; }
+        .lightbox.open { display: flex; }
+        .lightbox-img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 4px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .lightbox-close { position: fixed; top: 20px; right: 28px; background: none; border: none; color: white; font-size: 36px; cursor: pointer; line-height: 1; opacity: 0.8; transition: opacity 0.2s; z-index: 10000; }
+        .lightbox-close:hover { opacity: 1; }
         .thumbnail-list { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         .thumbnail { width: 80px; height: 100px; border-radius: 4px; overflow: hidden; cursor: pointer; border: 2px solid transparent; background: #F5F3F1; flex-shrink: 0; }
         .thumbnail.active { border-color: var(--primary); }
         .thumbnail img { width: 100%; height: 100%; object-fit: cover; }
 
         .product-info h1 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; margin-bottom: 8px; }
-        .product-sku { color: var(--gray); font-size: 12px; margin-bottom: 12px; }
+        .product-subtitle { color: var(--gray); font-size: 15px; font-style: italic; margin-bottom: 12px; min-height: 0; }
         .product-rating-summary { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; cursor: pointer; }
         .stars-display { display: flex; gap: 2px; }
         .rating-count { font-size: 13px; color: var(--gray); text-decoration: underline; }
@@ -162,18 +169,27 @@
         .footer-col ul { list-style: none; }
         .footer-col ul li { margin-bottom: 12px; }
         .footer-col ul li a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; }
-        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding: 20px 0; text-align: center; }
+        .footer-col ul li i { margin-right: 10px; width: 18px; color: rgba(255,255,255,0.7); }
+        .social-links { display: flex; gap: 15px; }
+        .social-links a { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
+        .social-links a:hover { background: var(--primary); }
+        .payment-methods { display: flex; gap: 15px; font-size: 22px; opacity: 0.7; }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding: 20px 0; }
+        .footer-bottom .container { display: flex; justify-content: space-between; align-items: center; }
+        .footer-bottom p { opacity: 0.6; font-size: 13px; }
 
+        .mobile-menu-btn { display: none; }
         @media (max-width: 1024px) { .nav-menu { display: none; } .product-container { grid-template-columns: 1fr; } .reviews-layout { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: repeat(2,1fr); } }
-        @media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .mobile-menu-btn { display: block; font-size: 22px; background: none; border: none; cursor: pointer; color: var(--dark); } .nav-menu.active { display: block; position: absolute; top: 100%; left: 0; width: 100%; background: white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); padding: 20px; z-index: 999; } .nav-menu.active ul { flex-direction: column; gap: 0; } .nav-menu.active ul li { border-bottom: 1px solid var(--border-light); } .nav-menu.active ul li a { display: block; padding: 12px 0; } .footer-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
     <header class="header">
-        <div class="header-top"><div class="container"><p>FRETE GRÁTIS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p></div></div>
+        <div class="header-top" id="headerTop" style="display:none"><div class="container"><p id="headerTopText">FRETE GRÁTIS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p></div></div>
         <div class="header-main">
             <div class="container">
                 <div class="header-wrapper">
+                    <button class="mobile-menu-btn" onclick="this.nextElementSibling.nextElementSibling.classList.toggle('active')"><i class="fas fa-bars"></i></button>
                     <a href="/" class="logo"><h1>VELVET</h1><span>ATELIER</span></a>
                     <nav class="nav-menu">
                         <ul>
@@ -188,7 +204,7 @@
                             </li>
                             <li><a href="/products?category=novidades">Novidades</a></li>
                             <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
-                            <li><a href="/products?sale=true" style="color:#C45C5C;">Sale</a></li>
+                            <li><a href="/products?sale=true" style="color:#C45C5C;">Ofertas</a></li>
                         </ul>
                     </nav>
                     <div class="header-actions">
@@ -258,10 +274,56 @@
     </section>
 
     <footer class="footer">
-        <div class="footer-main"><div class="container"><div class="footer-grid">
-            <div class="footer-col"><div class="footer-logo"><h3>VELVET</h3></div><p>Moda feminina de luxo.</p></div>
-        </div></div></div>
-        <div class="footer-bottom"><div class="container"><p>&copy; 2024 Velvet Atelier</p></div></div>
+        <div class="footer-main">
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-col">
+                        <div class="footer-logo"><h3>VELVET</h3><span>ATELIER</span></div>
+                        <p>Moda feminina de luxo que celebra a individualidade e beleza de cada mulher.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-pinterest-p"></i></a>
+                        </div>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Explorar</h4>
+                        <ul>
+                            <li><a href="/products">Nova Coleção</a></li>
+                            <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
+                            <li><a href="/products?sale=true">Ofertas</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Suporte</h4>
+                        <ul>
+                            <li><a href="#">Central de Ajuda</a></li>
+                            <li><a href="#">Trocas e Devoluções</a></li>
+                            <li><a href="#">Política de Privacidade</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Contato</h4>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> contato@velvetatelier.com</li>
+                            <li><i class="fas fa-phone-alt"></i> (11) 3456-7890</li>
+                            <li><i class="fab fa-whatsapp"></i> (11) 98765-4321</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2024 Velvet Atelier. Todos os direitos reservados.</p>
+                <div class="payment-methods">
+                    <i class="fab fa-cc-visa"></i>
+                    <i class="fab fa-cc-mastercard"></i>
+                    <i class="fas fa-barcode"></i>
+                    <i class="fab fa-pix"></i>
+                </div>
+            </div>
+        </div>
     </footer>
 
     <script src="/js/auth.js"></script>
@@ -309,8 +371,8 @@
             else                { stockStatus = 'Indisponível';                   stockClass = 'out'; }
 
             document.getElementById('productContainer').innerHTML = `
-                <div class="product-gallery">
-                    <div class="main-image"><img src="${images[0]}" alt="${product.name}" id="mainImageImg"></div>
+                    <div class="product-gallery">
+                    <div class="main-image" onclick="openLightbox(this.querySelector('img').src)"><img src="${images[0]}" alt="${product.name}" id="mainImageImg"></div>
                     <div class="thumbnail-list" id="thumbnailList">
                         ${images.length > 1 ? images.map((img, i) => `
                             <div class="thumbnail ${i===0?'active':''}" onclick="setMainImage(${i})">
@@ -320,7 +382,7 @@
                 </div>
                 <div class="product-info">
                     <h1>${product.name}</h1>
-                    <div class="product-sku">SKU: ${product.sku || 'N/A'}</div>
+                    ${product.subtitle ? `<div class="product-subtitle">${product.subtitle}</div>` : ''}
                     <div class="product-rating-summary" onclick="document.querySelector('.reviews-section').scrollIntoView({behavior:'smooth'})">
                         <div class="stars-display" id="productStars">${renderStars(0)}</div>
                         <span class="rating-count" id="productRatingCount">Ver avaliações</span>
@@ -730,6 +792,53 @@
                 loadVariations();
             });
         });
+
+        // Alertas rotativos no topo — só exibe se houver alertas cadastrados no admin
+        (async () => {
+            try {
+                const r = await fetch('/api/alerts');
+                const d = await r.json();
+                const headerTop = document.getElementById('headerTop');
+                const textEl = document.getElementById('headerTopText');
+                if (d.success && d.data.length) {
+                    const alerts = d.data;
+                    let idx = 0;
+                    function showAlert(a) {
+                        const text = a.title ? `${a.title} — ${a.message}` : a.message;
+                        textEl.style.opacity = '0';
+                        setTimeout(() => { textEl.textContent = text; textEl.style.opacity = '1'; }, 300);
+                    }
+                    textEl.style.transition = 'opacity 0.3s ease';
+                    headerTop.style.display = '';
+                    showAlert(alerts[0]);
+                    if (alerts.length > 1) {
+                        setInterval(() => { idx = (idx + 1) % alerts.length; showAlert(alerts[idx]); }, 5000);
+                    }
+                } else {
+                    headerTop.style.display = 'none';
+                }
+            } catch (e) {
+                document.getElementById('headerTop').style.display = 'none';
+            }
+        })();
+    </script>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+        <img class="lightbox-img" id="lightboxImg" src="" alt="" onclick="event.stopPropagation()">
+    </div>
+    <script>
+        function openLightbox(src) {
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightbox').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
     </script>
 </body>
 </html>

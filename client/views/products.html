@@ -193,12 +193,19 @@
         .footer-bottom p { opacity: 0.6; font-size: 13px; }
         .payment-methods { display: flex; gap: 15px; font-size: 26px; opacity: 0.6; }
         
+        .mobile-menu-btn { display: none; }
+
         @media (max-width: 1024px) {
             .nav-menu { display: none; }
             .products-grid { grid-template-columns: repeat(2, 1fr); }
             .footer-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 768px) {
+            .mobile-menu-btn { display: block; font-size: 22px; background: none; border: none; cursor: pointer; color: var(--dark); }
+            .nav-menu.active { display: block; position: absolute; top: 100%; left: 0; width: 100%; background: white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); padding: 20px; z-index: 999; }
+            .nav-menu.active ul { flex-direction: column; gap: 0; }
+            .nav-menu.active ul li { border-bottom: 1px solid var(--border-light); }
+            .nav-menu.active ul li a { display: block; padding: 12px 0; }
             .products-layout { flex-direction: column; }
             .filters-sidebar { width: 100%; }
             .footer-grid { grid-template-columns: 1fr; }
@@ -211,10 +218,11 @@
 </head>
 <body>
     <header class="header">
-        <div class="header-top"><div class="container"><p>FRETE GRÁTIS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p></div></div>
+        <div class="header-top" id="headerTop" style="display:none"><div class="container"><p id="headerTopText">FRETE GRÁTIS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p></div></div>
         <div class="header-main">
             <div class="container">
                 <div class="header-wrapper">
+                    <button class="mobile-menu-btn" onclick="this.nextElementSibling.nextElementSibling.classList.toggle('active')"><i class="fas fa-bars"></i></button>
                     <a href="/" class="logo"><h1>VELVET</h1><span>ATELIER</span></a>
                     <nav class="nav-menu">
                         <ul>
@@ -227,6 +235,7 @@
                                     </div>
                                 </ul>
                             </li>
+                            <li><a href="/products?sale=true" style="color: #C45C5C;">Ofertas</a></li>
                         </ul>
                     </nav>
                     <div class="header-actions">
@@ -287,7 +296,7 @@
                         <ul>
                             <li><a href="/products">Nova Coleção</a></li>
                             <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
-                            <li><a href="/products?sale=true">Sale</a></li>
+                            <li><a href="/products?sale=true">Ofertas</a></li>
                         </ul>
                     </div>
                     <div class="footer-col">
@@ -378,7 +387,7 @@
                 if (category === 'novidades') { url += '&sort=newest'; }
                 else if (category === 'mais-vendidos') { url += '&sort=best-sellers'; }
                 else if (category) { url += `&category=${encodeURIComponent(category)}`; }
-                if (urlParams.get('sale') === 'true') { url += '&onSale=true'; document.getElementById('pageTitle').textContent = 'Sale'; }
+                if (urlParams.get('sale') === 'true') { url += '&onSale=true'; document.getElementById('pageTitle').textContent = 'Ofertas'; }
                 if (sort === 'price-asc') url += '&sort=price-asc';
                 if (sort === 'price-desc') url += '&sort=price-desc';
                 if (sort === 'best-sellers') url += '&sort=best-sellers';
@@ -440,6 +449,35 @@
         loadNavCategories();
         loadCategories();
         loadProducts();
+
+        // Alertas rotativos no topo — só exibe se houver alertas cadastrados no admin
+        (async () => {
+            try {
+                const r = await fetch('/api/alerts');
+                const d = await r.json();
+                const headerTop = document.getElementById('headerTop');
+                const textEl = document.getElementById('headerTopText');
+                if (d.success && d.data.length) {
+                    const alerts = d.data;
+                    let idx = 0;
+                    function showAlert(a) {
+                        const text = a.title ? `${a.title} — ${a.message}` : a.message;
+                        textEl.style.opacity = '0';
+                        setTimeout(() => { textEl.textContent = text; textEl.style.opacity = '1'; }, 300);
+                    }
+                    textEl.style.transition = 'opacity 0.3s ease';
+                    headerTop.style.display = '';
+                    showAlert(alerts[0]);
+                    if (alerts.length > 1) {
+                        setInterval(() => { idx = (idx + 1) % alerts.length; showAlert(alerts[idx]); }, 5000);
+                    }
+                } else {
+                    headerTop.style.display = 'none';
+                }
+            } catch (e) {
+                document.getElementById('headerTop').style.display = 'none';
+            }
+        })();
     </script>
 </body>
 </html>

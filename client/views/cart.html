@@ -132,10 +132,20 @@
         .footer-bottom .container { display: flex; justify-content: space-between; align-items: center; }
         .footer-bottom p { opacity: 0.6; font-size: 13px; }
         
-        @media (max-width: 1024px) { .footer-grid { grid-template-columns: repeat(2, 1fr); } }
+        .social-links { display: flex; gap: 15px; }
+        .social-links a { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
+        .social-links a:hover { background: var(--primary); }
+        .footer-col ul li i { margin-right: 10px; width: 18px; }
+        .payment-methods { display: flex; gap: 15px; font-size: 22px; opacity: 0.7; }
         @media (max-width: 900px) { .cart-container { grid-template-columns: 1fr; } }
+        .mobile-menu-btn { display: none; }
         @media (max-width: 768px) {
+            .mobile-menu-btn { display: block; font-size: 22px; background: none; border: none; cursor: pointer; color: var(--dark); }
             .nav-menu { display: none; }
+            .nav-menu.active { display: block; position: absolute; top: 100%; left: 0; width: 100%; background: white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); padding: 20px; z-index: 999; }
+            .nav-menu.active ul { flex-direction: column; gap: 0; }
+            .nav-menu.active ul li { border-bottom: 1px solid var(--border-light); }
+            .nav-menu.active ul li a { display: block; padding: 12px 0; }
             .cart-header { display: none; }
             .cart-item { grid-template-columns: 1fr; gap: 15px; }
             .quantity-control { width: 100%; }
@@ -146,10 +156,11 @@
 </head>
 <body>
     <header class="header">
-        <div class="header-top"><div class="container"><p>FRETE GRÁTIS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p></div></div>
+        <div class="header-top" id="headerTop" style="display:none"><div class="container"><p id="headerTopText">FRETE GRÁTIS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p></div></div>
         <div class="header-main">
             <div class="container">
                 <div class="header-wrapper">
+                    <button class="mobile-menu-btn" onclick="this.nextElementSibling.nextElementSibling.classList.toggle('active')"><i class="fas fa-bars"></i></button>
                     <a href="/" class="logo"><h1>VELVET</h1><span>ATELIER</span></a>
                     <nav class="nav-menu">
                         <ul>
@@ -164,7 +175,7 @@
                             </li>
                             <li><a href="/products?category=novidades">Novidades</a></li>
                             <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
-                            <li><a href="/products?sale=true" style="color:#C45C5C;">Sale</a></li>
+                            <li><a href="/products?sale=true" style="color:#C45C5C;">Ofertas</a></li>
                         </ul>
                     </nav>
                     <div class="header-actions">
@@ -187,14 +198,53 @@
         <div class="footer-main">
             <div class="container">
                 <div class="footer-grid">
-                    <div class="footer-col"><div class="footer-logo"><h3>VELVET</h3><span>ATELIER</span></div><p>Moda feminina de luxo.</p></div>
-                    <div class="footer-col"><h4>Explorar</h4><ul><li><a href="/products">Coleção</a></li></ul></div>
-                    <div class="footer-col"><h4>Suporte</h4><ul><li><a href="#">Ajuda</a></li></ul></div>
-                    <div class="footer-col"><h4>Contato</h4><ul><li><i class="fas fa-envelope"></i> contato@velvetatelier.com</li></ul></div>
+                    <div class="footer-col">
+                        <div class="footer-logo"><h3>VELVET</h3><span>ATELIER</span></div>
+                        <p>Moda feminina de luxo que celebra a individualidade e beleza de cada mulher.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-pinterest-p"></i></a>
+                        </div>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Explorar</h4>
+                        <ul>
+                            <li><a href="/products">Nova Coleção</a></li>
+                            <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
+                            <li><a href="/products?sale=true">Ofertas</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Suporte</h4>
+                        <ul>
+                            <li><a href="#">Central de Ajuda</a></li>
+                            <li><a href="#">Trocas e Devoluções</a></li>
+                            <li><a href="#">Política de Privacidade</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Contato</h4>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> contato@velvetatelier.com</li>
+                            <li><i class="fas fa-phone-alt"></i> (11) 3456-7890</li>
+                            <li><i class="fab fa-whatsapp"></i> (11) 98765-4321</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="footer-bottom"><div class="container"><p>&copy; 2024 Velvet Atelier</p></div></div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2024 Velvet Atelier. Todos os direitos reservados.</p>
+                <div class="payment-methods">
+                    <i class="fab fa-cc-visa"></i>
+                    <i class="fab fa-cc-mastercard"></i>
+                    <i class="fas fa-barcode"></i>
+                    <i class="fab fa-pix"></i>
+                </div>
+            </div>
+        </div>
     </footer>
 
     <script src="/js/auth.js"></script>
@@ -598,6 +648,35 @@
         window.removeItem     = removeItem;
 
         document.addEventListener('DOMContentLoaded', loadNavCategories);
+
+        // Alertas rotativos no topo — só exibe se houver alertas cadastrados no admin
+        (async () => {
+            try {
+                const r = await fetch('/api/alerts');
+                const d = await r.json();
+                const headerTop = document.getElementById('headerTop');
+                const textEl = document.getElementById('headerTopText');
+                if (d.success && d.data.length) {
+                    const alerts = d.data;
+                    let idx = 0;
+                    function showAlert(a) {
+                        const text = a.title ? `${a.title} — ${a.message}` : a.message;
+                        textEl.style.opacity = '0';
+                        setTimeout(() => { textEl.textContent = text; textEl.style.opacity = '1'; }, 300);
+                    }
+                    textEl.style.transition = 'opacity 0.3s ease';
+                    headerTop.style.display = '';
+                    showAlert(alerts[0]);
+                    if (alerts.length > 1) {
+                        setInterval(() => { idx = (idx + 1) % alerts.length; showAlert(alerts[idx]); }, 5000);
+                    }
+                } else {
+                    headerTop.style.display = 'none';
+                }
+            } catch (e) {
+                document.getElementById('headerTop').style.display = 'none';
+            }
+        })();
         loadCart();
     </script>
 </body>
