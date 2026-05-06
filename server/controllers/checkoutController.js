@@ -230,13 +230,26 @@ class CheckoutController {
                     const isExpired   = couponData.expires_at && new Date(couponData.expires_at) < new Date();
                     const isExhausted = couponData.max_uses && couponData.used_count >= couponData.max_uses;
                     let alreadyUsed   = false;
-                    if (couponData.max_uses === 1 && userId) {
+
+                    // Verifica uso por usuário (max_uses = 1 OU tipo primeira compra)
+                    const isPerUserCoupon = couponData.max_uses === 1 || couponData.coupon_type === 'first_purchase';
+                    if (isPerUserCoupon && userId) {
                         const [usage] = await connection.execute(
                             'SELECT id FROM coupon_usage WHERE coupon_id = ? AND user_id = ?',
                             [couponData.id, userId]
                         );
                         alreadyUsed = usage.length > 0;
                     }
+
+                    // Validação extra para cupom de primeira compra: usuário não pode ter nenhum pedido pago
+                    if (!alreadyUsed && couponData.coupon_type === 'first_purchase' && userId) {
+                        const [prevOrders] = await connection.execute(
+                            "SELECT id FROM orders WHERE user_id = ? AND payment_status = 'approved' LIMIT 1",
+                            [userId]
+                        );
+                        if (prevOrders.length > 0) alreadyUsed = true;
+                    }
+
                     if (!isExpired && !isExhausted && !alreadyUsed) {
                         discountAmount = couponData.discount_type === 'percentage'
                             ? subtotal * (couponData.discount_value / 100)

@@ -172,11 +172,20 @@ app.post('/api/coupons/validate', async (req, res) => {
         const c = rows[0];
         if (c.expires_at && new Date(c.expires_at) < new Date()) return res.status(400).json({ success: false, message: 'Este cupom já expirou' });
         if (c.max_uses && c.used_count >= c.max_uses) return res.status(400).json({ success: false, message: 'Este cupom atingiu o limite de usos' });
-        if (c.max_uses === 1 && userId) {
+        // Verifica uso por usuário para cupons de uso único ou primeira compra
+        const isPerUser = c.max_uses === 1 || c.coupon_type === 'first_purchase';
+        if (isPerUser && userId) {
             const [u] = await db.execute('SELECT id FROM coupon_usage WHERE coupon_id = ? AND user_id = ?', [c.id, userId]);
             if (u.length) return res.status(400).json({ success: false, message: 'Você já utilizou este cupom' });
         }
-        res.json({ success: true, data: { id: c.id, code: c.code, discount_type: c.discount_type, discount_value: parseFloat(c.discount_value), min_purchase: parseFloat(c.min_purchase || 0), description: c.description } });
+        // Cupom de primeira compra: verificar se usuário já tem pedido pago
+        if (c.coupon_type === 'first_purchase' && userId) {
+            const [prevOrders] = await db.execute(
+                "SELECT id FROM orders WHERE user_id = ? AND payment_status = 'approved' LIMIT 1", [userId]
+            );
+            if (prevOrders.length) return res.status(400).json({ success: false, message: 'Este cupom é válido apenas para a primeira compra' });
+        }
+        res.json({ success: true, data: { id: c.id, code: c.code, discount_type: c.discount_type, discount_value: parseFloat(c.discount_value), min_purchase: parseFloat(c.min_purchase || 0), description: c.description, coupon_type: c.coupon_type || null } });
     } catch (e) { console.error(e); res.status(500).json({ success: false, message: 'Erro ao validar cupom' }); }
 });
 

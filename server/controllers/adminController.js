@@ -119,7 +119,7 @@ class AdminController {
                 params.push(`%${search}%`, `%${search}%`);
             }
             
-            query += ' ORDER BY p.created_at DESC LIMIT ' + limit + ' OFFSET ' + offset;
+            query += ' ORDER BY p.sort_order ASC, p.created_at DESC LIMIT ' + limit + ' OFFSET ' + offset;
             
             const [products] = await db.execute(query, params);
             const [total] = await db.execute('SELECT COUNT(*) as count FROM products');
@@ -203,6 +203,23 @@ async updateProduct(req, res) {
         res.status(500).json({ success: false, message: 'Erro ao atualizar produto' });
     }
 }
+
+    async reorderProducts(req, res) {
+        try {
+            const db = getDB();
+            const { items } = req.body; // [{ id, sort_order }, ...]
+            if (!Array.isArray(items) || !items.length) {
+                return res.status(400).json({ success: false, message: 'items obrigatório' });
+            }
+            for (const item of items) {
+                await db.execute('UPDATE products SET sort_order = ? WHERE id = ?', [item.sort_order, item.id]);
+            }
+            res.json({ success: true, message: 'Ordem salva' });
+        } catch (error) {
+            console.error('Erro ao reordenar produtos:', error);
+            res.status(500).json({ success: false, message: 'Erro ao reordenar' });
+        }
+    }
 
     async deleteProduct(req, res) {
         try {
@@ -436,6 +453,85 @@ async updateCategory(req, res) {
         } catch (error) {
             console.error('Erro ao excluir cupom:', error);
             res.status(500).json({ success: false, message: 'Erro ao excluir cupom' });
+        }
+    }
+
+    async updateCoupon(req, res) {
+        try {
+            const { id } = req.params;
+            const { status, discount_value, discount_type, description, code, min_purchase, max_uses, starts_at, expires_at } = req.body;
+            const db = getDB();
+
+            const fields = [];
+            const values = [];
+
+            if (status !== undefined)        { fields.push('status = ?');         values.push(status); }
+            if (discount_value !== undefined) { fields.push('discount_value = ?'); values.push(discount_value); }
+            if (discount_type !== undefined)  { fields.push('discount_type = ?');  values.push(discount_type); }
+            if (description !== undefined)    { fields.push('description = ?');    values.push(description); }
+            if (code !== undefined)           { fields.push('code = ?');           values.push(code); }
+            if (min_purchase !== undefined)   { fields.push('min_purchase = ?');   values.push(min_purchase); }
+            if (max_uses !== undefined)       { fields.push('max_uses = ?');       values.push(max_uses); }
+            if (starts_at !== undefined)      { fields.push('starts_at = ?');      values.push(starts_at || null); }
+            if (expires_at !== undefined)     { fields.push('expires_at = ?');     values.push(expires_at || null); }
+
+            if (!fields.length) return res.status(400).json({ success: false, message: 'Nenhum campo para atualizar' });
+
+            values.push(id);
+            await db.execute(`UPDATE coupons SET ${fields.join(', ')} WHERE id = ?`, values);
+
+            res.json({ success: true, message: 'Cupom atualizado com sucesso' });
+        } catch (error) {
+            console.error('Erro ao atualizar cupom:', error);
+            res.status(500).json({ success: false, message: 'Erro ao atualizar cupom' });
+        }
+    }
+
+    async getSpecialCoupons(req, res) {
+        try {
+            const db = getDB();
+            // Busca cupons especiais pré-definidos (coupon_type IS NOT NULL)
+            const [coupons] = await db.execute(
+                "SELECT * FROM coupons WHERE coupon_type IS NOT NULL ORDER BY created_at ASC"
+            );
+            res.json({ success: true, data: coupons });
+        } catch (error) {
+            console.error('Erro ao buscar cupons especiais:', error);
+            res.status(500).json({ success: false, message: 'Erro ao buscar cupons especiais' });
+        }
+    }
+
+    async upsertSpecialCoupon(req, res) {
+        try {
+            const { coupon_type } = req.params;
+            const { status, discount_value, discount_type, code, description } = req.body;
+            const db = getDB();
+
+            const [existing] = await db.execute(
+                'SELECT id FROM coupons WHERE coupon_type = ?', [coupon_type]
+            );
+
+            if (existing.length > 0) {
+                await db.execute(
+                    `UPDATE coupons SET status = ?, discount_value = ?, discount_type = ?, 
+                     code = COALESCE(?, code), description = COALESCE(?, description)
+                     WHERE coupon_type = ?`,
+                    [status, discount_value, discount_type, code || null, description || null, coupon_type]
+                );
+            } else {
+                const couponCode = code || coupon_type.toUpperCase().replace(/_/g, '');
+                const desc = description || (coupon_type === 'first_purchase' ? 'Desconto na primeira compra' : 'Cupom especial');
+                await db.execute(
+                    `INSERT INTO coupons (code, description, discount_type, discount_value, coupon_type, status, max_uses)
+                     VALUES (?, ?, ?, ?, ?, ?, NULL)`,
+                    [couponCode, desc, discount_type, discount_value, coupon_type, status]
+                );
+            }
+
+            res.json({ success: true, message: 'Cupom especial salvo com sucesso' });
+        } catch (error) {
+            console.error('Erro ao salvar cupom especial:', error);
+            res.status(500).json({ success: false, message: 'Erro ao salvar cupom especial' });
         }
     }
 

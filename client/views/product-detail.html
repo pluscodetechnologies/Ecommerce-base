@@ -115,6 +115,14 @@
         .btn-wishlist.active:hover { background: #C45C5C; color: white; }
         .btn-wishlist i { font-size: 16px; }
 
+        /* Descrição abaixo das fotos */
+        .product-description-section { padding: 50px 0 10px; border-top: 1px solid var(--border-light); }
+        .product-desc-inner { max-width: 820px; }
+        .desc-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; margin-bottom: 20px; color: var(--dark); }
+        .desc-body { line-height: 1.8; color: #444; font-size: 15px; }
+        .desc-body p { margin-bottom: 14px; }
+        .desc-body p:last-child { margin-bottom: 0; }
+
         /* Reviews */
         .reviews-section { padding: 60px 0; border-top: 1px solid var(--border-light); }
         .reviews-section h2 { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; margin-bottom: 40px; }
@@ -229,6 +237,16 @@
     <section class="product-detail">
         <div class="container">
             <div class="product-container" id="productContainer">Carregando...</div>
+        </div>
+    </section>
+
+    <!-- DESCRIÇÃO DO PRODUTO -->
+    <section class="product-description-section" id="productDescriptionSection" style="display:none;">
+        <div class="container">
+            <div class="product-desc-inner">
+                <h2 class="desc-title">Descrição do Produto</h2>
+                <div class="desc-body" id="productDescriptionBody"></div>
+            </div>
         </div>
     </section>
 
@@ -349,6 +367,7 @@
                 product = data.data;
                 document.title = `${product.name} | Velvet Atelier`;
                 renderProduct();
+                renderProductDescription();
             } catch (e) { console.error(e); }
         }
 
@@ -395,7 +414,6 @@
                         <span class="current-price" id="displayPrice">R$ ${(promo || price).toFixed(2)}</span>
                         ${promo ? `<span class="old-price">R$ ${price.toFixed(2)}</span><span class="discount-badge">-${Math.round((1-promo/price)*100)}%</span>` : ''}
                     </div>
-                    <div class="product-description">${product.description || 'Produto sem descrição.'}</div>
                     <div class="product-meta">
                         <div class="meta-item"><span class="meta-label">Categoria:</span><span class="meta-value">${product.category_name || '-'}</span></div>
                         <div class="meta-item"><span class="meta-label">Disponibilidade:</span><span class="meta-value stock-status ${stockClass}" id="stockStatusLabel">${stockStatus}</span></div>
@@ -471,7 +489,22 @@
             }
         }
 
-        window.setMainImage = function(index, imgs) {
+        // ── Descrição abaixo das fotos ───────────────────────────────────────
+        function renderProductDescription() {
+            const descSection = document.getElementById('productDescriptionSection');
+            const descBody    = document.getElementById('productDescriptionBody');
+            if (!descSection || !descBody) return;
+            if (product.description && product.description.trim()) {
+                const raw = product.description.trim();
+                const hasHtml = raw.indexOf('<') !== -1;
+                descBody.innerHTML = hasHtml ? raw : raw.split('\n').filter(function(p){ return p.trim(); }).map(function(p){ return '<p>' + p + '</p>'; }).join('');
+                descSection.style.display = '';
+            } else {
+                descSection.style.display = 'none';
+            }
+        }
+
+                window.setMainImage = function(index, imgs) {
             const images = imgs || product.images || [];
             if (images[index]) {
                 document.getElementById('mainImageImg').src = images[index];
