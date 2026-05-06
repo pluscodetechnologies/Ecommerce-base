@@ -40,6 +40,10 @@
 
         .alerts-list { display: flex; flex-direction: column; gap: 16px; }
         .alert-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 20px; }
+        .alert-drag-handle { cursor: grab; color: #ccc; font-size: 18px; padding: 4px 6px; flex-shrink: 0; transition: color 0.2s; }
+        .alert-drag-handle:hover { color: #888; }
+        .alert-card.dragging { opacity: 0.4; }
+        .alert-card.drag-over { outline: 2px dashed #1a1a2e; border-radius: 14px; }
         .alert-preview { flex: 1; background: #1a1a2e; border-radius: 8px; padding: 10px 18px; display: flex; align-items: center; gap: 12px; min-width: 0; }
         .alert-preview-title { color: white; font-weight: 600; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
         .alert-preview-sep { color: rgba(255,255,255,0.4); flex-shrink: 0; }
@@ -191,7 +195,8 @@
                 }
 
                 list.innerHTML = result.data.map(a => `
-                    <div class="alert-card">
+                    <div class="alert-card" data-id="${a.id}">
+                        <span class="alert-drag-handle" title="Arrastar para reordenar">⠿</span>
                         <div class="alert-preview">
                             ${a.title ? `<span class="alert-preview-title">${a.title}</span><span class="alert-preview-sep">—</span>` : ''}
                             <span class="alert-preview-msg">${a.message}</span>
@@ -252,6 +257,63 @@
         };
 
         loadAlerts();
+
+        // ── Drag & drop alertas ────────────────────────────────────────────
+        let alertDragSrc = null;
+        const alertsList = document.getElementById('alertsList');
+
+        alertsList.addEventListener('mousedown', function(e) {
+            const handle = e.target.closest('.alert-drag-handle');
+            if (!handle) return;
+            const card = handle.closest('.alert-card');
+            if (card) card.draggable = true;
+        });
+        document.addEventListener('mouseup', function() {
+            alertsList.querySelectorAll('.alert-card[draggable="true"]').forEach(function(c) { c.draggable = false; });
+        });
+        alertsList.addEventListener('dragstart', function(e) {
+            const card = e.target.closest('.alert-card');
+            if (!card) return;
+            alertDragSrc = card;
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        alertsList.addEventListener('dragend', function() {
+            alertsList.querySelectorAll('.alert-card').forEach(function(c) { c.classList.remove('dragging', 'drag-over'); c.draggable = false; });
+            alertDragSrc = null;
+            saveAlertOrder();
+        });
+        alertsList.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            const card = e.target.closest('.alert-card');
+            if (!card || !alertDragSrc || card === alertDragSrc) return;
+            alertsList.querySelectorAll('.alert-card').forEach(function(c) { c.classList.remove('drag-over'); });
+            card.classList.add('drag-over');
+        });
+        alertsList.addEventListener('dragleave', function(e) {
+            const card = e.target.closest('.alert-card');
+            if (card) card.classList.remove('drag-over');
+        });
+        alertsList.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const card = e.target.closest('.alert-card');
+            if (!card || !alertDragSrc || card === alertDragSrc) return;
+            card.classList.remove('drag-over');
+            const cards = Array.from(alertsList.querySelectorAll('.alert-card'));
+            const si = cards.indexOf(alertDragSrc), ti = cards.indexOf(card);
+            if (si < ti) alertsList.insertBefore(alertDragSrc, card.nextSibling);
+            else         alertsList.insertBefore(alertDragSrc, card);
+        });
+
+        async function saveAlertOrder() {
+            const cards = Array.from(alertsList.querySelectorAll('.alert-card'));
+            const items = cards.map(function(c, i) { return { id: parseInt(c.dataset.id), sort_order: i }; });
+            await fetch('/api/admin/alerts/reorder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+                body: JSON.stringify({ items: items })
+            });
+        }
     </script>
 </body>
 </html>

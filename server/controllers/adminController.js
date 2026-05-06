@@ -329,7 +329,7 @@ async updateCategory(req, res) {
     async getBanners(req, res) {
         try {
             const db = getDB();
-            const [banners] = await db.execute('SELECT * FROM banners ORDER BY sort_order');
+            const [banners] = await db.execute('SELECT * FROM banners ORDER BY sort_order ASC, id ASC');
             
             res.json({ success: true, data: banners });
         } catch (error) {
@@ -555,7 +555,7 @@ async updateCategory(req, res) {
     async getAlerts(req, res) {
         try {
             const db = getDB();
-            const [alerts] = await db.execute('SELECT * FROM store_alerts ORDER BY created_at DESC');
+            const [alerts] = await db.execute('SELECT * FROM store_alerts ORDER BY sort_order ASC, created_at ASC');
             res.json({ success: true, data: alerts });
         } catch (error) {
             res.status(500).json({ success: false, message: 'Erro ao buscar alertas' });
@@ -597,6 +597,45 @@ async updateCategory(req, res) {
             res.json({ success: true });
         } catch (error) {
             res.status(500).json({ success: false, message: 'Erro ao excluir alerta' });
+        }
+    }
+
+    async reorderAlerts(req, res) {
+        try {
+            const db = getDB();
+            const { items } = req.body;
+            for (const item of items) {
+                await db.execute('UPDATE store_alerts SET sort_order = ? WHERE id = ?', [item.sort_order, item.id]);
+            }
+            res.json({ success: true });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Erro ao reordenar alertas' });
+        }
+    }
+
+    async reorderBanners(req, res) {
+        try {
+            const db = getDB();
+            const { items } = req.body;
+            for (const item of items) {
+                await db.execute('UPDATE banners SET sort_order = ? WHERE id = ?', [item.sort_order, item.id]);
+            }
+            res.json({ success: true });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Erro ao reordenar banners' });
+        }
+    }
+
+    async reorderCategories(req, res) {
+        try {
+            const db = getDB();
+            const { items } = req.body;
+            for (const item of items) {
+                await db.execute('UPDATE categories SET sort_order = ? WHERE id = ?', [item.sort_order, item.id]);
+            }
+            res.json({ success: true });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Erro ao reordenar categorias' });
         }
     }
 

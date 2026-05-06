@@ -15,11 +15,13 @@ router.put('/products/:id', adminController.updateProduct.bind(adminController))
 router.delete('/products/:id', adminController.deleteProduct.bind(adminController));
 router.get('/categories', adminController.getCategories.bind(adminController));
 router.post('/categories', adminController.createCategory.bind(adminController));
+router.post('/categories/reorder', adminController.reorderCategories.bind(adminController));
 router.put('/categories/:id', adminController.updateCategory.bind(adminController));
 router.delete('/categories/:id', adminController.deleteCategory.bind(adminController));
 router.get('/customers', adminController.getCustomers.bind(adminController));
 router.get('/banners', adminController.getBanners.bind(adminController));
 router.post('/banners', adminController.createBanner.bind(adminController));
+router.post('/banners/reorder', adminController.reorderBanners.bind(adminController));
 router.put('/banners/:id', adminController.updateBanner.bind(adminController));
 router.delete('/banners/:id', adminController.deleteBanner.bind(adminController));
 
@@ -37,6 +39,7 @@ router.put('/settings', adminController.updateSettings.bind(adminController));
 
 router.get('/alerts', adminController.getAlerts.bind(adminController));
 router.post('/alerts', adminController.createAlert.bind(adminController));
+router.post('/alerts/reorder', adminController.reorderAlerts.bind(adminController));
 router.put('/alerts/:id', adminController.updateAlert.bind(adminController));
 router.delete('/alerts/:id', adminController.deleteAlert.bind(adminController));
 
