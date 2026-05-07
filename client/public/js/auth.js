@@ -56,6 +56,10 @@ class AuthManager {
                             <i class="fas fa-heart"></i>
                             Favoritos
                         </a>
+                        <a href="/ajuda">
+                            <i class="fas fa-question-circle"></i>
+                            Ajuda
+                        </a>
                         <div class="divider"></div>
                         <a href="#" class="logout-btn" id="logoutBtn">
                             <i class="fas fa-sign-out-alt"></i>

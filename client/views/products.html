@@ -238,6 +238,16 @@
                             <li><a href="/products?sale=true" style="color: #C45C5C;">Ofertas</a></li>
                         </ul>
                     </nav>
+                    <div style="width:260px;flex-shrink:0;position:relative;">
+                        <div style="display:flex;align-items:stretch;border:1.5px solid #E8E4E0;border-radius:3px;background:#f7f5f2;height:38px;overflow:hidden;">
+                            <span style="display:flex;align-items:center;padding:0 11px;color:#8B8581;font-size:13px;"><i class="fas fa-search"></i></span>
+                            <input type="text" id="headerSearchInput" placeholder="Buscar produtos..." autocomplete="off"
+                                style="flex:1;border:none;background:none;outline:none;font-size:13px;font-family:'Montserrat',sans-serif;"
+                                onkeydown="if(event.key==='Enter'&&this.value.trim())window.location='/products?q='+encodeURIComponent(this.value.trim())">
+                            <button onclick="var v=document.getElementById('headerSearchInput').value.trim();if(v)window.location='/products?q='+encodeURIComponent(v);"
+                                style="background:#8B7355;color:white;border:none;padding:0 14px;font-size:12px;font-weight:600;letter-spacing:1px;cursor:pointer;font-family:'Montserrat',sans-serif;">Buscar</button>
+                        </div>
+                    </div>
                     <div class="header-actions">
                         <div id="userMenuContainer"><a href="/login"><i class="fas fa-user"></i></a></div>
                         <a href="/cart" class="cart-btn"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
@@ -246,10 +256,6 @@
             </div>
         </div>
     </header>
-                <div class="search-dropdown" id="searchDropdown"></div>
-            </div>
-        </div>
-    </div>
 
     <div class="page-header">
         <div class="container">

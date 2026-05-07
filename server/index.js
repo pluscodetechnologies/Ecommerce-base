@@ -203,6 +203,7 @@ app.get('/checkout-success',     v('../client/views/checkout-success.html'));
 app.get('/checkout-pending',     v('../client/views/checkout-pending.html'));
 app.get('/checkout-error',       v('../client/views/checkout-error.html'));
 app.get('/account',              v('../client/views/account.html'));
+app.get('/ajuda',                 v('../client/views/ajuda.html'));
 app.get('/admin',                v('../client/views/admin/login.html'));
 app.get('/admin/dashboard',      v('../client/views/admin/dashboard.html'));
 app.get('/admin/produtos',       v('../client/views/admin/produtos.html'));

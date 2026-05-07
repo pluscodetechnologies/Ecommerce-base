@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central de Ajuda | Velvet Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #8B7355; --primary-dark: #6B5340;
+            --dark: #1A1817; --light: #FDFCFB;
+            --gray: #8B8581; --border-light: #E8E4E0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; color: var(--dark); background: var(--light); }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 40px; }
+
+        /* ── Hero ── */
+        .help-hero { background: linear-gradient(135deg, #1A1817 0%, #3a2e20 100%); color: white; padding: 100px 0 60px; text-align: center; }
+        .help-hero h1 { font-family: 'Cormorant Garamond', serif; font-size: 52px; font-weight: 600; letter-spacing: 4px; margin-bottom: 14px; }
+        .help-hero p { font-size: 15px; color: rgba(255,255,255,0.65); letter-spacing: 1px; margin-bottom: 36px; }
+        .btn-contact-hero { display: inline-flex; align-items: center; gap: 10px; background: var(--primary); color: white; border: none; padding: 15px 34px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: background 0.2s; }
+        .btn-contact-hero:hover { background: var(--primary-dark); }
+        .btn-contact-hero i { font-size: 16px; }
+
+        /* ── Stats bar ── */
+        .help-stats { background: white; border-bottom: 1px solid var(--border-light); }
+        .help-stats-inner { display: grid; grid-template-columns: repeat(4, 1fr); }
+        .help-stat { padding: 24px 20px; text-align: center; border-right: 1px solid var(--border-light); }
+        .help-stat:last-child { border-right: none; }
+        .help-stat-icon { font-size: 22px; color: var(--primary); margin-bottom: 8px; }
+        .help-stat-label { font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+        .help-stat-value { font-size: 15px; font-weight: 600; color: var(--dark); margin-top: 4px; }
+
+        /* ── Main layout ── */
+        .help-body { padding: 60px 0 80px; }
+        .help-layout { display: grid; grid-template-columns: 220px 1fr; gap: 48px; }
+
+        /* ── Sidebar nav ── */
+        .help-sidebar { }
+        .help-sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); margin-bottom: 14px; }
+        .help-nav { list-style: none; }
+        .help-nav li { margin-bottom: 2px; }
+        .help-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: var(--dark); text-decoration: none; font-size: 13px; border-radius: 4px; transition: all 0.15s; }
+        .help-nav a i { width: 16px; color: var(--gray); font-size: 13px; }
+        .help-nav a:hover, .help-nav a.active { background: #f4f1ed; color: var(--primary); }
+        .help-nav a.active i { color: var(--primary); }
+
+        /* ── Sections ── */
+        .help-section { margin-bottom: 56px; }
+        .help-section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1.5px solid var(--border-light); }
+        .help-section-icon { width: 42px; height: 42px; background: #f4f1ed; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 18px; flex-shrink: 0; }
+        .help-section-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; }
+        .help-section-header p { font-size: 12px; color: var(--gray); margin-top: 2px; }
+
+        /* ── Accordion ── */
+        .accordion { border: 1px solid var(--border-light); border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+        .accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; cursor: pointer; background: white; transition: background 0.15s; user-select: none; }
+        .accordion-header:hover { background: #faf8f5; }
+        .accordion-header.open { background: #faf8f5; }
+        .accordion-title { font-size: 14px; font-weight: 500; color: var(--dark); }
+        .accordion-icon { color: var(--gray); transition: transform 0.2s; font-size: 12px; }
+        .accordion-icon.open { transform: rotate(180deg); color: var(--primary); }
+        .accordion-body { display: none; padding: 0 22px 20px; background: white; border-top: 1px solid var(--border-light); }
+        .accordion-body.open { display: block; }
+        .accordion-body p { font-size: 13px; color: #555; line-height: 1.8; margin-top: 16px; }
+        .accordion-body ul { margin: 10px 0 0 18px; }
+        .accordion-body ul li { font-size: 13px; color: #555; line-height: 2; }
+        .accordion-body .highlight { background: #fdf6ee; border-left: 3px solid var(--primary); padding: 10px 14px; border-radius: 0 4px 4px 0; margin-top: 14px; font-size: 13px; color: #6b5340; }
+        .btn-whatsapp { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; background: #25D366; color: white; border: none; padding: 10px 20px; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; border-radius: 4px; text-decoration: none; transition: background 0.2s; }
+        .btn-whatsapp:hover { background: #1aab52; }
+        .btn-whatsapp i { font-size: 15px; }
+
+        /* ── Contact modal ── */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: white; border-radius: 8px; max-width: 620px; width: 90%; max-height: 85vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 28px 30px 20px; border-bottom: 1px solid var(--border-light); }
+        .modal-header h3 { font-family: 'Cormorant Garamond', serif; font-size: 28px; }
+        .modal-header p { font-size: 12px; color: var(--gray); margin-top: 3px; }
+        .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--gray); line-height: 1; }
+        .modal-body { padding: 24px 30px 30px; }
+        .modal-intro { font-size: 13px; color: var(--gray); margin-bottom: 22px; line-height: 1.7; }
+        .modal-accordion { border: 1px solid var(--border-light); border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+        .modal-accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 18px; cursor: pointer; background: white; transition: background 0.15s; }
+        .modal-accordion-header:hover { background: #faf8f5; }
+        .modal-accordion-header.open { background: #faf8f5; }
+        .modal-accordion-title { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+        .modal-accordion-title i { color: var(--primary); width: 16px; }
+        .modal-accordion-icon { color: var(--gray); font-size: 11px; transition: transform 0.2s; }
+        .modal-accordion-icon.open { transform: rotate(180deg); }
+        .modal-accordion-body { display: none; padding: 14px 18px 16px; border-top: 1px solid var(--border-light); background: #faf8f5; }
+        .modal-accordion-body.open { display: block; }
+        .modal-accordion-body p { font-size: 12px; color: #666; line-height: 1.7; margin-bottom: 12px; }
+        .modal-btn-wa { display: inline-flex; align-items: center; gap: 7px; background: #25D366; color: white; border: none; padding: 9px 18px; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; border-radius: 4px; text-decoration: none; transition: background 0.2s; }
+        .modal-btn-wa:hover { background: #1aab52; }
+    </style>
+</head>
+<body>
+
+<!-- Header (igual ao index) -->
+<header class="header">
+    <div class="header-top" id="headerTop" style="display:none">
+        <div class="container"><p id="headerTopText"></p></div>
+    </div>
+    <div class="header-main">
+        <div class="container">
+            <div class="header-wrapper">
+                <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+                <a href="/" class="logo"><h1>VELVET</h1><span>ATELIER</span></a>
+                <nav class="nav-menu">
+                    <ul>
+                        <li><a href="/">Início</a></li>
+                        <li><a href="/products">Coleção</a></li>
+                        <li><a href="/products?category=novidades">Novidades</a></li>
+                        <li><a href="/products?category=mais-vendidos">Mais Vendidos</a></li>
+                        <li><a href="/products?sale=true" style="color:#C45C5C;">Ofertas</a></li>
+                        <li><a href="/ajuda" class="active">Ajuda</a></li>
+                    </ul>
+                </nav>
+                <div class="header-actions">
+                    <div id="userMenuContainer"><a href="/login"><i class="fas fa-user"></i></a></div>
+                    <a href="/cart" class="cart-btn">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Hero -->
+<section class="help-hero" style="margin-top:60px;">
+    <div class="container">
+        <h1>Central de Ajuda</h1>
+        <p>TIRE SUAS DÚVIDAS E ENCONTRE O QUE PRECISA</p>
+        <button class="btn-contact-hero" onclick="openModal()">
+            <i class="fab fa-whatsapp"></i> Falar com Atendimento
+        </button>
+    </div>
+</section>
+
+<!-- Stats -->
+<div class="help-stats">
+    <div class="container">
+        <div class="help-stats-inner">
+            <div class="help-stat">
+                <div class="help-stat-icon"><i class="fas fa-shipping-fast"></i></div>
+                <div class="help-stat-value">2–8 dias úteis</div>
+                <div class="help-stat-label">Prazo de entrega</div>
+            </div>
+            <div class="help-stat">
+                <div class="help-stat-icon"><i class="fas fa-undo-alt"></i></div>
+                <div class="help-stat-value">30 dias</div>
+                <div class="help-stat-label">Para troca ou devolução</div>
+            </div>
+            <div class="help-stat">
+                <div class="help-stat-icon"><i class="fas fa-lock"></i></div>
+                <div class="help-stat-value">100% seguro</div>
+                <div class="help-stat-label">Pagamento protegido</div>
+            </div>
+            <div class="help-stat">
+                <div class="help-stat-icon"><i class="fab fa-whatsapp"></i></div>
+                <div class="help-stat-value">Seg–Sex, 9h–18h</div>
+                <div class="help-stat-label">Atendimento disponível</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Body -->
+<div class="help-body">
+    <div class="container">
+        <div class="help-layout">
+
+            <!-- Sidebar -->
+            <aside class="help-sidebar">
+                <p class="help-sidebar-title">Categorias</p>
+                <ul class="help-nav">
+                    <li><a href="#pedidos" class="active"><i class="fas fa-box"></i> Pedidos</a></li>
+                    <li><a href="#envio"><i class="fas fa-truck"></i> Envio & Entrega</a></li>
+                    <li><a href="#pagamento"><i class="fas fa-credit-card"></i> Pagamento</a></li>
+                    <li><a href="#troca"><i class="fas fa-undo"></i> Troca & Devolução</a></li>
+                    <li><a href="#produtos"><i class="fas fa-tshirt"></i> Produtos & Tamanhos</a></li>
+                    <li><a href="#conta"><i class="fas fa-user"></i> Minha Conta</a></li>
+                    <li><a href="#cupons"><i class="fas fa-tag"></i> Cupons & Promoções</a></li>
+                    <li><a href="#seguranca"><i class="fas fa-shield-alt"></i> Segurança & Privacidade</a></li>
+                </ul>
+            </aside>
+
+            <!-- Content -->
+            <div class="help-content">
+
+                <!-- PEDIDOS -->
+                <div class="help-section" id="pedidos">
+                    <div class="help-section-header">
+                        <div class="help-section-icon"><i class="fas fa-box"></i></div>
+                        <div>
+                            <h2>Pedidos</h2>
+                            <p>Acompanhe, cancele ou consulte seus pedidos</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Como acompanhar meu pedido?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Após a confirmação do pagamento, você receberá um código de rastreamento por e-mail. Para acompanhar, acesse <strong>Minha Conta → Meus Pedidos</strong> e clique no pedido desejado. Lá você verá o status atualizado em tempo real.</p>
+                            <div class="highlight">💡 O código de rastreamento pode levar até 2 dias úteis para aparecer no sistema dos Correios após o envio.</div>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Gostaria%20de%20acompanhar%20meu%20pedido." target="_blank"><i class="fab fa-whatsapp"></i> Rastrear pelo WhatsApp</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Posso cancelar ou alterar meu pedido?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>O cancelamento é possível apenas enquanto o pedido ainda não foi enviado ao estoque para separação. Normalmente esse prazo é de até <strong>2 horas após a confirmação do pagamento</strong>.</p>
+                            <ul>
+                                <li>Alteração de endereço: possível antes do envio</li>
+                                <li>Alteração de item ou tamanho: somente via cancelamento e novo pedido</li>
+                                <li>Após o envio: não é possível cancelar, apenas solicitar devolução</li>
+                            </ul>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Preciso%20cancelar%20ou%20alterar%20um%20pedido." target="_blank"><i class="fab fa-whatsapp"></i> Solicitar cancelamento</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Meu pedido foi confirmado mas não recebi o e-mail</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Verifique a caixa de spam ou lixo eletrônico. O e-mail de confirmação é enviado automaticamente em até 10 minutos após a aprovação do pagamento. Caso não encontre, acesse <strong>Minha Conta → Meus Pedidos</strong> — seu pedido estará listado lá.</p>
+                            <div class="highlight">💡 Se o pagamento foi por boleto ou Pix, a confirmação só chega após a compensação bancária.</div>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Não%20recebi%20o%20e-mail%20de%20confirmação%20do%20meu%20pedido." target="_blank"><i class="fab fa-whatsapp"></i> Verificar confirmação</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">O que acontece se meu pedido for extraviado?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Em caso de extravio confirmado pelos Correios, realizamos o reenvio do produto sem custo adicional ou o reembolso integral, conforme sua preferência. Entre em contato com nosso suporte informando o número do pedido.</p>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Meu%20pedido%20parece%20ter%20sido%20extraviado%20e%20preciso%20de%20ajuda." target="_blank"><i class="fab fa-whatsapp"></i> Reportar extravio</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ENVIO -->
+                <div class="help-section" id="envio">
+                    <div class="help-section-header">
+                        <div class="help-section-icon"><i class="fas fa-truck"></i></div>
+                        <div>
+                            <h2>Envio & Entrega</h2>
+                            <p>Prazos, modalidades e frete grátis</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Quais são os prazos de entrega?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Os prazos variam conforme a modalidade escolhida e a região de destino:</p>
+                            <ul>
+                                <li><strong>PAC:</strong> 5–12 dias úteis</li>
+                                <li><strong>SEDEX:</strong> 2–5 dias úteis</li>
+                                <li><strong>Mini Envios:</strong> 3–8 dias úteis</li>
+                            </ul>
+                            <p>Esses prazos contam a partir da <strong>confirmação do pagamento</strong>, não da data do pedido. Regiões mais afastadas dos grandes centros podem ter prazo estendido.</p>
+                            <div class="highlight">💡 O prazo exato é calculado automaticamente no carrinho com base no seu CEP.</div>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Gostaria%20de%20saber%20o%20prazo%20de%20entrega%20para%20minha%20região." target="_blank"><i class="fab fa-whatsapp"></i> Consultar prazo</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Quando tenho frete grátis?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Oferecemos frete grátis para todo o Brasil em compras acima de <strong>R$ 299,00</strong>. O desconto é aplicado automaticamente no checkout — nenhum cupom necessário.</p>
+                            <div class="highlight">💡 O valor do frete grátis não inclui produtos em promoção com desconto já aplicado. Verifique os termos da promoção.</div>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Tenho%20uma%20dúvida%20sobre%20frete%20grátis." target="_blank"><i class="fab fa-whatsapp"></i> Tirar dúvida sobre frete</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Entregam para todo o Brasil?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Sim! Entregamos para todos os estados brasileiros, incluindo zonas rurais e interior. Trabalhamos com os Correios e transportadoras parceiras para garantir a entrega em qualquer CEP.</p>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Gostaria%20de%20confirmar%20se%20entregam%20na%20minha%20região." target="_blank"><i class="fab fa-whatsapp"></i> Confirmar entrega na minha região</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">O que fazer se o produto chegar danificado?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Se o produto chegou com danos de transporte, siga estes passos:</p>
+                            <ul>
+                                <li>Fotografe a embalagem e o produto antes de abrir completamente</li>
+                                <li>Registre a ocorrência com o entregador se possível</li>
+                                <li>Entre em contato em até <strong>48 horas</strong> após o recebimento</li>
+                            </ul>
+                            <p>Faremos o reenvio de um novo produto ou reembolso integral sem qualquer custo para você.</p>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Recebi%20um%20produto%20com%20danos%20de%20transporte%20e%20preciso%20de%20ajuda." target="_blank"><i class="fab fa-whatsapp"></i> Reportar produto danificado</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGAMENTO -->
+                <div class="help-section" id="pagamento">
+                    <div class="help-section-header">
+                        <div class="help-section-icon"><i class="fas fa-credit-card"></i></div>
+                        <div>
+                            <h2>Pagamento</h2>
+                            <p>Formas de pagamento, parcelamento e segurança</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Quais formas de pagamento são aceitas?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Aceitamos as seguintes formas de pagamento:</p>
+                            <ul>
+                                <li><strong>Pix</strong> — confirmação imediata, sem acréscimos</li>
+                                <li><strong>Cartão de crédito</strong> — Visa, Mastercard, Elo, American Express, Hipercard</li>
+                                <li><strong>Cartão de débito</strong> — principais bandeiras</li>
+                                <li><strong>Boleto bancário</strong> — compensação em até 3 dias úteis</li>
+                            </ul>
+                            <div class="highlight">💡 Pagamentos via Pix têm confirmação imediata e seu pedido entra em processamento na hora.</div>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Tenho%20uma%20dúvida%20sobre%20as%20formas%20de%20pagamento." target="_blank"><i class="fab fa-whatsapp"></i> Dúvida sobre pagamento</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Posso parcelar minha compra?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Sim! Aceitamos parcelamento em até <strong>12x no cartão de crédito</strong>. Parcelamentos em até 3x são sem juros. A partir da 4ª parcela, são aplicados juros conforme a tabela da operadora de pagamento.</p>
+                            <div class="highlight">💡 Para melhor condição, pague à vista via Pix — sem acréscimos e com confirmação imediata.</div>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Gostaria%20de%20informações%20sobre%20parcelamento." target="_blank"><i class="fab fa-whatsapp"></i> Consultar parcelamento</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Meu pagamento foi recusado, o que fazer?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Pagamentos podem ser recusados por alguns motivos comuns:</p>
+                            <ul>
+                                <li>Dados do cartão digitados incorretamente</li>
+                                <li>Limite insuficiente ou cartão bloqueado pelo banco</li>
+                                <li>Cartão não habilitado para compras online</li>
+                                <li>Suspeita de fraude pelo emissor</li>
+                            </ul>
+                            <p>Tente novamente com outro cartão, use o Pix, ou entre em contato com seu banco para liberar a transação.</p>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Meu%20pagamento%20foi%20recusado%20e%20preciso%20de%20ajuda." target="_blank"><i class="fab fa-whatsapp"></i> Ajuda com pagamento recusado</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Como funciona o reembolso?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>O reembolso é processado após a confirmação do recebimento do produto devolvido:</p>
+                            <ul>
+                                <li><strong>Pix:</strong> até 3 dias úteis após aprovação</li>
+                                <li><strong>Cartão de crédito:</strong> até 2 faturas, conforme operadora</li>
+                                <li><strong>Boleto:</strong> transferência bancária em até 5 dias úteis</li>
+                            </ul>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Gostaria%20de%20informações%20sobre%20reembolso." target="_blank"><i class="fab fa-whatsapp"></i> Consultar reembolso</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TROCA -->
+                <div class="help-section" id="troca">
+                    <div class="help-section-header">
+                        <div class="help-section-icon"><i class="fas fa-undo"></i></div>
+                        <div>
+                            <h2>Troca & Devolução</h2>
+                            <p>Prazos, condições e como solicitar</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Qual o prazo para troca ou devolução?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Você tem <strong>30 dias corridos</strong> a partir da data de recebimento para solicitar troca ou devolução. O prazo legal mínimo garantido pelo Código de Defesa do Consumidor é de 7 dias para compras online.</p>
+                            <div class="highlight">💡 Quanto antes você solicitar, mais rápido conseguimos resolver. Recomendamos solicitar em até 7 dias após o recebimento.</div>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Gostaria%20de%20solicitar%20uma%20troca%20ou%20devolução." target="_blank"><i class="fab fa-whatsapp"></i> Solicitar troca ou devolução</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Quais são as condições para troca?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Para que a troca seja aceita, o produto deve estar:</p>
+                            <ul>
+                                <li>Com todas as etiquetas originais e lacres intactos</li>
+                                <li>Sem sinais de uso, lavagem ou perfume</li>
+                                <li>Na embalagem original ou similar que o proteja</li>
+                                <li>Acompanhado da nota fiscal ou número do pedido</li>
+                            </ul>
+                            <p>Produtos em promoção ou liquidação podem ter políticas específicas de troca.</p>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Tenho%20dúvidas%20sobre%20as%20condições%20de%20troca." target="_blank"><i class="fab fa-whatsapp"></i> Verificar condições de troca</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Quem paga o frete de devolução?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Depende do motivo da devolução:</p>
+                            <ul>
+                                <li><strong>Produto com defeito ou erro nosso:</strong> frete pago por nós, enviamos etiqueta de postagem</li>
+                                <li><strong>Troca por tamanho ou arrependimento:</strong> frete por conta do cliente na primeira troca; a partir da segunda pode haver cobrança</li>
+                            </ul>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Quero%20entender%20como%20funciona%20o%20frete%20de%20devolução." target="_blank"><i class="fab fa-whatsapp"></i> Dúvida sobre frete de devolução</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRODUTOS -->
+                <div class="help-section" id="produtos">
+                    <div class="help-section-header">
+                        <div class="help-section-icon"><i class="fas fa-tshirt"></i></div>
+                        <div>
+                            <h2>Produtos & Tamanhos</h2>
+                            <p>Guia de tamanhos, materiais e cuidados</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Como funciona o guia de tamanhos?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Cada produto tem sua própria tabela de medidas disponível na página do produto. As medidas são em centímetros e correspondem às medidas do corpo, não da peça. Para melhor precisão, meça-se com uma fita métrica e compare com a tabela do produto.</p>
+                            <div class="highlight">💡 Em caso de dúvida entre dois tamanhos, recomendamos o maior, especialmente em peças justas.</div>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Preciso%20de%20ajuda%20para%20escolher%20o%20tamanho%20correto." target="_blank"><i class="fab fa-whatsapp"></i> Ajuda com tamanho</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Como cuidar das peças para durarem mais?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Dicas gerais de conservação:</p>
+                            <ul>
+                                <li>Lave sempre à mão ou em ciclo delicado</li>
+                                <li>Não torça — pressione suavemente para retirar o excesso de água</li>
+                                <li>Seque à sombra, nunca exposto ao sol direto</li>
+                                <li>Passe com ferro na temperatura indicada na etiqueta</li>
+                                <li>Guarde em local seco e arejado</li>
+                            </ul>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Tenho%20dúvidas%20sobre%20como%20cuidar%20das%20peças." target="_blank"><i class="fab fa-whatsapp"></i> Dúvida sobre cuidados</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">As cores das fotos são fiéis ao produto real?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Fazemos o máximo para que as fotos representem fielmente as cores reais das peças. Porém, monitores e telas de celular possuem calibrações diferentes, o que pode causar variações de percepção. Se tiver dúvida sobre uma cor específica, entre em contato e enviamos fotos adicionais.</p>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Gostaria%20de%20ver%20mais%20fotos%20de%20um%20produto%20antes%20de%20comprar." target="_blank"><i class="fab fa-whatsapp"></i> Solicitar mais fotos</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTA -->
+                <div class="help-section" id="conta">
+                    <div class="help-section-header">
+                        <div class="help-section-icon"><i class="fas fa-user"></i></div>
+                        <div>
+                            <h2>Minha Conta</h2>
+                            <p>Cadastro, senha e gerenciamento da conta</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Esqueci minha senha, como recuperar?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Na página de login, clique em <strong>"Esqueci minha senha"</strong>. Informe o e-mail cadastrado e enviaremos um link de redefinição. O link expira em 1 hora por segurança.</p>
+                            <div class="highlight">💡 Verifique a caixa de spam se não encontrar o e-mail na caixa de entrada.</div>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Estou%20com%20problema%20para%20acessar%20minha%20conta." target="_blank"><i class="fab fa-whatsapp"></i> Problemas com acesso</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Como alterar meus dados cadastrais?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Acesse <strong>Minha Conta → Dados Pessoais</strong> para alterar nome, telefone e endereço. Para alterar o e-mail ou CPF, entre em contato com o suporte pois são dados sensíveis que requerem verificação.</p>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Preciso%20alterar%20meus%20dados%20cadastrais." target="_blank"><i class="fab fa-whatsapp"></i> Alterar cadastro</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CUPONS -->
+                <div class="help-section" id="cupons">
+                    <div class="help-section-header">
+                        <div class="help-section-icon"><i class="fas fa-tag"></i></div>
+                        <div>
+                            <h2>Cupons & Promoções</h2>
+                            <p>Como usar, validade e restrições</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Como usar um cupom de desconto?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>No checkout, você verá um campo "Cupom de desconto" antes de finalizar a compra. Digite o código exatamente como recebeu (sem espaços) e clique em <strong>Aplicar</strong>. O desconto será refletido no valor total imediatamente.</p>
+                            <div class="highlight">💡 Cupons são case-insensitive — tanto maiúsculas quanto minúsculas são aceitas.</div>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Meu%20cupom%20de%20desconto%20não%20está%20funcionando." target="_blank"><i class="fab fa-whatsapp"></i> Problemas com cupom</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Meu cupom não está funcionando</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Os motivos mais comuns para cupom não funcionar:</p>
+                            <ul>
+                                <li>Cupom expirado — verifique a validade</li>
+                                <li>Valor mínimo de compra não atingido</li>
+                                <li>Cupom já utilizado (cupons de uso único)</li>
+                                <li>Produto não elegível para o cupom</li>
+                                <li>Digitação incorreta do código</li>
+                            </ul>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Meu%20cupom%20não%20está%20sendo%20aceito%20e%20preciso%20de%20ajuda." target="_blank"><i class="fab fa-whatsapp"></i> Verificar cupom</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEGURANÇA -->
+                <div class="help-section" id="seguranca">
+                    <div class="help-section-header">
+                        <div class="help-section-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div>
+                            <h2>Segurança & Privacidade</h2>
+                            <p>Proteção de dados e segurança nas compras</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Meus dados de pagamento são seguros?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Sim. Todos os pagamentos são processados pelo Mercado Pago, uma das maiores plataformas de pagamento da América Latina, com certificação PCI-DSS. Não armazenamos dados de cartão de crédito em nossos servidores — eles ficam exclusivamente com o processador de pagamentos.</p>
+                            <div class="highlight">💡 Sempre verifique se o endereço do site começa com https:// antes de inserir qualquer dado.</div>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Tenho%20dúvidas%20sobre%20a%20segurança%20da%20loja." target="_blank"><i class="fab fa-whatsapp"></i> Dúvida sobre segurança</a>
+                        </div>
+                    </div>
+
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Como meus dados pessoais são usados?</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </div>
+                        <div class="accordion-body">
+                            <p>Seus dados são utilizados exclusivamente para processar pedidos, calcular frete, emitir notas fiscais e enviar comunicações sobre sua compra. Não compartilhamos seus dados com terceiros para fins de marketing sem seu consentimento expresso, em conformidade com a LGPD.</p>
+                            <a class="btn-whatsapp" href="https://wa.me/5500000000000?text=Olá!%20Tenho%20dúvidas%20sobre%20a%20política%20de%20privacidade." target="_blank"><i class="fab fa-whatsapp"></i> Dúvida sobre privacidade</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer simples -->
+<footer style="background:#1A1817;color:rgba(255,255,255,0.5);text-align:center;padding:24px;font-size:12px;letter-spacing:1px;">
+    © 2026 Velvet Store — Todos os direitos reservados
+</footer>
+
+<!-- Modal de Contato -->
+<div class="modal-overlay" id="contactModal" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <h3>Fale Conosco</h3>
+                <p>Escolha o assunto e fale direto pelo WhatsApp</p>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-intro">Selecione o tema da sua dúvida abaixo. Ao clicar no botão do WhatsApp, você será redirecionado para uma conversa com uma mensagem já preparada sobre o assunto escolhido.</p>
+
+            <div class="modal-accordion">
+                <div class="modal-accordion-header" onclick="toggleModal(this)">
+                    <span class="modal-accordion-title"><i class="fas fa-box"></i> Rastrear ou acompanhar pedido</span>
+                    <i class="fas fa-chevron-down modal-accordion-icon"></i>
+                </div>
+                <div class="modal-accordion-body">
+                    <p>Nossa equipe pode verificar o status do seu pedido em tempo real. Tenha em mãos o número do pedido (ex: #VLT12345) para agilizar o atendimento.</p>
+                    <a class="modal-btn-wa" href="https://wa.me/5500000000000?text=Olá!%20Gostaria%20de%20rastrear%20meu%20pedido.%20Número%20do%20pedido%3A%20" target="_blank"><i class="fab fa-whatsapp"></i> Rastrear pedido</a>
+                </div>
+            </div>
+
+            <div class="modal-accordion">
+                <div class="modal-accordion-header" onclick="toggleModal(this)">
+                    <span class="modal-accordion-title"><i class="fas fa-times-circle"></i> Cancelar ou alterar pedido</span>
+                    <i class="fas fa-chevron-down modal-accordion-icon"></i>
+                </div>
+                <div class="modal-accordion-body">
+                    <p>Cancelamentos são possíveis enquanto o pedido não foi enviado. Informe o número do pedido e o motivo do cancelamento.</p>
+                    <a class="modal-btn-wa" href="https://wa.me/5500000000000?text=Olá!%20Preciso%20cancelar%20ou%20alterar%20meu%20pedido.%20Número%3A%20" target="_blank"><i class="fab fa-whatsapp"></i> Cancelar pedido</a>
+                </div>
+            </div>
+
+            <div class="modal-accordion">
+                <div class="modal-accordion-header" onclick="toggleModal(this)">
+                    <span class="modal-accordion-title"><i class="fas fa-undo"></i> Troca ou devolução</span>
+                    <i class="fas fa-chevron-down modal-accordion-icon"></i>
+                </div>
+                <div class="modal-accordion-body">
+                    <p>Para iniciar uma troca ou devolução, informe o número do pedido, o produto e o motivo (tamanho errado, defeito, arrependimento, etc.).</p>
+                    <a class="modal-btn-wa" href="https://wa.me/5500000000000?text=Olá!%20Gostaria%20de%20solicitar%20troca%20ou%20devolução.%20Pedido%3A%20" target="_blank"><i class="fab fa-whatsapp"></i> Solicitar troca</a>
+                </div>
+            </div>
+
+            <div class="modal-accordion">
+                <div class="modal-accordion-header" onclick="toggleModal(this)">
+                    <span class="modal-accordion-title"><i class="fas fa-credit-card"></i> Problema com pagamento</span>
+                    <i class="fas fa-chevron-down modal-accordion-icon"></i>
+                </div>
+                <div class="modal-accordion-body">
+                    <p>Se seu pagamento foi recusado, não processado ou se há dúvida sobre o reembolso, nosso time financeiro pode ajudar.</p>
+                    <a class="modal-btn-wa" href="https://wa.me/5500000000000?text=Olá!%20Estou%20com%20problema%20com%20o%20pagamento%20do%20meu%20pedido." target="_blank"><i class="fab fa-whatsapp"></i> Resolver pagamento</a>
+                </div>
+            </div>
+
+            <div class="modal-accordion">
+                <div class="modal-accordion-header" onclick="toggleModal(this)">
+                    <span class="modal-accordion-title"><i class="fas fa-tshirt"></i> Dúvida sobre produto ou tamanho</span>
+                    <i class="fas fa-chevron-down modal-accordion-icon"></i>
+                </div>
+                <div class="modal-accordion-body">
+                    <p>Precisa de mais fotos, medidas detalhadas ou quer saber sobre disponibilidade de uma peça específica? Podemos ajudar.</p>
+                    <a class="modal-btn-wa" href="https://wa.me/5500000000000?text=Olá!%20Tenho%20dúvida%20sobre%20um%20produto%20ou%20tamanho." target="_blank"><i class="fab fa-whatsapp"></i> Dúvida sobre produto</a>
+                </div>
+            </div>
+
+            <div class="modal-accordion">
+                <div class="modal-accordion-header" onclick="toggleModal(this)">
+                    <span class="modal-accordion-title"><i class="fas fa-tag"></i> Cupom não está funcionando</span>
+                    <i class="fas fa-chevron-down modal-accordion-icon"></i>
+                </div>
+                <div class="modal-accordion-body">
+                    <p>Informe o código do cupom e o valor da sua compra para verificarmos o que pode estar acontecendo.</p>
+                    <a class="modal-btn-wa" href="https://wa.me/5500000000000?text=Olá!%20Meu%20cupom%20não%20está%20funcionando.%20Código%3A%20" target="_blank"><i class="fab fa-whatsapp"></i> Resolver cupom</a>
+                </div>
+            </div>
+
+            <div class="modal-accordion">
+                <div class="modal-accordion-header" onclick="toggleModal(this)">
+                    <span class="modal-accordion-title"><i class="fas fa-exclamation-triangle"></i> Recebi um produto errado ou com defeito</span>
+                    <i class="fas fa-chevron-down modal-accordion-icon"></i>
+                </div>
+                <div class="modal-accordion-body">
+                    <p>Pedimos desculpas! Informe o número do pedido e, se possível, envie uma foto do produto recebido. Resolveremos com prioridade.</p>
+                    <a class="modal-btn-wa" href="https://wa.me/5500000000000?text=Olá!%20Recebi%20um%20produto%20errado%20ou%20com%20defeito.%20Pedido%3A%20" target="_blank"><i class="fab fa-whatsapp"></i> Reportar problema</a>
+                </div>
+            </div>
+
+            <div class="modal-accordion">
+                <div class="modal-accordion-header" onclick="toggleModal(this)">
+                    <span class="modal-accordion-title"><i class="fas fa-comment-dots"></i> Outro assunto</span>
+                    <i class="fas fa-chevron-down modal-accordion-icon"></i>
+                </div>
+                <div class="modal-accordion-body">
+                    <p>Para qualquer outro assunto não listado acima, nosso time de atendimento está disponível de segunda a sexta, das 9h às 18h.</p>
+                    <a class="modal-btn-wa" href="https://wa.me/5500000000000?text=Olá!%20Preciso%20de%20ajuda%20com%20" target="_blank"><i class="fab fa-whatsapp"></i> Falar com atendimento</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/cart.js"></script>
+<script>
+    // Init auth and cart
+    if (typeof AuthManager !== 'undefined') new AuthManager();
+    if (typeof CartManager !== 'undefined') new CartManager();
+
+    // Header alert
+    fetch('/api/alerts').then(r => r.json()).then(d => {
+        if (d.success && d.data.length) {
+            const msg = d.data.filter(a => a.is_active)[0];
+            if (msg) {
+                document.getElementById('headerTop').style.display = 'block';
+                document.getElementById('headerTopText').textContent = (msg.title ? msg.title + ' — ' : '') + msg.message;
+            }
+        }
+    });
+
+    // Accordion
+    function toggleAccordion(header) {
+        const body = header.nextElementSibling;
+        const icon = header.querySelector('.accordion-icon');
+        const isOpen = body.classList.contains('open');
+        document.querySelectorAll('.accordion-body.open').forEach(b => {
+            b.classList.remove('open');
+            b.previousElementSibling.classList.remove('open');
+            b.previousElementSibling.querySelector('.accordion-icon').classList.remove('open');
+        });
+        if (!isOpen) {
+            body.classList.add('open');
+            header.classList.add('open');
+            icon.classList.add('open');
+        }
+    }
+
+    // Modal
+    function openModal() { document.getElementById('contactModal').classList.add('open'); }
+    function closeModal() { document.getElementById('contactModal').classList.remove('open'); }
+
+    function toggleModal(header) {
+        const body = header.nextElementSibling;
+        const icon = header.querySelector('.modal-accordion-icon');
+        const isOpen = body.classList.contains('open');
+        document.querySelectorAll('.modal-accordion-body.open').forEach(b => {
+            b.classList.remove('open');
+            b.previousElementSibling.querySelector('.modal-accordion-icon').classList.remove('open');
+        });
+        if (!isOpen) {
+            body.classList.add('open');
+            icon.classList.add('open');
+        }
+    }
+
+    // Sidebar highlight on scroll
+    const sections = document.querySelectorAll('.help-section');
+    const navLinks = document.querySelectorAll('.help-nav a');
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+        navLinks.forEach(a => {
+            a.classList.remove('active');
+            if (a.getAttribute('href') === '#' + current) a.classList.add('active');
+        });
+    });
+</script>
+</body>
+</html>
