@@ -383,13 +383,13 @@ img::before {
 .user-menu-btn {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     background: none;
     border: none;
-    font-size: 16px;
+    font-size: 13px;
     color: var(--text-dark);
     cursor: pointer;
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: 25px;
     transition: all 0.3s ease;
 }
@@ -399,14 +399,15 @@ img::before {
 }
 
 .user-menu-btn i {
-    font-size: 20px;
+    font-size: 16px;
 }
 
 .user-menu-btn span {
-    max-width: 120px;
+    max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 13px;
 }
 
 .user-dropdown {

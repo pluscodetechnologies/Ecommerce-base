@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <script>// ── Aplicar tema salvo ────────────────────────────────────────────────
+        (function() {
+            if (localStorage.getItem('adminTheme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configurações - Velvet Store Admin</title>
@@ -27,7 +33,7 @@
         .logout-btn { display: flex; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.1); color: white; text-decoration: none; border-radius: 10px; }
         .logout-btn:hover { background: rgba(231, 76, 60, 0.3); }
         .logout-btn i { margin-right: 10px; }
-        .main-content { flex: 1; margin-left: 280px; padding: 30px; max-width: 720px; }
+        .main-content { flex: 1; margin-left: 280px; padding: 30px; max-width: 960px; }
         .top-bar { margin-bottom: 30px; }
         .page-title h1 { font-size: 28px; color: #1a1a2e; margin-bottom: 5px; }
         .page-title p { color: #666; font-size: 14px; }
@@ -59,6 +65,93 @@
 
         .current-email-display { background: #f8f8f8; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #555; margin-bottom: 16px; }
         .current-email-display span { color: #1a1a2e; font-weight: 500; }
+
+
+        /* ── Settings rows ───────────────────────────────────────────────────── */
+        .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+        .setting-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .setting-label { font-size: 14px; font-weight: 600; color: #333; }
+        .setting-desc { font-size: 13px; color: #888; line-height: 1.5; }
+
+        /* ── Theme switch ────────────────────────────────────────────────────── */
+        .theme-toggle-wrap { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .theme-opt { font-size: 13px; color: #aaa; font-weight: 500; transition: color 0.2s; }
+        .theme-opt.active { color: #1a1a2e; }
+        .theme-switch { position: relative; width: 52px; height: 28px; }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .theme-slider { position: absolute; inset: 0; background: #e0e0e0; border-radius: 28px; cursor: pointer; transition: background 0.3s; }
+        .theme-slider::before { content: ''; position: absolute; height: 20px; width: 20px; left: 4px; bottom: 4px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+        .theme-switch input:checked + .theme-slider { background: #1a1a2e; }
+        .theme-switch input:checked + .theme-slider::before { transform: translateX(24px); }
+
+        /* ── Dark overrides for settings page ───────────────────────────────── */
+        html.dark .setting-label { color: #e0e0e0; }
+        html.dark .setting-desc { color: #666; }
+        html.dark .theme-opt.active { color: #e0e0e0; }
+        html.dark .theme-slider { background: #2a2a3e; }
+        html.dark .theme-switch input:checked + .theme-slider { background: #7b6cf6; }
+        html.dark #lowStockLimit { background: #22223a; border-color: #2a2a3e; color: #e0e0e0; }
+        html.dark .forgot-link { color: #888; }
+        html.dark .divider { border-top-color: #2a2a3e; }
+        html.dark .current-email-display { background: #22223a; color: #aaa; }
+
+        /* ── Tema Escuro ─────────────────────────────────────────────────────── */
+        html.dark body { background: #0f0f1a; color: #e0e0e0; }
+        html.dark .sidebar { background: linear-gradient(180deg, #0a0a15 0%, #10101f 100%); }
+        html.dark .main-content { background: transparent; }
+        html.dark .card,
+        html.dark .products-panel,
+        html.dark .coupons-table,
+        html.dark .filters-bar,
+        html.dark .alert-card,
+        html.dark .banner-card,
+        html.dark .category-card,
+        html.dark .modal-content,
+        html.dark .special-card { background: #1a1a2e !important; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        html.dark .page-title h1 { color: #e0e0e0; }
+        html.dark .page-title p { color: #888; }
+        html.dark table { background: #1a1a2e; }
+        html.dark th { color: #888; border-bottom-color: #2a2a3e; }
+        html.dark td { border-bottom-color: #22223a; color: #ccc; }
+        html.dark .product-name-cell strong,
+        html.dark .panel-header-title { color: #e0e0e0; }
+        html.dark .panel-header { border-bottom-color: #2a2a3e; }
+        html.dark .cat-tab { background: #1a1a2e; border-color: #2a2a3e; color: #aaa; }
+        html.dark .cat-tab:hover { border-color: #7b6cf6; color: #e0e0e0; }
+        html.dark .cat-tab.active { background: #7b6cf6; border-color: #7b6cf6; color: white; }
+        html.dark .search-box { background: #22223a; }
+        html.dark .search-box input { color: #e0e0e0; }
+        html.dark .search-box i { color: #666; }
+        html.dark .form-group input,
+        html.dark .form-group select,
+        html.dark .form-group textarea { background: #22223a; border-color: #2a2a3e; color: #e0e0e0; }
+        html.dark .form-group label { color: #ccc; }
+        html.dark .form-group .hint { color: #666; }
+        html.dark .card-header { border-bottom-color: #2a2a3e; }
+        html.dark .card-header h2 { color: #e0e0e0; }
+        html.dark .card-icon { background: #22223a; color: #aaa; }
+        html.dark .info-box { background: #1a2535; border-left-color: #4a90d9; }
+        html.dark .info-box p { color: #a0bcd8; }
+        html.dark .alert-preview { background: #0f0f1a; }
+        html.dark .banner-image { opacity: 0.85; }
+        html.dark .status-active { background: #1a3a2a; color: #6ee7b7; }
+        html.dark .status-inactive { background: #3a1a1a; color: #fca5a5; }
+        html.dark .featured-badge { background: #3a2e0a; color: #fbbf24; }
+        html.dark .product-sku { color: #666; }
+        html.dark .empty-state { color: #555; }
+        html.dark .section-title { color: #ccc; }
+        html.dark .special-card::before { background: #2a2a3e; }
+        html.dark .special-card.enabled::before { background: linear-gradient(180deg, #7b6cf6, #4a90d9); }
+        html.dark .special-card-fields input,
+        html.dark .special-card-fields select,
+        html.dark .code-row input { background: #22223a; border-color: #2a2a3e; color: #e0e0e0; }
+        html.dark .special-status-pill.pill-active { background: #1a3a2a; color: #6ee7b7; }
+        html.dark .special-status-pill.pill-inactive { background: #22223a; color: #666; }
+        html.dark .toggle-label { color: #666; }
+        html.dark .c-body { background: #22223a; }
+        html.dark .c-header { background: #22223a !important; border-bottom-color: #2a2a3e !important; }
+        html.dark .c-name-label { color: #e0e0e0 !important; }
+        html.dark .color-block { background: #1a1a2e !important; border-color: #2a2a3e !important; }
     </style>
 </head>
 <body>
@@ -96,33 +189,65 @@
         <div class="top-bar">
             <div class="page-title">
                 <h1>Configurações</h1>
-                <p>Gerencie as credenciais da sua conta</p>
+                <p>Preferências do painel administrativo</p>
             </div>
         </div>
 
-        <!-- Card: Alterar Email -->
-        <div class="card">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+
+        <!-- Card: Aparência -->
+        <div class="card" style="margin-bottom:0;">
             <div class="card-header">
-                <div class="card-icon"><i class="fas fa-envelope"></i></div>
+                <div class="card-icon"><i class="fas fa-palette"></i></div>
                 <div>
-                    <h2>Endereço de email</h2>
-                    <p>Altere o email usado para acessar o painel</p>
+                    <h2>Aparência</h2>
+                    <p>Personalize o visual do painel administrativo</p>
                 </div>
             </div>
-            <div class="feedback" id="emailFeedback"></div>
-            <div class="current-email-display">Email atual: <span id="currentEmailDisplay">—</span></div>
-            <div class="form-group">
-                <label>Novo email</label>
-                <input type="email" id="newEmail" placeholder="novo@email.com">
+            <div class="setting-row">
+                <div class="setting-info">
+                    <span class="setting-label">Tema do painel</span>
+                    <span class="setting-desc">Alterna entre o tema claro e escuro. A preferência fica salva no seu navegador.</span>
+                </div>
+                <div class="theme-toggle-wrap">
+                    <span class="theme-opt" id="labelLight"><i class="fas fa-sun"></i> Claro</span>
+                    <label class="theme-switch">
+                        <input type="checkbox" id="themeToggle">
+                        <span class="theme-slider"></span>
+                    </label>
+                    <span class="theme-opt" id="labelDark"><i class="fas fa-moon"></i> Escuro</span>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Confirmar novo email</label>
-                <input type="email" id="confirmEmail" placeholder="novo@email.com">
-            </div>
-            <button class="btn-primary" id="saveEmailBtn">Salvar email</button>
         </div>
 
-        <!-- Card: Alterar Senha -->
+        <!-- Card: Estoque -->
+        <div class="card" style="margin-bottom:0;">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-boxes"></i></div>
+                <div>
+                    <h2>Estoque</h2>
+                    <p>Configure o limite de alerta de estoque baixo</p>
+                </div>
+            </div>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <span class="setting-label">Limite de estoque baixo</span>
+                    <span class="setting-desc">Produtos com estoque igual ou abaixo deste valor exibem um ícone de aviso <i class="fas fa-exclamation-triangle" style="color:#f59e0b;font-size:12px;"></i> na lista de produtos.</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                    <input type="number" id="lowStockLimit" min="1" max="100" value="5"
+                        style="width:80px;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-family:'Poppins',sans-serif;font-size:15px;text-align:center;outline:none;">
+                    <span style="font-size:13px;color:#888;">unidades</span>
+                </div>
+            </div>
+            <div style="margin-top:20px;">
+                <button class="btn-primary" id="saveLowStockBtn">Salvar</button>
+            </div>
+        </div>
+
+        </div><!-- end side-by-side grid -->
+
+        <!-- Card: Senha -->
         <div class="card">
             <div class="card-header">
                 <div class="card-icon"><i class="fas fa-lock"></i></div>
@@ -158,57 +283,52 @@
         const token = localStorage.getItem('token');
         if (!token || user.role !== 'admin') window.location.href = '/admin';
         document.getElementById('adminName').textContent = user.name || 'Administrador';
-        document.getElementById('currentEmailDisplay').textContent = user.email || '—';
         document.getElementById('logoutBtn').addEventListener('click', (e) => { e.preventDefault(); localStorage.clear(); window.location.href = '/admin'; });
 
         function showFeedback(id, message, type) {
             const el = document.getElementById(id);
             el.textContent = message;
-            el.className = `feedback ${type}`;
+            el.className = 'feedback ' + type;
             el.style.display = 'block';
-            setTimeout(() => { el.style.display = 'none'; }, 5000);
+            setTimeout(function() { el.style.display = 'none'; }, 5000);
         }
 
-        // Alterar email
-        document.getElementById('saveEmailBtn').addEventListener('click', async () => {
-            const newEmail = document.getElementById('newEmail').value.trim();
-            const confirmEmail = document.getElementById('confirmEmail').value.trim();
-            const btn = document.getElementById('saveEmailBtn');
+        // ── Tema claro/escuro ─────────────────────────────────────────────────
+        const themeToggle = document.getElementById('themeToggle');
+        const isDark = localStorage.getItem('adminTheme') === 'dark';
+        themeToggle.checked = isDark;
+        updateThemeLabels(isDark);
 
-            if (!newEmail || !confirmEmail) return showFeedback('emailFeedback', 'Preencha todos os campos.', 'error');
-            if (newEmail !== confirmEmail) return showFeedback('emailFeedback', 'Os emails não coincidem.', 'error');
-            if (newEmail === user.email) return showFeedback('emailFeedback', 'O novo email é igual ao atual.', 'error');
-
-            btn.disabled = true;
-            btn.textContent = 'Salvando...';
-
-            try {
-                const res = await fetch('/api/auth/update-email', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ newEmail })
-                });
-                const result = await res.json();
-
-                if (result.success) {
-                    user.email = newEmail;
-                    localStorage.setItem('user', JSON.stringify(user));
-                    document.getElementById('currentEmailDisplay').textContent = newEmail;
-                    document.getElementById('newEmail').value = '';
-                    document.getElementById('confirmEmail').value = '';
-                    showFeedback('emailFeedback', 'Email atualizado com sucesso!', 'success');
-                } else {
-                    showFeedback('emailFeedback', result.message, 'error');
-                }
-            } catch (e) {
-                showFeedback('emailFeedback', 'Erro ao atualizar email.', 'error');
+        themeToggle.addEventListener('change', function() {
+            const dark = this.checked;
+            if (dark) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('adminTheme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('adminTheme', 'light');
             }
-
-            btn.disabled = false;
-            btn.textContent = 'Salvar email';
+            updateThemeLabels(dark);
         });
 
-        // Alterar senha
+        function updateThemeLabels(dark) {
+            document.getElementById('labelLight').classList.toggle('active', !dark);
+            document.getElementById('labelDark').classList.toggle('active', dark);
+        }
+
+        // ── Estoque baixo ─────────────────────────────────────────────────────
+        const savedLimit = localStorage.getItem('lowStockLimit') || '5';
+        document.getElementById('lowStockLimit').value = savedLimit;
+
+        document.getElementById('saveLowStockBtn').addEventListener('click', function() {
+            const val = parseInt(document.getElementById('lowStockLimit').value) || 5;
+            localStorage.setItem('lowStockLimit', String(val));
+            const btn = this;
+            btn.textContent = '✓ Salvo!';
+            setTimeout(function() { btn.textContent = 'Salvar'; }, 2000);
+        });
+
+        // ── Alterar senha
         document.getElementById('savePasswordBtn').addEventListener('click', async () => {
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
