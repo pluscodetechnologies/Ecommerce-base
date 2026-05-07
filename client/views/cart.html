@@ -689,78 +689,76 @@
     </script>
 
 
-    <!-- Mobile nav drawer -->
-    <div class="nav-overlay" id="navOverlay"></div>
+    <!-- ═══ MOBILE DRAWER (independent of .nav-menu) ═══ -->
+    <div id="mobileOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:8000;"></div>
+    <div id="mobileDrawer" style="display:none;position:fixed;top:0;left:0;width:72vw;max-width:280px;height:100vh;background:#fff;z-index:8001;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,0.2);flex-direction:column;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:#faf8f5;border-bottom:1px solid #f0ede9;">
+            <span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8B7355;">Menu</span>
+            <button id="drawerClose" style="background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
+        </div>
+        <div style="border-bottom:2px solid #f0ede9;">
+            <a href="/account" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-user" style="color:#8B7355;width:16px;"></i> Minha Conta</a>
+            <a href="/orders" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-box" style="color:#8B7355;width:16px;"></i> Meus Pedidos</a>
+            <a href="/ajuda" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;"><i class="fas fa-question-circle" style="color:#8B7355;width:16px;"></i> Ajuda</a>
+        </div>
+        <nav id="drawerNav" style="flex:1;"></nav>
+    </div>
     <script>
     (function() {
+        var overlay = document.getElementById('mobileOverlay');
+        var drawer  = document.getElementById('mobileDrawer');
         var btn     = document.querySelector('.mobile-menu-btn');
-        var nav     = document.querySelector('.nav-menu');
-        var overlay = document.getElementById('navOverlay');
-        if (!btn || !nav || !overlay) return;
+        var closeBtn = document.getElementById('drawerClose');
 
-        var drawerBuilt = false;
+        if (!btn) return;
 
-        function buildDrawer() {
-            if (drawerBuilt) return;
-            drawerBuilt = true;
-
-            var hdr = document.createElement('div');
-            hdr.className = 'drawer-header';
-            hdr.innerHTML = '<span class="drawer-header-title">Menu</span><button class="drawer-close-btn" aria-label="Fechar">&times;</button>';
-            nav.insertBefore(hdr, nav.firstChild);
-            hdr.querySelector('.drawer-close-btn').addEventListener('click', closeMenu);
-
-            var extras = document.createElement('div');
-            extras.className = 'drawer-extra-links';
-            extras.innerHTML =
-                '<a href="/account" class="drawer-extra-link"><i class="fas fa-user"></i> Minha Conta</a>' +
-                '<a href="/orders" class="drawer-extra-link"><i class="fas fa-box"></i> Meus Pedidos</a>' +
-                '<a href="/ajuda" class="drawer-extra-link"><i class="fas fa-question-circle"></i> Ajuda</a>';
-            nav.insertBefore(extras, nav.querySelector('ul'));
+        // Copy nav links into drawer on first open
+        var navCopied = false;
+        function copyNav() {
+            if (navCopied) return;
+            navCopied = true;
+            var drawerNav = document.getElementById('drawerNav');
+            var navLinks = document.querySelectorAll('.nav-menu ul > li');
+            navLinks.forEach(function(li) {
+                var a = li.querySelector('a');
+                if (!a) return;
+                var link = document.createElement('a');
+                link.href = a.href;
+                link.textContent = a.textContent.trim().replace(/keyboard_arrow_down/, '').trim();
+                link.style.cssText = 'display:block;padding:16px 24px;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:#1a1817;text-decoration:none;border-bottom:1px solid #f0ede9;';
+                if (a.style.color) link.style.color = a.style.color;
+                drawerNav.appendChild(link);
+            });
         }
 
-        function isMobile() { return window.innerWidth <= 768; }
-
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (!isMobile()) return;
-            buildDrawer();
-            openMenu();
-        });
-        overlay.addEventListener('click', closeMenu);
-
-        function openMenu() {
-            // Move overlay to be first child of body so drawer stacks above it
-            document.body.insertBefore(overlay, document.body.firstChild);
-            nav.classList.add('drawer-open');
-            overlay.classList.add('active');
-            document.body.classList.add('menu-open');
+        function openDrawer() {
+            copyNav();
+            drawer.style.display  = 'flex';
+            overlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
             btn.innerHTML = '<i class="fas fa-times"></i>';
         }
-        function closeMenu() {
-            nav.classList.remove('drawer-open');
-            overlay.classList.remove('active');
-            document.body.classList.remove('menu-open');
+        function closeDrawer() {
+            drawer.style.display  = 'none';
+            overlay.style.display = 'none';
+            document.body.style.overflow = '';
             btn.innerHTML = '<i class="fas fa-bars"></i>';
         }
 
-        // Fecha drawer ao redimensionar para desktop
-        window.addEventListener('resize', function() {
-            if (!isMobile()) closeMenu();
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (window.innerWidth > 768) return;
+            drawer.style.display === 'none' ? openDrawer() : closeDrawer();
         });
 
-        // User icon — dropdown no tap (mobile sem hover)
-        var userMenu = document.querySelector('.user-menu');
-        var userBtn  = userMenu && userMenu.querySelector('.user-menu-btn');
-        if (userBtn) {
-            userBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                userMenu.classList.toggle('open');
-            });
-            document.addEventListener('click', function() { userMenu.classList.remove('open'); });
-        }
+        overlay.addEventListener('click', closeDrawer);
+        closeBtn.addEventListener('click', closeDrawer);
+
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) closeDrawer();
+        });
     })();
     </script>
-
+    <!-- ═══ fim MOBILE DRAWER ═══ -->
 </body>
 </html>

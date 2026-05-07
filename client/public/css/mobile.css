@@ -63,13 +63,14 @@
 
     /* Busca compacta */
     .header-search,
-    #searchWrapper {
-        order: 3;
-        width: 130px !important;
-        min-width: 0 !important;
-        flex-shrink: 0;
-        position: relative;
-    }
+#searchWrapper {
+    order: 3;
+    width: 140px !important;  /* era 120px, aumentei um pouco */
+    min-width: 0 !important;
+    flex-shrink: 1;
+    position: relative;
+    margin-right: 4px;
+}
     .search-input-row {
         height: 32px !important;
         border-radius: 3px !important;
@@ -99,119 +100,12 @@
     .header-actions > button,
     .header-actions > div { font-size: 18px !important; }
 
-    /* Esconde nome, mantém só ícone de perfil */
-    .user-menu-btn span { display: none !important; }
-    .user-menu-btn { padding: 2px !important; gap: 0 !important; }
-    .user-menu-btn i { font-size: 18px !important; }
-    /* Dropdown de conta — clique, não hover */
-    .user-menu:hover .user-dropdown { opacity: 0; visibility: hidden; }
-    .user-menu.open .user-dropdown  { opacity: 1; visibility: visible; }
+    /* Esconde ícone de perfil no mobile — conta está no drawer */
+    .user-menu { display: none !important; }
+    #userMenuContainer { display: none !important; }
 
     /* Esconde nav-menu desktop */
     .nav-menu { display: none !important; }
-
-    /* ── Drawer lateral ──────────────────────────────────────────── */
-    .nav-menu.drawer-open {
-        display: flex !important;
-        flex-direction: column;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 72vw !important;
-        max-width: 280px !important;
-        height: 100vh !important;
-        background: white !important;
-        box-shadow: 4px 0 24px rgba(0,0,0,0.18) !important;
-        z-index: 10001 !important;
-        padding: 0 !important;
-        overflow-y: auto !important;
-        animation: slideInLeft 0.22s ease;
-    }
-    @keyframes slideInLeft {
-        from { transform: translateX(-100%); }
-        to   { transform: translateX(0); }
-    }
-    .nav-menu.drawer-open ul {
-        flex-direction: column !important;
-        gap: 0 !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    .nav-menu.drawer-open ul li {
-        border-bottom: 1px solid #f0ede9 !important;
-        width: 100%;
-    }
-    .nav-menu.drawer-open ul li a {
-        display: block !important;
-        padding: 16px 24px !important;
-        font-size: 14px !important;
-        letter-spacing: 1px !important;
-        color: #1a1817 !important;
-        text-transform: uppercase;
-    }
-
-    /* Cabeçalho do drawer */
-    .drawer-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 18px 20px;
-        border-bottom: 1px solid #f0ede9;
-        background: #faf8f5;
-    }
-    .drawer-header-title {
-        font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: #8B7355;
-    }
-    .drawer-close-btn {
-        background: none;
-        border: none;
-        font-size: 22px;
-        color: #aaa;
-        cursor: pointer;
-        line-height: 1;
-        padding: 0;
-    }
-    /* Links extras no drawer (conta, ajuda) */
-    .drawer-extra-links {
-        border-bottom: 2px solid #f0ede9;
-        padding: 4px 0;
-    }
-    .drawer-extra-link {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 13px 24px;
-        font-size: 13px;
-        color: #555;
-        text-decoration: none;
-        border-bottom: 1px solid #f7f5f2;
-    }
-    .drawer-extra-link i { color: #8B7355; width: 16px; }
-
-    /* ── Overlay ────────────────────────────────────────────────── */
-    .nav-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.45);
-        z-index: 9999;
-        cursor: pointer;
-        /* Deixa a área do drawer sem bloqueio de pointer */
-        pointer-events: all;
-    }
-    .nav-overlay.active { display: block; }
-    /* O drawer fica ACIMA do overlay */
-    .nav-menu.drawer-open {
-        pointer-events: all !important;
-        z-index: 10001 !important;
-    }
-
-    body.menu-open { overflow: hidden; }
 
     /* ── Hero ───────────────────────────────────────────────────── */
     .hero { height: 260px !important; margin-top: 58px !important; }
