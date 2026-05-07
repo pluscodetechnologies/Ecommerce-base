@@ -529,14 +529,14 @@ section {
 .section-title {
     font-size: 36px;
     text-align: center;
-    margin-bottom: 48px;
+    margin-bottom: 20px;
     position: relative;
 }
 
 .section-title::after {
     content: '';
     position: absolute;
-    bottom: -15px;
+    bottom: -8px;
     left: 50%;
     transform: translateX(-50%);
     width: 60px;

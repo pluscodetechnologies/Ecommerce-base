@@ -1,0 +1,303 @@
+/* ================================================================
+   MOBILE.CSS — APENAS para telas <= 768px
+   NUNCA afeta desktop — todas as regras DENTRO de @media
+   ================================================================ */
+
+/* ── Marquee (header-top texto longo) — global, qualquer tela ───── */
+.header-top-marquee {
+    display: flex;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.header-top-marquee .marquee-inner {
+    display: inline-flex;
+    animation: marquee-scroll 18s linear infinite;
+    gap: 80px;
+}
+.header-top-marquee .marquee-inner span { flex-shrink: 0; }
+@keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+
+/* ── Tudo abaixo SOMENTE no mobile ────────────────────────────────── */
+@media (max-width: 768px) {
+
+    /* ── Header / Navbar ────────────────────────────────────────── */
+    .header-main .container { padding: 0 14px !important; }
+
+    .header-wrapper {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        height: 58px !important;
+        padding: 0 !important;
+        flex-wrap: nowrap !important;
+    }
+
+    /* Hamburger — aparece */
+    .mobile-menu-btn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        order: 1;
+        flex-shrink: 0;
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: var(--dark, #1a1817);
+        cursor: pointer;
+        padding: 6px;
+        z-index: 100;
+    }
+
+    /* Logo — ocupa espaço central */
+    .logo {
+        order: 2;
+        flex: 1 !important;
+        text-align: center !important;
+        padding: 0 !important;
+    }
+    .logo h1 { font-size: 20px !important; letter-spacing: 4px !important; }
+    .logo span { font-size: 9px !important; letter-spacing: 3px !important; }
+
+    /* Busca compacta */
+    .header-search,
+    #searchWrapper {
+        order: 3;
+        width: 130px !important;
+        min-width: 0 !important;
+        flex-shrink: 0;
+        position: relative;
+    }
+    .search-input-row {
+        height: 32px !important;
+        border-radius: 3px !important;
+    }
+    .search-btn,
+    .search-clear { display: none !important; }
+    .search-input { font-size: 12px !important; }
+    .search-icon { padding: 0 8px !important; }
+    .search-dropdown { width: 250px !important; right: 0; left: auto !important; }
+
+    /* Busca simples (products.html) */
+    div[style*="width:260px"] {
+        width: 130px !important;
+        order: 3;
+        flex-shrink: 0;
+    }
+
+    /* Ações (perfil + carrinho) */
+    .header-actions {
+        order: 4;
+        display: flex !important;
+        align-items: center;
+        gap: 12px !important;
+        flex-shrink: 0;
+    }
+    .header-actions > a,
+    .header-actions > button,
+    .header-actions > div { font-size: 18px !important; }
+
+    /* Esconde nome, mantém só ícone de perfil */
+    .user-menu-btn span { display: none !important; }
+    .user-menu-btn { padding: 2px !important; gap: 0 !important; }
+    .user-menu-btn i { font-size: 18px !important; }
+    /* Dropdown de conta — clique, não hover */
+    .user-menu:hover .user-dropdown { opacity: 0; visibility: hidden; }
+    .user-menu.open .user-dropdown  { opacity: 1; visibility: visible; }
+
+    /* Esconde nav-menu desktop */
+    .nav-menu { display: none !important; }
+
+    /* ── Drawer lateral ──────────────────────────────────────────── */
+    .nav-menu.drawer-open {
+        display: flex !important;
+        flex-direction: column;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 72vw !important;
+        max-width: 280px !important;
+        height: 100vh !important;
+        background: white !important;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.18) !important;
+        z-index: 10001 !important;
+        padding: 0 !important;
+        overflow-y: auto !important;
+        animation: slideInLeft 0.22s ease;
+    }
+    @keyframes slideInLeft {
+        from { transform: translateX(-100%); }
+        to   { transform: translateX(0); }
+    }
+    .nav-menu.drawer-open ul {
+        flex-direction: column !important;
+        gap: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .nav-menu.drawer-open ul li {
+        border-bottom: 1px solid #f0ede9 !important;
+        width: 100%;
+    }
+    .nav-menu.drawer-open ul li a {
+        display: block !important;
+        padding: 16px 24px !important;
+        font-size: 14px !important;
+        letter-spacing: 1px !important;
+        color: #1a1817 !important;
+        text-transform: uppercase;
+    }
+
+    /* Cabeçalho do drawer */
+    .drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px;
+        border-bottom: 1px solid #f0ede9;
+        background: #faf8f5;
+    }
+    .drawer-header-title {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #8B7355;
+    }
+    .drawer-close-btn {
+        background: none;
+        border: none;
+        font-size: 22px;
+        color: #aaa;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+    }
+    /* Links extras no drawer (conta, ajuda) */
+    .drawer-extra-links {
+        border-bottom: 2px solid #f0ede9;
+        padding: 4px 0;
+    }
+    .drawer-extra-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 24px;
+        font-size: 13px;
+        color: #555;
+        text-decoration: none;
+        border-bottom: 1px solid #f7f5f2;
+    }
+    .drawer-extra-link i { color: #8B7355; width: 16px; }
+
+    /* ── Overlay ────────────────────────────────────────────────── */
+    .nav-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 10000; /* abaixo do drawer (10001) */
+        cursor: pointer;
+    }
+    .nav-overlay.active { display: block; }
+
+    body.menu-open { overflow: hidden; }
+
+    /* ── Hero ───────────────────────────────────────────────────── */
+    .hero { height: 260px !important; margin-top: 58px !important; }
+    .slide img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+    .slide-content {
+        left: 5% !important; right: 5% !important;
+        bottom: 18px !important; top: auto !important;
+        text-align: center !important; transform: none !important;
+    }
+    .slide-subtitle { font-size: 9px !important; letter-spacing: 2px !important; }
+    .slide-title { font-size: 20px !important; margin-bottom: 6px !important; }
+    .slide-description { font-size: 12px !important; margin-bottom: 10px !important; }
+    .slide-btn { padding: 9px 18px !important; font-size: 11px !important; letter-spacing: 1px !important; }
+    .slider-arrow { width: 30px !important; height: 30px !important; font-size: 11px !important; }
+
+    /* ── Categories carousel — 2 cards por vez ──────────────────── */
+    .categories-carousel-container { padding: 0 6px !important; }
+    .categories-grid { gap: 12px !important; transition: transform 0.35s ease !important; }
+    .category-card {
+        flex: 0 0 calc(50% - 6px) !important;
+        min-width: calc(50% - 6px) !important;
+    }
+    .category-card img { height: 170px !important; }
+    .category-overlay { padding: 10px !important; }
+    .category-name { font-size: 13px !important; }
+    .carousel-arrow { width: 28px !important; height: 28px !important; font-size: 11px !important; }
+
+    /* ── Products grid — 2 colunas ──────────────────────────────── */
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+    .product-card { border-radius: 4px !important; }
+    .product-image-container { height: 190px !important; }
+    .product-name { font-size: 12px !important; }
+    .product-price { font-size: 13px !important; }
+    .product-actions { opacity: 1 !important; transform: none !important; }
+    .product-btn { font-size: 11px !important; padding: 8px !important; }
+
+    /* ── Seções ─────────────────────────────────────────────────── */
+    section, .section { padding: 32px 0 !important; }
+    .section-header { margin-bottom: 24px !important; }
+    .section-title { font-size: 22px !important; }
+    .section-subtitle { font-size: 10px !important; letter-spacing: 1.5px !important; }
+
+    /* ── Benefits ───────────────────────────────────────────────── */
+    .benefits-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+    .benefit-item { padding: 14px !important; }
+    .benefit-icon { font-size: 18px !important; }
+    .benefit-title { font-size: 11px !important; }
+    .benefit-text { font-size: 10px !important; display: none; }
+
+    /* ── Footer ─────────────────────────────────────────────────── */
+    .footer-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
+    .footer-bottom .container { flex-direction: column !important; gap: 10px !important; text-align: center !important; }
+    .payment-methods { justify-content: center !important; }
+
+    /* ── Products page ───────────────────────────────────────────── */
+    .page-header { padding: 28px 0 16px !important; }
+    .page-title { font-size: 22px !important; }
+    .products-filter { flex-direction: column !important; gap: 8px !important; }
+    .filter-tags { flex-wrap: wrap !important; gap: 6px !important; }
+
+    /* ── Product detail ─────────────────────────────────────────── */
+    .product-detail-grid,
+    .product-detail-container { grid-template-columns: 1fr !important; gap: 16px !important; }
+    .main-image,
+    .product-main-image { height: 300px !important; }
+    .product-info { padding: 0 !important; }
+    .product-title,
+    .product-detail-name { font-size: 20px !important; }
+    .thumbnails,
+    .product-thumbnails { gap: 6px !important; }
+    .thumbnail { width: 52px !important; height: 66px !important; }
+
+    /* ── Cart ────────────────────────────────────────────────────── */
+    .cart-layout { grid-template-columns: 1fr !important; }
+    .order-summary { position: static !important; }
+    .cart-item-image { width: 70px !important; height: 88px !important; }
+
+    /* ── Checkout ────────────────────────────────────────────────── */
+    .checkout-grid,
+    .checkout-layout { grid-template-columns: 1fr !important; }
+    .form-row { grid-template-columns: 1fr !important; }
+
+    /* ── Ajuda ────────────────────────────────────────────────────── */
+    .help-layout { grid-template-columns: 1fr !important; }
+    .help-sidebar { display: none !important; }
+    .help-stats-inner { grid-template-columns: repeat(2, 1fr) !important; }
+    .help-stat { border-right: none !important; border-bottom: 1px solid #E8E4E0 !important; }
+    .help-stat:nth-child(odd) { border-right: 1px solid #E8E4E0 !important; }
+    .help-hero { padding: 76px 0 36px !important; }
+    .help-hero h1 { font-size: 30px !important; }
+
+}
+/* fim @media 768px */

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <script src="/js/site-font.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Velvet Store | Moda Feminina</title>
@@ -143,6 +144,7 @@
         
         /* Hero */
         .hero { margin-top: 120px; height: 500px; position: relative; overflow: hidden; }
+        .slide img { width: 100%; height: 100%; object-fit: cover; }
 
         /* Search Bar — inline no header */
         .header-search { width: 260px; flex-shrink: 0; position: relative; }
@@ -378,6 +380,7 @@
             .products-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <link rel="stylesheet" href="/css/mobile.css">
 </head>
 <body>
     <header class="header">
@@ -563,7 +566,11 @@
     <script src="/js/auth.js"></script>
     <script src="/js/cart.js"></script>
     <script>
-        let categories = [], currentCategoryPage = 0, itemsPerPage = 5;
+        let categories = [], currentCategoryPage = 0;
+
+        function getItemsPerPage() {
+            return window.innerWidth <= 768 ? 2 : window.innerWidth <= 1024 ? 3 : 5;
+        }
         
         async function loadCategories() {
             try {
@@ -574,9 +581,10 @@
         }
         
         function renderCategories() {
+            const ipp = getItemsPerPage();
             const grid = document.getElementById('categoriesGrid');
             const dots = document.getElementById('categoriesDots');
-            const totalPages = Math.ceil(categories.length / itemsPerPage);
+            const totalPages = Math.ceil(categories.length / ipp);
             
             if (!categories.length) { grid.innerHTML = '<p style="text-align:center;width:100%;">Nenhuma categoria</p>'; return; }
             
@@ -596,15 +604,18 @@
         }
         
         function updatePosition() {
+            const ipp = getItemsPerPage();
             const grid = document.getElementById('categoriesGrid');
             const card = grid.querySelector('.category-card');
             if (!card) return;
-            const w = card.offsetWidth + 25;
-            grid.style.transform = `translateX(${-currentCategoryPage * w * itemsPerPage}px)`;
+            const gap = window.innerWidth <= 768 ? 16 : 25;
+            const w = card.offsetWidth + gap;
+            grid.style.transform = `translateX(${-currentCategoryPage * w * ipp}px)`;
         }
         
         function goToPage(p) {
-            const total = Math.ceil(categories.length / itemsPerPage);
+            const ipp = getItemsPerPage();
+            const total = Math.ceil(categories.length / ipp);
             if (p >= 0 && p < total) {
                 currentCategoryPage = p;
                 document.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === p));
@@ -613,6 +624,12 @@
                 document.getElementById('categoriesNext').disabled = p === total - 1;
             }
         }
+
+        // Recalculate on resize
+        window.addEventListener('resize', () => {
+            currentCategoryPage = 0;
+            renderCategories();
+        });
         
         async function loadNavCategories() {
     try {
@@ -672,8 +689,14 @@ document.addEventListener('DOMContentLoaded', loadNavCategories);
                     let idx = 0;
                     function showAlert(a) {
                         const text = a.title ? `${a.title} — ${a.message}` : a.message;
-                        textEl.style.opacity = '0';
-                        setTimeout(() => { textEl.textContent = text; textEl.style.opacity = '1'; }, 300);
+                        if (text.length > 60) {
+                            textEl.className = 'header-top-marquee';
+                            textEl.innerHTML = `<div class="marquee-inner"><span>${text}</span><span>${text}</span></div>`;
+                        } else {
+                            textEl.className = '';
+                            textEl.style.opacity = '0';
+                            setTimeout(() => { textEl.textContent = text; textEl.style.opacity = '1'; }, 300);
+                        }
                     }
                     textEl.style.transition = 'opacity 0.3s ease';
                     headerTop.style.display = '';
@@ -835,5 +858,61 @@ document.addEventListener('DOMContentLoaded', loadNavCategories);
         });
     })();
     </script>
+
+    <!-- Mobile nav drawer -->
+    <div class="nav-overlay" id="navOverlay"></div>
+    <script>
+    (function() {
+        var btn     = document.querySelector('.mobile-menu-btn');
+        var nav     = document.querySelector('.nav-menu');
+        var overlay = document.getElementById('navOverlay');
+        if (!btn || !nav || !overlay) return;
+
+        // Build drawer header + extra links once
+        if (!nav.querySelector('.drawer-header')) {
+            var hdr = document.createElement('div');
+            hdr.className = 'drawer-header';
+            hdr.innerHTML = '<span class="drawer-header-title">Menu</span><button class="drawer-close-btn" aria-label="Fechar">&times;</button>';
+            nav.insertBefore(hdr, nav.firstChild);
+            hdr.querySelector('.drawer-close-btn').addEventListener('click', closeMenu);
+
+            var extras = document.createElement('div');
+            extras.className = 'drawer-extra-links';
+            extras.innerHTML =
+                '<a href="/account" class="drawer-extra-link"><i class="fas fa-user"></i> Minha Conta</a>' +
+                '<a href="/orders" class="drawer-extra-link"><i class="fas fa-box"></i> Meus Pedidos</a>' +
+                '<a href="/ajuda" class="drawer-extra-link"><i class="fas fa-question-circle"></i> Ajuda</a>';
+            nav.insertBefore(extras, nav.querySelector('ul'));
+        }
+
+        btn.addEventListener('click', openMenu);
+        overlay.addEventListener('click', closeMenu);
+
+        function openMenu() {
+            nav.classList.add('drawer-open');
+            overlay.classList.add('active');
+            document.body.classList.add('menu-open');
+            btn.innerHTML = '<i class="fas fa-times"></i>';
+        }
+        function closeMenu() {
+            nav.classList.remove('drawer-open');
+            overlay.classList.remove('active');
+            document.body.classList.remove('menu-open');
+            btn.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+
+        // User icon opens dropdown on tap (mobile has no hover)
+        var userMenu = document.querySelector('.user-menu');
+        var userBtn  = userMenu && userMenu.querySelector('.user-menu-btn');
+        if (userBtn) {
+            userBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userMenu.classList.toggle('open');
+            });
+            document.addEventListener('click', function() { userMenu.classList.remove('open'); });
+        }
+    })();
+    </script>
+
 </body>
 </html>

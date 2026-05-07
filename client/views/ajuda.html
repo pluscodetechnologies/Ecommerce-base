@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <script src="/js/site-font.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Central de Ajuda | Velvet Store</title>
@@ -98,6 +99,7 @@
         .modal-btn-wa { display: inline-flex; align-items: center; gap: 7px; background: #25D366; color: white; border: none; padding: 9px 18px; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; border-radius: 4px; text-decoration: none; transition: background 0.2s; }
         .modal-btn-wa:hover { background: #1aab52; }
     </style>
+    <link rel="stylesheet" href="/css/mobile.css">
 </head>
 <body>
 
@@ -746,7 +748,17 @@
             const msg = d.data.filter(a => a.is_active)[0];
             if (msg) {
                 document.getElementById('headerTop').style.display = 'block';
-                document.getElementById('headerTopText').textContent = (msg.title ? msg.title + ' — ' : '') + msg.message;
+                var txt = (msg.title ? msg.title + ' — ' : '') + msg.message;
+                    var el = document.getElementById('headerTopText');
+                    if (el) {
+                        // Check if text is long enough to need marquee
+                        el.textContent = txt;
+                        // Use marquee if text is long
+                        var topBar = document.getElementById('headerTop');
+                        if (txt.length > 60) {
+                            el.outerHTML = '<div class="header-top-marquee" id="headerTopText"><div class="marquee-inner"><span>' + txt + '</span><span>' + txt + '</span></div></div>';
+                        }
+                    }
             }
         }
     });
@@ -798,5 +810,61 @@
         });
     });
 </script>
+
+    <!-- Mobile nav drawer -->
+    <div class="nav-overlay" id="navOverlay"></div>
+    <script>
+    (function() {
+        var btn     = document.querySelector('.mobile-menu-btn');
+        var nav     = document.querySelector('.nav-menu');
+        var overlay = document.getElementById('navOverlay');
+        if (!btn || !nav || !overlay) return;
+
+        // Build drawer header + extra links once
+        if (!nav.querySelector('.drawer-header')) {
+            var hdr = document.createElement('div');
+            hdr.className = 'drawer-header';
+            hdr.innerHTML = '<span class="drawer-header-title">Menu</span><button class="drawer-close-btn" aria-label="Fechar">&times;</button>';
+            nav.insertBefore(hdr, nav.firstChild);
+            hdr.querySelector('.drawer-close-btn').addEventListener('click', closeMenu);
+
+            var extras = document.createElement('div');
+            extras.className = 'drawer-extra-links';
+            extras.innerHTML =
+                '<a href="/account" class="drawer-extra-link"><i class="fas fa-user"></i> Minha Conta</a>' +
+                '<a href="/orders" class="drawer-extra-link"><i class="fas fa-box"></i> Meus Pedidos</a>' +
+                '<a href="/ajuda" class="drawer-extra-link"><i class="fas fa-question-circle"></i> Ajuda</a>';
+            nav.insertBefore(extras, nav.querySelector('ul'));
+        }
+
+        btn.addEventListener('click', openMenu);
+        overlay.addEventListener('click', closeMenu);
+
+        function openMenu() {
+            nav.classList.add('drawer-open');
+            overlay.classList.add('active');
+            document.body.classList.add('menu-open');
+            btn.innerHTML = '<i class="fas fa-times"></i>';
+        }
+        function closeMenu() {
+            nav.classList.remove('drawer-open');
+            overlay.classList.remove('active');
+            document.body.classList.remove('menu-open');
+            btn.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+
+        // User icon opens dropdown on tap (mobile has no hover)
+        var userMenu = document.querySelector('.user-menu');
+        var userBtn  = userMenu && userMenu.querySelector('.user-menu-btn');
+        if (userBtn) {
+            userBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userMenu.classList.toggle('open');
+            });
+            document.addEventListener('click', function() { userMenu.classList.remove('open'); });
+        }
+    })();
+    </script>
+
 </body>
 </html>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <script src="/js/site-font.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Produto | Velvet Atelier</title>
@@ -190,6 +191,7 @@
         @media (max-width: 1024px) { .nav-menu { display: none; } .product-container { grid-template-columns: 1fr; } .reviews-layout { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: repeat(2,1fr); } }
         @media (max-width: 768px) { .mobile-menu-btn { display: block; font-size: 22px; background: none; border: none; cursor: pointer; color: var(--dark); } .nav-menu.active { display: block; position: absolute; top: 100%; left: 0; width: 100%; background: white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); padding: 20px; z-index: 999; } .nav-menu.active ul { flex-direction: column; gap: 0; } .nav-menu.active ul li { border-bottom: 1px solid var(--border-light); } .nav-menu.active ul li a { display: block; padding: 12px 0; } .footer-grid { grid-template-columns: 1fr; } }
     </style>
+    <link rel="stylesheet" href="/css/mobile.css">
 </head>
 <body>
     <header class="header">
@@ -848,7 +850,10 @@
                     function showAlert(a) {
                         const text = a.title ? `${a.title} — ${a.message}` : a.message;
                         textEl.style.opacity = '0';
-                        setTimeout(() => { textEl.textContent = text; textEl.style.opacity = '1'; }, 300);
+                        setTimeout(() => { if (text.length > 60) {
+                            textEl.className = 'header-top-marquee';
+                            textEl.innerHTML = '<div class="marquee-inner"><span>' + text + '</span><span>' + text + '</span></div>';
+                        } else { textEl.className=''; textEl.textContent = text; } textEl.style.opacity = '1'; }, 300);
                     }
                     textEl.style.transition = 'opacity 0.3s ease';
                     headerTop.style.display = '';
@@ -881,6 +886,62 @@
             document.body.style.overflow = '';
         }
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+    </script>
+
+
+    <!-- Mobile nav drawer -->
+    <div class="nav-overlay" id="navOverlay"></div>
+    <script>
+    (function() {
+        var btn     = document.querySelector('.mobile-menu-btn');
+        var nav     = document.querySelector('.nav-menu');
+        var overlay = document.getElementById('navOverlay');
+        if (!btn || !nav || !overlay) return;
+
+        // Build drawer header + extra links once
+        if (!nav.querySelector('.drawer-header')) {
+            var hdr = document.createElement('div');
+            hdr.className = 'drawer-header';
+            hdr.innerHTML = '<span class="drawer-header-title">Menu</span><button class="drawer-close-btn" aria-label="Fechar">&times;</button>';
+            nav.insertBefore(hdr, nav.firstChild);
+            hdr.querySelector('.drawer-close-btn').addEventListener('click', closeMenu);
+
+            var extras = document.createElement('div');
+            extras.className = 'drawer-extra-links';
+            extras.innerHTML =
+                '<a href="/account" class="drawer-extra-link"><i class="fas fa-user"></i> Minha Conta</a>' +
+                '<a href="/orders" class="drawer-extra-link"><i class="fas fa-box"></i> Meus Pedidos</a>' +
+                '<a href="/ajuda" class="drawer-extra-link"><i class="fas fa-question-circle"></i> Ajuda</a>';
+            nav.insertBefore(extras, nav.querySelector('ul'));
+        }
+
+        btn.addEventListener('click', openMenu);
+        overlay.addEventListener('click', closeMenu);
+
+        function openMenu() {
+            nav.classList.add('drawer-open');
+            overlay.classList.add('active');
+            document.body.classList.add('menu-open');
+            btn.innerHTML = '<i class="fas fa-times"></i>';
+        }
+        function closeMenu() {
+            nav.classList.remove('drawer-open');
+            overlay.classList.remove('active');
+            document.body.classList.remove('menu-open');
+            btn.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+
+        // User icon opens dropdown on tap (mobile has no hover)
+        var userMenu = document.querySelector('.user-menu');
+        var userBtn  = userMenu && userMenu.querySelector('.user-menu-btn');
+        if (userBtn) {
+            userBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userMenu.classList.toggle('open');
+            });
+            document.addEventListener('click', function() { userMenu.classList.remove('open'); });
+        }
+    })();
     </script>
 
 </body>

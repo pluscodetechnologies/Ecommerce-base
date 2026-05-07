@@ -155,6 +155,7 @@
             .pay-methods { grid-template-columns: repeat(3, 1fr); }
         }
     </style>
+    <link rel="stylesheet" href="/css/mobile.css">
 </head>
 <body>
 
@@ -715,5 +716,57 @@
             restoreFromCart();
         });
     </script>
+
+    <!-- Mobile nav drawer -->
+    <div class="nav-overlay" id="navOverlay"></div>
+    <script>
+    (function() {
+        var btn     = document.querySelector('.mobile-menu-btn');
+        var nav     = document.querySelector('.nav-menu');
+        var overlay = document.getElementById('navOverlay');
+        if (!btn || !nav) return;
+
+        // Inject close button and account link into drawer
+        if (!nav.querySelector('.nav-drawer-close')) {
+            var close = document.createElement('button');
+            close.className = 'nav-drawer-close';
+            close.innerHTML = '&times;';
+            nav.insertBefore(close, nav.firstChild);
+            close.addEventListener('click', closeMenu);
+
+            // Account link at top of drawer
+            var acc = document.createElement('a');
+            acc.href = '/account';
+            acc.className = 'nav-drawer-account';
+            acc.innerHTML = '<i class="fas fa-user"></i> Minha Conta';
+            nav.insertBefore(acc, nav.querySelector('ul'));
+
+            var help = document.createElement('a');
+            help.href = '/ajuda';
+            help.className = 'nav-drawer-account';
+            help.innerHTML = '<i class="fas fa-question-circle"></i> Ajuda';
+            nav.insertBefore(help, nav.querySelector('ul'));
+        }
+
+        btn.addEventListener('click', function() {
+            nav.classList.toggle('active');
+            overlay.classList.toggle('active');
+            document.body.classList.toggle('menu-open');
+            btn.innerHTML = nav.classList.contains('active')
+                ? '<i class="fas fa-times"></i>'
+                : '<i class="fas fa-bars"></i>';
+        });
+
+        overlay.addEventListener('click', closeMenu);
+
+        function closeMenu() {
+            nav.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.classList.remove('menu-open');
+            btn.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+    })();
+    </script>
+
 </body>
 </html>
