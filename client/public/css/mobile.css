@@ -82,10 +82,13 @@
     .search-dropdown { width: 250px !important; right: 0; left: auto !important; }
 
     /* Busca simples (products.html) */
-    div[style*="width:260px"] {
+    div[style*="width:260px"],
+    div[style*="width:280px"],
+    div[style*="width:240px"] {
         width: 130px !important;
         order: 3;
-        flex-shrink: 0;
+        flex-shrink: 1;
+        margin-right: 4px;
     }
 
     /* Ações (perfil + carrinho) */

@@ -5,57 +5,42 @@ const { authMiddleware } = require('../middleware/auth');
 
 router.use(authMiddleware);
 
-// GET /api/wishlist
+// GET /api/orders — lista pedidos pagos do usuário logado
 router.get('/', async (req, res) => {
     try {
         const db = getDB();
-        const [items] = await db.execute(`
-            SELECT w.id, w.product_id, w.created_at,
-                   p.name, p.price, p.promotional_price,
-                   COALESCE(p.images, '[]') as images,
-                   p.stock, p.slug
-            FROM wishlists w
-            JOIN products p ON w.product_id = p.id
-            WHERE w.user_id = ? AND p.status = 'active'
-            ORDER BY w.created_at DESC
+        const [orders] = await db.execute(`
+            SELECT o.id, o.order_number, o.status, o.payment_status,
+                   o.total_amount, o.shipping_amount, o.discount_amount,
+                   o.payment_method, o.shipping_tracking, o.created_at, o.updated_at
+            FROM orders o
+            WHERE o.user_id = ? AND o.payment_status = 'approved'
+            ORDER BY o.created_at DESC
         `, [req.userId]);
 
-        items.forEach(p => {
-            try { p.images = JSON.parse(p.images); } catch { p.images = []; }
-            p.main_image        = p.images[0] || 'https://via.placeholder.com/400x500';
-            p.price             = parseFloat(p.price) || 0;
-            p.promotional_price = p.promotional_price ? parseFloat(p.promotional_price) : null;
-        });
+        for (const order of orders) {
+            const [items] = await db.execute(`
+                SELECT oi.product_name, oi.quantity, oi.unit_price, oi.total_price,
+                       p.images
+                FROM order_items oi
+                LEFT JOIN products p ON p.id = oi.product_id
+                WHERE oi.order_id = ?
+            `, [order.id]);
 
-        res.json({ success: true, data: items });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ success: false, message: 'Erro ao buscar favoritos' });
-    }
-});
+            items.forEach(i => {
+                let imgs = [];
+                try { imgs = typeof i.images === 'string' ? JSON.parse(i.images) : (i.images || []); } catch {}
+                i.image = imgs[0] || null;
+                delete i.images;
+            });
 
-// POST /api/wishlist/:productId — toggle
-router.post('/:productId', async (req, res) => {
-    try {
-        const db        = getDB();
-        const productId = req.params.productId;
-        const userId    = req.userId;
-
-        const [existing] = await db.execute(
-            'SELECT id FROM wishlists WHERE user_id = ? AND product_id = ?',
-            [userId, productId]
-        );
-
-        if (existing.length) {
-            await db.execute('DELETE FROM wishlists WHERE user_id = ? AND product_id = ?', [userId, productId]);
-            res.json({ success: true, action: 'removed' });
-        } else {
-            await db.execute('INSERT INTO wishlists (user_id, product_id) VALUES (?, ?)', [userId, productId]);
-            res.json({ success: true, action: 'added' });
+            order.items = items;
         }
+
+        res.json({ success: true, data: orders });
     } catch (e) {
-        console.error(e);
-        res.status(500).json({ success: false, message: 'Erro ao atualizar favoritos' });
+        console.error('Erro ao buscar pedidos:', e);
+        res.status(500).json({ success: false, message: 'Erro ao buscar pedidos' });
     }
 });
 

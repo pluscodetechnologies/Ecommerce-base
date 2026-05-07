@@ -16,12 +16,12 @@
         .header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: rgba(253, 252, 251, 0.98); border-bottom: 1px solid var(--border-light); }
         .header-top { background: var(--dark); color: white; text-align: center; padding: 8px 0; font-size: 13px; }
         .header-main { padding: 20px 0; position: relative; }
-        .header-wrapper { display: flex; align-items: center; justify-content: space-between; }
-        .logo { text-decoration: none; }
+        .header-wrapper { display: flex; align-items: center; gap: 20px; }
+        .logo { text-decoration: none; flex-shrink: 0; }
         .logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 600; letter-spacing: 6px; color: var(--dark); }
         .logo span { font-size: 11px; text-transform: uppercase; letter-spacing: 4px; color: var(--primary); }
-        .nav-menu { position: static; }
-        .nav-menu > ul { display: flex; list-style: none; gap: 48px; }
+        .nav-menu { position: static; flex: 1; }
+        .nav-menu > ul { display: flex; list-style: none; gap: 40px; justify-content: center; }
         .nav-menu a { text-decoration: none; color: var(--dark); font-weight: 500; font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; }
         .nav-menu a:hover { color: var(--primary); }
         .nav-menu a.active { color: var(--primary); border-bottom: 1.5px solid var(--primary); padding-bottom: 4px; }
@@ -225,7 +225,7 @@
                 <div class="header-wrapper">
                     <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
                     <a href="/" class="logo"><h1>VELVET</h1><span>ATELIER</span></a>
-                    <nav class="nav-menu" style="flex:1;">
+                    <nav class="nav-menu">
                         <ul>
                             <li><a href="/">Início</a></li>
                             <li class="dropdown">
@@ -239,7 +239,7 @@
                             <li><a href="/products?sale=true" style="color: #C45C5C;">Ofertas</a></li>
                         </ul>
                     </nav>
-                    <div style="width:280px;flex-shrink:0;position:relative;">
+                    <div style="width:240px;flex-shrink:1;position:relative;">
                         <div style="display:flex;align-items:stretch;border:1.5px solid #E8E4E0;border-radius:3px;background:#f7f5f2;height:40px;overflow:hidden;">
                             <span style="display:flex;align-items:center;padding:0 11px;color:#8B8581;font-size:13px;"><i class="fas fa-search"></i></span>
                             <input type="text" id="headerSearchInput" placeholder="Buscar produtos..." autocomplete="off"
