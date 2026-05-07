@@ -199,10 +199,17 @@
         position: fixed;
         inset: 0;
         background: rgba(0,0,0,0.45);
-        z-index: 10000; /* abaixo do drawer (10001) */
+        z-index: 9999;
         cursor: pointer;
+        /* Deixa a área do drawer sem bloqueio de pointer */
+        pointer-events: all;
     }
     .nav-overlay.active { display: block; }
+    /* O drawer fica ACIMA do overlay */
+    .nav-menu.drawer-open {
+        pointer-events: all !important;
+        z-index: 10001 !important;
+    }
 
     body.menu-open { overflow: hidden; }
 

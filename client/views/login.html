@@ -600,46 +600,68 @@
         var btn     = document.querySelector('.mobile-menu-btn');
         var nav     = document.querySelector('.nav-menu');
         var overlay = document.getElementById('navOverlay');
-        if (!btn || !nav) return;
+        if (!btn || !nav || !overlay) return;
 
-        // Inject close button and account link into drawer
-        if (!nav.querySelector('.nav-drawer-close')) {
-            var close = document.createElement('button');
-            close.className = 'nav-drawer-close';
-            close.innerHTML = '&times;';
-            nav.insertBefore(close, nav.firstChild);
-            close.addEventListener('click', closeMenu);
+        var drawerBuilt = false;
 
-            // Account link at top of drawer
-            var acc = document.createElement('a');
-            acc.href = '/account';
-            acc.className = 'nav-drawer-account';
-            acc.innerHTML = '<i class="fas fa-user"></i> Minha Conta';
-            nav.insertBefore(acc, nav.querySelector('ul'));
+        function buildDrawer() {
+            if (drawerBuilt) return;
+            drawerBuilt = true;
 
-            var help = document.createElement('a');
-            help.href = '/ajuda';
-            help.className = 'nav-drawer-account';
-            help.innerHTML = '<i class="fas fa-question-circle"></i> Ajuda';
-            nav.insertBefore(help, nav.querySelector('ul'));
+            var hdr = document.createElement('div');
+            hdr.className = 'drawer-header';
+            hdr.innerHTML = '<span class="drawer-header-title">Menu</span><button class="drawer-close-btn" aria-label="Fechar">&times;</button>';
+            nav.insertBefore(hdr, nav.firstChild);
+            hdr.querySelector('.drawer-close-btn').addEventListener('click', closeMenu);
+
+            var extras = document.createElement('div');
+            extras.className = 'drawer-extra-links';
+            extras.innerHTML =
+                '<a href="/account" class="drawer-extra-link"><i class="fas fa-user"></i> Minha Conta</a>' +
+                '<a href="/orders" class="drawer-extra-link"><i class="fas fa-box"></i> Meus Pedidos</a>' +
+                '<a href="/ajuda" class="drawer-extra-link"><i class="fas fa-question-circle"></i> Ajuda</a>';
+            nav.insertBefore(extras, nav.querySelector('ul'));
         }
 
-        btn.addEventListener('click', function() {
-            nav.classList.toggle('active');
-            overlay.classList.toggle('active');
-            document.body.classList.toggle('menu-open');
-            btn.innerHTML = nav.classList.contains('active')
-                ? '<i class="fas fa-times"></i>'
-                : '<i class="fas fa-bars"></i>';
-        });
+        function isMobile() { return window.innerWidth <= 768; }
 
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!isMobile()) return;
+            buildDrawer();
+            openMenu();
+        });
         overlay.addEventListener('click', closeMenu);
 
+        function openMenu() {
+            // Move overlay to be first child of body so drawer stacks above it
+            document.body.insertBefore(overlay, document.body.firstChild);
+            nav.classList.add('drawer-open');
+            overlay.classList.add('active');
+            document.body.classList.add('menu-open');
+            btn.innerHTML = '<i class="fas fa-times"></i>';
+        }
         function closeMenu() {
-            nav.classList.remove('active');
+            nav.classList.remove('drawer-open');
             overlay.classList.remove('active');
             document.body.classList.remove('menu-open');
             btn.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+
+        // Fecha drawer ao redimensionar para desktop
+        window.addEventListener('resize', function() {
+            if (!isMobile()) closeMenu();
+        });
+
+        // User icon — dropdown no tap (mobile sem hover)
+        var userMenu = document.querySelector('.user-menu');
+        var userBtn  = userMenu && userMenu.querySelector('.user-menu-btn');
+        if (userBtn) {
+            userBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userMenu.classList.toggle('open');
+            });
+            document.addEventListener('click', function() { userMenu.classList.remove('open'); });
         }
     })();
     </script>

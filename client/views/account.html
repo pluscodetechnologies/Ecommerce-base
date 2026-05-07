@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <script src="/js/site-font.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minha Conta | Velvet Atelier</title>
@@ -488,8 +487,12 @@
         var overlay = document.getElementById('navOverlay');
         if (!btn || !nav || !overlay) return;
 
-        // Build drawer header + extra links once
-        if (!nav.querySelector('.drawer-header')) {
+        var drawerBuilt = false;
+
+        function buildDrawer() {
+            if (drawerBuilt) return;
+            drawerBuilt = true;
+
             var hdr = document.createElement('div');
             hdr.className = 'drawer-header';
             hdr.innerHTML = '<span class="drawer-header-title">Menu</span><button class="drawer-close-btn" aria-label="Fechar">&times;</button>';
@@ -505,10 +508,19 @@
             nav.insertBefore(extras, nav.querySelector('ul'));
         }
 
-        btn.addEventListener('click', openMenu);
+        function isMobile() { return window.innerWidth <= 768; }
+
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!isMobile()) return;
+            buildDrawer();
+            openMenu();
+        });
         overlay.addEventListener('click', closeMenu);
 
         function openMenu() {
+            // Move overlay to be first child of body so drawer stacks above it
+            document.body.insertBefore(overlay, document.body.firstChild);
             nav.classList.add('drawer-open');
             overlay.classList.add('active');
             document.body.classList.add('menu-open');
@@ -521,7 +533,12 @@
             btn.innerHTML = '<i class="fas fa-bars"></i>';
         }
 
-        // User icon opens dropdown on tap (mobile has no hover)
+        // Fecha drawer ao redimensionar para desktop
+        window.addEventListener('resize', function() {
+            if (!isMobile()) closeMenu();
+        });
+
+        // User icon — dropdown no tap (mobile sem hover)
         var userMenu = document.querySelector('.user-menu');
         var userBtn  = userMenu && userMenu.querySelector('.user-menu-btn');
         if (userBtn) {
