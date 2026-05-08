@@ -142,6 +142,12 @@
         .products-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-light); }
         .products-count { color: var(--gray); font-size: 14px; }
         .sort-select { padding: 10px 15px; border: 1px solid var(--border-light); font-family: 'Montserrat', sans-serif; font-size: 14px; background: white; }
+        .products-searchbar { display: flex; align-items: stretch; border: 1.5px solid var(--border-light); border-radius: 4px; overflow: hidden; margin-bottom: 24px; background: #f7f5f2; height: 46px; }
+        .products-searchbar i { display: flex; align-items: center; padding: 0 14px; color: var(--gray); font-size: 14px; }
+        .products-searchbar input { flex: 1; border: none; background: none; outline: none; font-size: 14px; font-family: 'Montserrat', sans-serif; color: var(--dark); }
+        .products-searchbar input::placeholder { color: #bbb; }
+        .products-searchbar button { background: var(--primary); color: white; border: none; padding: 0 24px; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; cursor: pointer; font-family: 'Montserrat', sans-serif; text-transform: uppercase; transition: background 0.2s; flex-shrink: 0; }
+        .products-searchbar button:hover { background: var(--primary-dark); }
         .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
         .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid var(--border-light); }
         .product-image { aspect-ratio: 3/4; overflow: hidden; background: #F5F3F1; position: relative; }
@@ -239,16 +245,6 @@
                             <li><a href="/products?sale=true" style="color: #C45C5C;">Ofertas</a></li>
                         </ul>
                     </nav>
-                    <div style="width:240px;flex-shrink:1;position:relative;">
-                        <div style="display:flex;align-items:stretch;border:1.5px solid #E8E4E0;border-radius:3px;background:#f7f5f2;height:40px;overflow:hidden;">
-                            <span style="display:flex;align-items:center;padding:0 11px;color:#8B8581;font-size:13px;"><i class="fas fa-search"></i></span>
-                            <input type="text" id="headerSearchInput" placeholder="Buscar produtos..." autocomplete="off"
-                                style="flex:1;border:none;background:none;outline:none;font-size:13px;font-family:'Montserrat',sans-serif;"
-                                onkeydown="if(event.key==='Enter'&&this.value.trim())window.location='/products?search='+encodeURIComponent(this.value.trim())">
-                            <button onclick="var v=document.getElementById('headerSearchInput').value.trim();if(v)window.location='/products?search='+encodeURIComponent(v);"
-                                style="background:#8B7355;color:white;border:none;padding:0 16px;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;font-family:'Montserrat',sans-serif;text-transform:uppercase;">Buscar</button>
-                        </div>
-                    </div>
                     <div class="header-actions">
                         <div id="userMenuContainer"><a href="/login"><i class="fas fa-user"></i></a></div>
                         <a href="/cart" class="cart-btn"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
@@ -282,6 +278,12 @@
                         <option value="price-asc">Menor Preço</option>
                         <option value="price-desc">Maior Preço</option>
                     </select>
+                </div>
+                <div class="products-searchbar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="productsSearchInput" placeholder="Buscar produtos..." autocomplete="off"
+                        onkeydown="if(event.key==='Enter'&&this.value.trim())window.location='/products?search='+encodeURIComponent(this.value.trim())">
+                    <button onclick="var v=document.getElementById('productsSearchInput').value.trim();if(v)window.location='/products?search='+encodeURIComponent(v);">Buscar</button>
                 </div>
                 <div class="products-grid" id="productsGrid"></div>
                 <div class="pagination" id="pagination"></div>
@@ -354,6 +356,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         category = urlParams.get('category') || '';
         const searchQuery = urlParams.get('search') || '';
+        if (searchQuery) { const si = document.getElementById('productsSearchInput'); if (si) si.value = searchQuery; }
 
         async function loadNavCategories() {
             try {
@@ -504,12 +507,12 @@
             <span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8B7355;">Menu</span>
             <button id="drawerClose" style="background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
         </div>
-        <div style="border-bottom:2px solid #f0ede9;">
+        <nav id="drawerNav" style="flex:1;"></nav>
+        <div style="border-top:2px solid #f0ede9;margin-top:auto;">
             <a href="/account" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-user" style="color:#8B7355;width:16px;"></i> Minha Conta</a>
             <a href="/orders" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-box" style="color:#8B7355;width:16px;"></i> Meus Pedidos</a>
             <a href="/ajuda" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;"><i class="fas fa-question-circle" style="color:#8B7355;width:16px;"></i> Ajuda</a>
         </div>
-        <nav id="drawerNav" style="flex:1;"></nav>
     </div>
     <script>
     (function() {
@@ -568,5 +571,6 @@
     })();
     </script>
     <!-- ═══ fim MOBILE DRAWER ═══ -->
+    <script src="/js/cookies.js"></script>
 </body>
 </html>

@@ -188,7 +188,7 @@
 
         .mobile-menu-btn { display: none; }
         @media (max-width: 1024px) { .nav-menu { display: none; } .product-container { grid-template-columns: 1fr; } .reviews-layout { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: repeat(2,1fr); } }
-        @media (max-width: 768px) { .mobile-menu-btn { display: block; font-size: 22px; background: none; border: none; cursor: pointer; color: var(--dark); } .nav-menu.active { display: block; position: absolute; top: 100%; left: 0; width: 100%; background: white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); padding: 20px; z-index: 999; } .nav-menu.active ul { flex-direction: column; gap: 0; } .nav-menu.active ul li { border-bottom: 1px solid var(--border-light); } .nav-menu.active ul li a { display: block; padding: 12px 0; } .footer-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .mobile-menu-btn { display: block; font-size: 22px; background: none; border: none; cursor: pointer; color: var(--dark); } .nav-menu.active { display: block; position: absolute; top: 100%; left: 0; width: 100%; background: white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); padding: 20px; z-index: 999; } .nav-menu.active ul { flex-direction: column; gap: 0; } .nav-menu.active ul li { border-bottom: 1px solid var(--border-light); } .nav-menu.active ul li a { display: block; padding: 12px 0; } .footer-grid { grid-template-columns: 1fr; } .main-image { aspect-ratio: unset !important; overflow: visible !important; height: auto !important; } .main-image img { width: 100% !important; height: auto !important; object-fit: fill !important; border-radius: 8px; display: block; } .product-info { margin-top: 24px; } .product-gallery { margin-bottom: 0; } }
     </style>
     <link rel="stylesheet" href="/css/mobile.css">
 </head>
@@ -895,12 +895,12 @@
             <span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8B7355;">Menu</span>
             <button id="drawerClose" style="background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
         </div>
-        <div style="border-bottom:2px solid #f0ede9;">
+        <nav id="drawerNav" style="flex:1;"></nav>
+        <div style="border-top:2px solid #f0ede9;margin-top:auto;">
             <a href="/account" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-user" style="color:#8B7355;width:16px;"></i> Minha Conta</a>
             <a href="/orders" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-box" style="color:#8B7355;width:16px;"></i> Meus Pedidos</a>
             <a href="/ajuda" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;"><i class="fas fa-question-circle" style="color:#8B7355;width:16px;"></i> Ajuda</a>
         </div>
-        <nav id="drawerNav" style="flex:1;"></nav>
     </div>
     <script>
     (function() {
@@ -959,5 +959,6 @@
     })();
     </script>
     <!-- ═══ fim MOBILE DRAWER ═══ -->
+    <script src="/js/cookies.js"></script>
 </body>
 </html>

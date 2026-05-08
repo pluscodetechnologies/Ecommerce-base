@@ -162,12 +162,12 @@
             <span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8B7355;">Menu</span>
             <button id="drawerClose" style="background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
         </div>
-        <div style="border-bottom:2px solid #f0ede9;">
+        <nav id="drawerNav" style="flex:1;"></nav>
+        <div style="border-top:2px solid #f0ede9;margin-top:auto;">
             <a href="/account" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-user" style="color:#8B7355;width:16px;"></i> Minha Conta</a>
             <a href="/orders" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#8B7355;font-weight:600;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-box" style="color:#8B7355;width:16px;"></i> Meus Pedidos</a>
             <a href="/ajuda" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;"><i class="fas fa-question-circle" style="color:#8B7355;width:16px;"></i> Ajuda</a>
         </div>
-        <nav id="drawerNav" style="flex:1;"></nav>
     </div>
 
     <script src="/js/auth.js"></script>
@@ -373,5 +373,6 @@
         window.addEventListener('resize', function() { if (window.innerWidth>768) close(); });
     })();
     </script>
+    <script src="/js/cookies.js"></script>
 </body>
 </html>

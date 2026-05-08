@@ -44,35 +44,77 @@ class AdminController {
         try {
             const db = getDB();
             const status = req.query.status || null;
+            const includeItems = req.query.include_items === '1';
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 20;
             const offset = (page - 1) * limit;
-            
+
             let query = 'SELECT * FROM orders';
             const params = [];
-            
-            if (status) {
-                query += ' WHERE status = ?';
-                params.push(status);
-            }
-            
+            if (status) { query += ' WHERE status = ?'; params.push(status); }
             query += ' ORDER BY created_at DESC LIMIT ' + limit + ' OFFSET ' + offset;
-            
+
             const [orders] = await db.execute(query, params);
-            const [total] = await db.execute('SELECT COUNT(*) as count FROM orders' + (status ? ' WHERE status = ?' : ''), status ? [status] : []);
-            
-            res.json({
-                success: true,
-                data: {
-                    orders,
-                    total: total[0].count,
-                    page: page,
-                    totalPages: Math.ceil(total[0].count / limit)
-                }
-            });
+            const [total]  = await db.execute('SELECT COUNT(*) as count FROM orders' + (status ? ' WHERE status = ?' : ''), status ? [status] : []);
+
+            if (includeItems && orders.length > 0) {
+                const orderIds = orders.map(o => o.id);
+                const placeholders = orderIds.map(() => '?').join(',');
+                const [items] = await db.execute(
+                    `SELECT order_id, product_name, quantity FROM order_items WHERE order_id IN (${placeholders})`,
+                    orderIds
+                );
+                const itemsByOrder = {};
+                items.forEach(item => {
+                    if (!itemsByOrder[item.order_id]) itemsByOrder[item.order_id] = [];
+                    itemsByOrder[item.order_id].push(item);
+                });
+                orders.forEach(o => { o.items = itemsByOrder[o.id] || []; });
+            }
+
+            res.json({ success: true, data: { orders, total: total[0].count, page, totalPages: Math.ceil(total[0].count / limit) } });
         } catch (error) {
             console.error('Erro ao buscar pedidos:', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar pedidos' });
+        }
+    }
+
+    async createManualOrder(req, res) {
+        try {
+            const db = getDB();
+            const { order_number, customer_name, total_amount, shipping_amount, payment_method, status, items } = req.body;
+
+            if (!customer_name || !total_amount) {
+                return res.status(400).json({ success: false, message: 'Nome do cliente e valor total são obrigatórios' });
+            }
+
+            const orderNum = (order_number && order_number.trim()) ? order_number.trim() : 'MAN-' + Date.now();
+            const itemsSummary = items && items.length > 0 ? items.filter(i => i.product_name).map(i => `${i.product_name}${i.quantity > 1 ? ' x'+i.quantity : ''}`).join(', ') : '';
+            const shippingAddress = JSON.stringify({ name: customer_name, items_manual: itemsSummary });
+
+            const [result] = await db.execute(
+                `INSERT INTO orders (order_number, user_id, customer_name, customer_email, customer_phone, customer_document, total_amount, shipping_amount, discount_amount, payment_method, shipping_address, status, created_at) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, NOW())`,
+                [orderNum, customer_name, 'manual@velvetatelier.com', '', '', parseFloat(total_amount) || 0, parseFloat(shipping_amount) || 0, payment_method || 'manual', shippingAddress, status || 'pending']
+            );
+
+            const orderId = result.insertId;
+
+            // Only insert into order_items when product_id is known (FK constraint requires valid product)
+            // Items without product_id are stored as text in the order description
+            if (items && items.length > 0) {
+                for (const item of items) {
+                    if (!item.product_name || !item.product_id) continue;
+                    await db.execute(
+                        `INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?, ?)`,
+                        [orderId, item.product_id, item.product_name, parseInt(item.quantity) || 1, parseFloat(item.unit_price) || 0, parseFloat(item.unit_price) * (parseInt(item.quantity) || 1)]
+                    );
+                }
+            }
+
+            res.status(201).json({ success: true, message: 'Pedido criado com sucesso', data: { id: orderId, order_number: orderNum } });
+        } catch (error) {
+            console.error('Erro ao criar pedido manual:', error);
+            res.status(500).json({ success: false, message: 'Erro ao criar pedido: ' + error.message });
         }
     }
 
@@ -175,7 +217,23 @@ class AdminController {
     }
 }
 
-async updateProduct(req, res) {
+async updateProductStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const { status } = req.body;
+            if (!['active','inactive'].includes(status)) {
+                return res.status(400).json({ success: false, message: 'Status inválido' });
+            }
+            const db = getDB();
+            await db.execute('UPDATE products SET status = ? WHERE id = ?', [status, id]);
+            res.json({ success: true, message: 'Status atualizado' });
+        } catch (error) {
+            console.error('Erro ao atualizar status:', error);
+            res.status(500).json({ success: false, message: 'Erro ao atualizar status' });
+        }
+    }
+
+    async updateProduct(req, res) {
     try {
         const { id } = req.params;
         const { name, description, price, promotional_price, sku, stock, category_id, status, is_featured, images, sizes } = req.body;

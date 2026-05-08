@@ -337,7 +337,7 @@
                 
                 <div class="terms">
                     <input type="checkbox" id="termsCheck" required>
-                    <label for="termsCheck">Li e aceito os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a></label>
+                    <label for="termsCheck">Li e aceito os <a href="#" onclick="openModal('termosModal');return false;">Termos de Uso</a> e <a href="#" onclick="openModal('privacidadeModal');return false;">Política de Privacidade</a></label>
                 </div>
                 
                 <button type="submit" class="btn-auth">Criar conta</button>
@@ -601,12 +601,12 @@
             <span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8B7355;">Menu</span>
             <button id="drawerClose" style="background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
         </div>
-        <div style="border-bottom:2px solid #f0ede9;">
+        <nav id="drawerNav" style="flex:1;"></nav>
+        <div style="border-top:2px solid #f0ede9;margin-top:auto;">
             <a href="/account" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-user" style="color:#8B7355;width:16px;"></i> Minha Conta</a>
             <a href="/orders" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-box" style="color:#8B7355;width:16px;"></i> Meus Pedidos</a>
             <a href="/ajuda" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;"><i class="fas fa-question-circle" style="color:#8B7355;width:16px;"></i> Ajuda</a>
         </div>
-        <nav id="drawerNav" style="flex:1;"></nav>
     </div>
     <script>
     (function() {
@@ -665,5 +665,150 @@
     })();
     </script>
     <!-- ═══ fim MOBILE DRAWER ═══ -->
+
+    <!-- Footer simples -->
+    <footer style="background:#1A1817;color:rgba(255,255,255,0.5);text-align:center;padding:24px;font-size:12px;letter-spacing:1px;">
+        © 2026 Velvet Atelier — Todos os direitos reservados
+    </footer>
+
+    <!-- ═══ MODAL: TERMOS DE USO ═══ -->
+    <div id="termosModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);overflow-y:auto;">
+        <div style="background:#fff;max-width:720px;margin:40px auto;border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:24px 32px;border-bottom:1px solid #E8E4E0;background:#FDFCFB;">
+                <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#1A1817;">Termos de Uso</h2>
+                <button onclick="closeModal('termosModal')" style="background:none;border:none;font-size:26px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
+            </div>
+            <div style="padding:32px;font-size:14px;line-height:1.8;color:#444;max-height:70vh;overflow-y:auto;">
+                <p style="font-size:12px;color:#8B8581;margin-bottom:24px;">Última atualização: maio de 2026</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">1. Aceitação dos Termos</h3>
+                <p style="margin-bottom:20px;">Ao acessar e utilizar o site <strong>Velvet Atelier</strong> (velvetatelier.com.br), você declara ter lido, compreendido e concordado com estes Termos de Uso, bem como com nossa Política de Privacidade. Caso não concorde com qualquer disposição, pedimos que não utilize nossos serviços. Estes termos se aplicam a todos os visitantes, usuários cadastrados e compradores da plataforma.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">2. Cadastro e Conta de Usuário</h3>
+                <p style="margin-bottom:20px;">Para realizar compras em nosso site, é necessário criar uma conta, fornecendo informações verdadeiras, precisas e completas. Você é responsável por manter a confidencialidade de sua senha e por todas as atividades realizadas em sua conta. A Velvet Atelier reserva-se o direito de recusar cadastros, cancelar contas ou remover conteúdo a seu critério, especialmente em caso de suspeita de fraude ou violação destes Termos. É vedado criar contas em nome de terceiros sem autorização expressa.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">3. Produtos e Preços</h3>
+                <p style="margin-bottom:20px;">Todos os produtos exibidos estão sujeitos à disponibilidade de estoque. Nos esforçamos para manter informações precisas sobre preços e descrições, porém erros podem ocorrer. Caso um produto seja listado com preço incorreto, reservamo-nos o direito de cancelar o pedido e comunicar o cliente antes de qualquer cobrança. Os preços exibidos incluem os impostos federais aplicáveis, mas não incluem o frete, que será calculado no momento do checkout conforme o endereço de entrega.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">4. Pedidos e Pagamento</h3>
+                <p style="margin-bottom:20px;">Ao finalizar um pedido, você confirma que as informações de pagamento fornecidas são válidas e que está autorizado a utilizá-las. A confirmação do pedido está sujeita à aprovação do pagamento pelo meio escolhido (cartão de crédito, boleto bancário, Pix, entre outros). A Velvet Atelier não armazena dados de cartão de crédito — todas as transações são processadas por gateways de pagamento certificados e seguros. Em caso de suspeita de fraude, o pedido poderá ser cancelado unilateralmente.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">5. Entrega e Prazos</h3>
+                <p style="margin-bottom:20px;">Os prazos de entrega são estimados e podem variar conforme a localização do destinatário, a modalidade de frete escolhida e a disponibilidade dos Correios ou transportadora parceira. Não nos responsabilizamos por atrasos decorrentes de greves, desastres naturais, problemas alfandegários ou outros eventos de força maior. O cliente será informado por e-mail sobre as atualizações de status do pedido.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">6. Trocas e Devoluções</h3>
+                <p style="margin-bottom:20px;">Nos termos do Código de Defesa do Consumidor (Lei nº 8.078/90), o cliente tem o direito de arrependimento e pode solicitar a devolução em até <strong>7 dias corridos</strong> a partir do recebimento do produto, sem necessidade de justificativa. Para trocas por defeito ou produto errado, o prazo é de <strong>30 dias</strong> para produtos não duráveis e <strong>90 dias</strong> para produtos duráveis. O produto deve ser devolvido em sua embalagem original, sem uso e com nota fiscal. Os custos de devolução em casos de arrependimento são de responsabilidade do cliente; em casos de defeito ou erro nosso, arcamos com os custos de envio.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">7. Propriedade Intelectual</h3>
+                <p style="margin-bottom:20px;">Todo o conteúdo disponível no site Velvet Atelier — incluindo textos, imagens, fotografias, logotipos, ícones, vídeos, layouts e software — é protegido por direitos autorais e demais normas de propriedade intelectual. É proibida a reprodução, distribuição ou utilização desse conteúdo para fins comerciais sem prévia autorização por escrito. O uso indevido sujeita o infrator às penalidades previstas em lei.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">8. Limitação de Responsabilidade</h3>
+                <p style="margin-bottom:20px;">A Velvet Atelier não se responsabiliza por danos indiretos, incidentais ou consequenciais decorrentes do uso ou impossibilidade de uso do site ou dos produtos adquiridos, exceto nos casos previstos em lei. Nossa responsabilidade total, em qualquer hipótese, fica limitada ao valor pago pelo produto ou serviço em questão.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">9. Modificações dos Termos</h3>
+                <p style="margin-bottom:20px;">A Velvet Atelier pode atualizar estes Termos de Uso a qualquer momento. As alterações entrarão em vigor imediatamente após a publicação no site. Recomendamos que você revise periodicamente esta página. O uso contínuo do site após as alterações implica na aceitação dos novos termos.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">10. Legislação Aplicável e Foro</h3>
+                <p style="margin-bottom:8px;">Estes Termos de Uso são regidos pelas leis brasileiras, em especial o Código de Defesa do Consumidor (Lei nº 8.078/90), o Marco Civil da Internet (Lei nº 12.965/14) e a Lei Geral de Proteção de Dados — LGPD (Lei nº 13.709/18). Fica eleito o foro da comarca de São Paulo/SP para dirimir quaisquer controvérsias decorrentes destes termos.</p>
+                <p style="margin-bottom:20px;">Dúvidas: <a href="mailto:contato@velvetatelier.com" style="color:#8B7355;">contato@velvetatelier.com</a></p>
+            </div>
+            <div style="padding:20px 32px;border-top:1px solid #E8E4E0;text-align:right;">
+                <button onclick="closeModal('termosModal')" style="padding:10px 28px;background:#8B7355;color:white;border:none;border-radius:4px;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:500;">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL: POLÍTICA DE PRIVACIDADE ═══ -->
+    <div id="privacidadeModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);overflow-y:auto;">
+        <div style="background:#fff;max-width:720px;margin:40px auto;border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:24px 32px;border-bottom:1px solid #E8E4E0;background:#FDFCFB;">
+                <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#1A1817;">Política de Privacidade</h2>
+                <button onclick="closeModal('privacidadeModal')" style="background:none;border:none;font-size:26px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
+            </div>
+            <div style="padding:32px;font-size:14px;line-height:1.8;color:#444;max-height:70vh;overflow-y:auto;">
+                <p style="font-size:12px;color:#8B8581;margin-bottom:24px;">Última atualização: maio de 2026 &nbsp;|&nbsp; Em conformidade com a LGPD (Lei nº 13.709/2018)</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">1. Quem Somos</h3>
+                <p style="margin-bottom:20px;">A <strong>Velvet Atelier</strong> é responsável pelo tratamento dos dados pessoais coletados neste site. Para questões relacionadas à proteção de dados, entre em contato com nosso encarregado (DPO) pelo e-mail <a href="mailto:privacidade@velvetatelier.com" style="color:#8B7355;">privacidade@velvetatelier.com</a>.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">2. Dados que Coletamos</h3>
+                <p style="margin-bottom:8px;">Coletamos os seguintes dados pessoais para viabilizar sua experiência de compra:</p>
+                <ul style="margin:0 0 20px 20px;">
+                    <li style="margin-bottom:6px;"><strong>Dados de cadastro:</strong> nome completo, CPF, e-mail, telefone e data de nascimento.</li>
+                    <li style="margin-bottom:6px;"><strong>Dados de entrega:</strong> endereço completo (logradouro, número, complemento, bairro, cidade, estado, CEP).</li>
+                    <li style="margin-bottom:6px;"><strong>Dados de pagamento:</strong> informações processadas de forma segura pelo gateway de pagamento; não armazenamos dados de cartão.</li>
+                    <li style="margin-bottom:6px;"><strong>Dados de navegação:</strong> endereço IP, tipo de dispositivo, navegador, páginas visitadas e interações com o site (via cookies).</li>
+                    <li style="margin-bottom:6px;"><strong>Dados de transação:</strong> histórico de pedidos, produtos visualizados e itens no carrinho.</li>
+                </ul>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">3. Como Usamos seus Dados</h3>
+                <p style="margin-bottom:8px;">Utilizamos seus dados pessoais para as seguintes finalidades, com base nas hipóteses legais da LGPD:</p>
+                <ul style="margin:0 0 20px 20px;">
+                    <li style="margin-bottom:6px;">Processar e entregar seus pedidos (execução de contrato — art. 7º, V da LGPD).</li>
+                    <li style="margin-bottom:6px;">Enviar confirmações de compra, atualizações de entrega e comunicações transacionais (execução de contrato).</li>
+                    <li style="margin-bottom:6px;">Enviar ofertas, novidades e promoções por e-mail ou SMS, <strong>somente com seu consentimento</strong> (art. 7º, I da LGPD).</li>
+                    <li style="margin-bottom:6px;">Cumprir obrigações legais e fiscais, como emissão de nota fiscal (cumprimento de obrigação legal — art. 7º, II da LGPD).</li>
+                    <li style="margin-bottom:6px;">Prevenir fraudes e garantir a segurança das transações (legítimo interesse — art. 7º, IX da LGPD).</li>
+                    <li style="margin-bottom:6px;">Melhorar continuamente nossos produtos e experiência de navegação (legítimo interesse).</li>
+                </ul>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">4. Compartilhamento de Dados</h3>
+                <p style="margin-bottom:20px;">Não vendemos nem alugamos seus dados pessoais. Podemos compartilhá-los apenas com parceiros essenciais para a prestação dos serviços: transportadoras e Correios (para entrega dos pedidos), gateways de pagamento certificados (para processar transações), serviços de e-mail marketing (apenas se você optou por receber comunicações) e autoridades públicas quando exigido por lei. Todos os parceiros são contratualmente obrigados a manter a confidencialidade e seguir a LGPD.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">5. Cookies</h3>
+                <p style="margin-bottom:20px;">Utilizamos cookies para melhorar sua experiência de navegação, lembrar preferências, manter sua sessão ativa e analisar o tráfego do site. Cookies essenciais são necessários para o funcionamento do site e não podem ser desativados. Cookies de análise e marketing são utilizados somente com seu consentimento. Você pode gerenciar as preferências de cookies nas configurações do seu navegador.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">6. Segurança dos Dados</h3>
+                <p style="margin-bottom:20px;">Adotamos medidas técnicas e organizacionais adequadas para proteger seus dados contra acesso não autorizado, perda, alteração ou divulgação indevida. Isso inclui criptografia em trânsito (SSL/TLS), controle de acesso restrito às informações pessoais e monitoramento contínuo. Em caso de incidente de segurança que afete seus dados, você será notificado conforme exigido pela LGPD.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">7. Retenção de Dados</h3>
+                <p style="margin-bottom:20px;">Seus dados são mantidos pelo tempo necessário para cumprir as finalidades descritas nesta política ou por exigência legal. Dados fiscais são mantidos por no mínimo 5 anos. Após o encerramento da relação comercial, os dados serão anonimizados ou excluídos, salvo obrigação legal em contrário.</p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">8. Seus Direitos (LGPD — art. 18)</h3>
+                <p style="margin-bottom:8px;">Você tem os seguintes direitos em relação aos seus dados pessoais, que podem ser exercidos a qualquer momento:</p>
+                <ul style="margin:0 0 20px 20px;">
+                    <li style="margin-bottom:6px;"><strong>Confirmação e acesso:</strong> saber se tratamos seus dados e acessá-los.</li>
+                    <li style="margin-bottom:6px;"><strong>Correção:</strong> solicitar a atualização de dados incompletos ou desatualizados.</li>
+                    <li style="margin-bottom:6px;"><strong>Exclusão:</strong> solicitar a exclusão dos dados tratados com base no consentimento.</li>
+                    <li style="margin-bottom:6px;"><strong>Portabilidade:</strong> receber seus dados em formato estruturado.</li>
+                    <li style="margin-bottom:6px;"><strong>Revogação do consentimento:</strong> retirar seu consentimento a qualquer momento, sem prejuízo da legalidade do tratamento anterior.</li>
+                    <li style="margin-bottom:6px;"><strong>Oposição:</strong> se opor a tratamentos baseados em legítimo interesse.</li>
+                    <li style="margin-bottom:6px;"><strong>Reclamação à ANPD:</strong> registrar reclamação junto à Autoridade Nacional de Proteção de Dados.</li>
+                </ul>
+                <p style="margin-bottom:20px;">Para exercer seus direitos, entre em contato: <a href="mailto:privacidade@velvetatelier.com" style="color:#8B7355;">privacidade@velvetatelier.com</a></p>
+
+                <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 0 10px;color:#1A1817;">9. Alterações nesta Política</h3>
+                <p style="margin-bottom:8px;">Esta política pode ser atualizada periodicamente. Quando houver alterações relevantes relacionadas à finalidade ou forma de tratamento dos dados, você será notificado por e-mail. O uso contínuo do site após a publicação implica na aceitação das novas condições.</p>
+            </div>
+            <div style="padding:20px 32px;border-top:1px solid #E8E4E0;text-align:right;">
+                <button onclick="closeModal('privacidadeModal')" style="padding:10px 28px;background:#8B7355;color:white;border:none;border-radius:4px;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:500;">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function openModal(id) {
+        document.getElementById(id).style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    // Fechar ao clicar fora do modal
+    ['termosModal','privacidadeModal'].forEach(function(id) {
+        document.getElementById(id).addEventListener('click', function(e) {
+            if (e.target === this) closeModal(id);
+        });
+    });
+    // Fechar com ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal('termosModal');
+            closeModal('privacidadeModal');
+        }
+    });
+    </script>
+    <script src="/js/cookies.js"></script>
 </body>
 </html>
