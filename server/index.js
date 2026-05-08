@@ -195,6 +195,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().
 const v = (file) => (req, res) => res.sendFile(path.join(__dirname, file));
 app.get('/',                     v('../client/views/index.html'));
 app.get('/login',                v('../client/views/login.html'));
+app.get('/reset-password',       v('../client/views/reset-password.html'));
 app.get('/products',             v('../client/views/products.html'));
 app.get('/product',              v('../client/views/product-detail.html'));
 app.get('/cart',                 v('../client/views/cart.html'));

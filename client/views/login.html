@@ -6,7 +6,6 @@
     <title>Login | Velvet Atelier</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .header-top { background: #1A1817 !important; color: white; text-align: center; padding: 8px 0; font-size: 13px; }
@@ -149,6 +148,15 @@
             text-decoration: none;
         }
         
+        .social-divider { display:flex; align-items:center; gap:12px; margin:20px 0; }
+        .social-divider::before, .social-divider::after { content:''; flex:1; height:1px; background:#e8e4e0; }
+        .social-divider span { font-size:12px; color:#aaa; white-space:nowrap; }
+        .social-btns { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+        .btn-social { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:11px 16px; border-radius:8px; border:1.5px solid #e0dbd5; background:#fff; font-family:'Montserrat',sans-serif; font-size:14px; font-weight:500; color:#333; cursor:pointer; transition:all 0.2s; }
+        .btn-social:hover { background:#f7f5f2; border-color:#c4a97d; }
+        .btn-social img { width:20px; height:20px; }
+        .btn-social.facebook { background:#1877f2; color:#fff; border-color:#1877f2; }
+        .btn-social.facebook:hover { background:#166fe5; }
         .btn-auth {
             width: 100%;
             padding: 14px;
@@ -224,6 +232,15 @@
         }
     </style>
     <link rel="stylesheet" href="/css/mobile.css">
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Facebook SDK -->
+    <script>
+    window.fbAsyncInit = function() {
+        FB.init({ appId: 'SEU_FACEBOOK_APP_ID', cookie: true, xfbml: true, version: 'v19.0' });
+    };
+    </script>
+    <script async defer src="https://connect.facebook.net/pt_BR/sdk.js"></script>
 </head>
 <body>
     <header class="header">
@@ -287,7 +304,19 @@
                 </div>
                 
                 <button type="submit" class="btn-auth">Entrar</button>
-                
+
+                <div class="social-divider"><span>ou entre com</span></div>
+                <div class="social-btns">
+                    <button type="button" class="btn-social" id="googleLoginBtn">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                        Continuar com Google
+                    </button>
+                    <button type="button" class="btn-social facebook" id="facebookLoginBtn">
+                        <i class="fab fa-facebook-f"></i>
+                        Continuar com Facebook
+                    </button>
+                </div>
+
                 <div class="register-link">
                     Não tem uma conta? <a href="#" class="switch-to-register">Cadastre-se</a>
                 </div>
@@ -341,7 +370,19 @@
                 </div>
                 
                 <button type="submit" class="btn-auth">Criar conta</button>
-                
+
+                <div class="social-divider"><span>ou cadastre-se com</span></div>
+                <div class="social-btns">
+                    <button type="button" class="btn-social" id="googleRegisterBtn">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                        Continuar com Google
+                    </button>
+                    <button type="button" class="btn-social facebook" id="facebookRegisterBtn">
+                        <i class="fab fa-facebook-f"></i>
+                        Continuar com Facebook
+                    </button>
+                </div>
+
                 <div class="register-link">
                     Já tem uma conta? <a href="#" class="switch-to-login">Faça login</a>
                 </div>
@@ -810,5 +851,82 @@
     });
     </script>
     <script src="/js/cookies.js"></script>
+    <script>
+    // ── Social Login ───────────────────────────────────────────────────────
+    const GOOGLE_CLIENT_ID = 'SEU_GOOGLE_CLIENT_ID'; // ← coloque seu Client ID aqui
+
+    async function handleSocialLogin(provider, name, email, providerId) {
+        try {
+            const res  = await fetch('/api/auth/social-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ provider, name, email, provider_id: providerId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('token',     data.data.token);
+                localStorage.setItem('authToken', data.data.token);
+                localStorage.setItem('user',      JSON.stringify(data.data.user));
+                const redirect = new URLSearchParams(window.location.search).get('redirect') || '/';
+                window.location.href = redirect;
+            } else {
+                alert(data.message || 'Erro ao fazer login social.');
+            }
+        } catch (e) {
+            alert('Erro de conexão. Tente novamente.');
+        }
+    }
+
+    // ── Google ─────────────────────────────────────────────────────────────
+    function initGoogleLogin() {
+        if (!window.google || !GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === 'SEU_GOOGLE_CLIENT_ID') return;
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: (response) => {
+                // Decode JWT payload (no verification needed — server trusts Google)
+                const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                handleSocialLogin('google', payload.name, payload.email, payload.sub);
+            }
+        });
+    }
+
+    function triggerGoogleLogin() {
+        if (!window.google || GOOGLE_CLIENT_ID === 'SEU_GOOGLE_CLIENT_ID') {
+            alert('Login com Google não configurado. Adicione seu GOOGLE_CLIENT_ID no arquivo login.html.');
+            return;
+        }
+        google.accounts.id.prompt();
+    }
+
+    window.addEventListener('load', initGoogleLogin);
+
+    ['googleLoginBtn','googleRegisterBtn'].forEach(id => {
+        document.getElementById(id)?.addEventListener('click', triggerGoogleLogin);
+    });
+
+    // ── Facebook ───────────────────────────────────────────────────────────
+    function triggerFacebookLogin() {
+        if (!window.FB || document.querySelector('[appId="SEU_FACEBOOK_APP_ID"]') !== null) {
+            // Check if still placeholder
+        }
+        if (typeof FB === 'undefined') {
+            alert('Login com Facebook não configurado. Adicione seu FACEBOOK_APP_ID no arquivo login.html.');
+            return;
+        }
+        FB.login(function(response) {
+            if (response.authResponse) {
+                FB.api('/me', { fields: 'name,email' }, function(me) {
+                    if (me && me.name) {
+                        handleSocialLogin('facebook', me.name, me.email || `fb_${me.id}@velvetatelier.com`, me.id);
+                    }
+                });
+            }
+        }, { scope: 'public_profile,email' });
+    }
+
+    ['facebookLoginBtn','facebookRegisterBtn'].forEach(id => {
+        document.getElementById(id)?.addEventListener('click', triggerFacebookLogin);
+    });
+    </script>
 </body>
 </html>

@@ -104,6 +104,52 @@ class AuthController {
             });
         }
     }
+
+    async socialLogin(req, res) {
+        try {
+            const { provider, token: socialToken, name, email, provider_id } = req.body;
+
+            if (!provider || !name || !email || !provider_id) {
+                return res.status(400).json({ success: false, message: 'Dados incompletos' });
+            }
+
+            const db = getDB();
+
+            // Check if user already exists by email
+            const [existing] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
+
+            let user;
+            if (existing.length > 0) {
+                // User exists — update name if it was a social login before
+                user = existing[0];
+                await db.execute(
+                    'UPDATE users SET name = ? WHERE id = ? AND (password IS NULL OR password = "")',
+                    [name, user.id]
+                );
+                user.name = name;
+            } else {
+                // Create new user — no password (social only)
+                const [result] = await db.execute(
+                    `INSERT INTO users (name, email, password, phone, cpf, created_at) VALUES (?, ?, '', '', '', NOW())`,
+                    [name, email]
+                );
+                user = { id: result.insertId, name, email, role: 'user' };
+            }
+
+            const token = User.generateToken(user.id, user.role || 'user');
+
+            res.json({
+                success: true,
+                data: {
+                    token,
+                    user: { id: user.id, name: user.name, email: user.email, role: user.role || 'user' }
+                }
+            });
+        } catch (error) {
+            console.error('Erro no social login:', error);
+            res.status(500).json({ success: false, message: 'Erro ao fazer login social' });
+        }
+    }
     
     async getProfile(req, res) {
         try {
@@ -231,8 +277,8 @@ class AuthController {
                 [token, expires, users[0].id]
             );
 
-            const { sendPasswordResetEmail } = require('../services/emailService');
-            await sendPasswordResetEmail(email, token);
+            const { sendClientPasswordResetEmail } = require('../services/emailService');
+            await sendClientPasswordResetEmail(email, token);
 
             res.json({ success: true, message: 'Se o email existir, você receberá um link de recuperação' });
         } catch (error) {

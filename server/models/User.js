@@ -69,7 +69,7 @@ class User {
         return jwt.sign(
             { userId, role },
             process.env.JWT_SECRET || 'secret-key',
-            { expiresIn: '24h' }
+            { expiresIn: '30d' }
         );
     }
 

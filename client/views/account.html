@@ -484,18 +484,31 @@
                     .form-group input { width:100%; padding:10px 14px; border:1px solid var(--border-light); border-radius:4px; font-family:'Montserrat',sans-serif; font-size:14px; outline:none; transition:border-color 0.2s; }
                     .form-group input:focus { border-color:var(--primary); }
                     .pass-hint { font-size:11px; color:var(--gray); margin-top:4px; }
+                    .forgot-pass-link { display:block; font-size:12px; color:var(--primary); text-decoration:none; margin-top:6px; cursor:pointer; background:none; border:none; padding:0; font-family:'Montserrat',sans-serif; }
+                    .forgot-pass-link:hover { text-decoration:underline; }
                     .msg-success { background:#d4edda; color:#155724; padding:10px 14px; border-radius:4px; font-size:13px; margin-bottom:16px; display:none; }
                     .msg-error   { background:#f8d7da; color:#721c24; padding:10px 14px; border-radius:4px; font-size:13px; margin-bottom:16px; display:none; }
                     .btn-save { padding:10px 28px; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Montserrat',sans-serif; font-weight:500; font-size:14px; }
                     .btn-save:hover { background:var(--primary-dark); }
                     .btn-cancel { padding:10px 20px; background:transparent; color:var(--gray); border:1px solid var(--border-light); border-radius:4px; cursor:pointer; font-family:'Montserrat',sans-serif; font-size:14px; margin-left:10px; }
                     .btn-cancel:hover { border-color:var(--gray); color:var(--dark); }
+                    .forgot-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; }
+                    .forgot-modal-overlay.open { display:flex; }
+                    .forgot-modal-box { background:#fff; border-radius:12px; padding:32px; max-width:400px; width:90%; box-shadow:0 20px 40px rgba(0,0,0,0.15); }
+                    .forgot-modal-box h3 { font-family:'Cormorant Garamond',serif; font-size:22px; margin-bottom:8px; color:var(--dark); }
+                    .forgot-modal-box p { font-size:13px; color:var(--gray); margin-bottom:20px; line-height:1.6; }
+                    .forgot-modal-box input { width:100%; padding:11px 14px; border:1px solid var(--border-light); border-radius:4px; font-family:'Montserrat',sans-serif; font-size:14px; outline:none; margin-bottom:14px; }
+                    .forgot-modal-box input:focus { border-color:var(--primary); }
+                    .forgot-modal-actions { display:flex; gap:10px; justify-content:flex-end; }
+                    .forgot-msg { font-size:12px; padding:8px 12px; border-radius:4px; margin-bottom:12px; display:none; }
                 </style>
+
                 <div id="passMsg" class="msg-success"></div>
                 <div id="passErr" class="msg-error"></div>
                 <div class="form-group">
                     <label>Senha atual</label>
                     <input type="password" id="currentPass" placeholder="••••••••">
+                    <button class="forgot-pass-link" onclick="openForgotModal()">Esqueceu a senha?</button>
                 </div>
                 <div class="form-group">
                     <label>Nova senha</label>
@@ -509,7 +522,60 @@
                 <div style="margin-top:24px;">
                     <button class="btn-save" onclick="savePassword()">Alterar Senha</button>
                     <button class="btn-cancel" onclick="renderProfileView(profileData)">Cancelar</button>
+                </div>
+
+                <!-- Modal esqueci a senha -->
+                <div class="forgot-modal-overlay" id="forgotModalAccount">
+                    <div class="forgot-modal-box">
+                        <h3>Esqueceu a senha?</h3>
+                        <p>Digite seu e-mail cadastrado e enviaremos um link para redefinir sua senha.</p>
+                        <div class="forgot-msg" id="forgotAccMsg"></div>
+                        <input type="email" id="forgotAccEmail" placeholder="seu@email.com">
+                        <div class="forgot-modal-actions">
+                            <button class="btn-cancel" onclick="closeForgotModal()">Cancelar</button>
+                            <button class="btn-save" onclick="sendForgotEmail()">Enviar link</button>
+                        </div>
+                    </div>
                 </div>`;
+        }
+
+        function openForgotModal() {
+            const modal = document.getElementById('forgotModalAccount');
+            if (modal) { modal.classList.add('open'); document.body.style.overflow = 'hidden'; }
+            // Pre-fill with user email if available
+            const emailInput = document.getElementById('forgotAccEmail');
+            if (emailInput && profileData?.email) emailInput.value = profileData.email;
+        }
+
+        function closeForgotModal() {
+            const modal = document.getElementById('forgotModalAccount');
+            if (modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
+        }
+
+        async function sendForgotEmail() {
+            const email  = document.getElementById('forgotAccEmail')?.value.trim();
+            const msgEl  = document.getElementById('forgotAccMsg');
+            if (!email) { showForgotMsg('Digite seu e-mail.', 'error'); return; }
+
+            try {
+                const res  = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                showForgotMsg('✅ Link enviado! Verifique sua caixa de entrada.', 'success');
+                setTimeout(() => closeForgotModal(), 3000);
+            } catch { showForgotMsg('Erro de conexão. Tente novamente.', 'error'); }
+        }
+
+        function showForgotMsg(msg, type) {
+            const el = document.getElementById('forgotAccMsg');
+            if (!el) return;
+            el.textContent = msg;
+            el.style.background = type === 'success' ? '#d4edda' : '#f8d7da';
+            el.style.color      = type === 'success' ? '#155724' : '#721c24';
+            el.style.display    = 'block';
         }
 
         async function savePassword() {

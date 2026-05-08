@@ -225,6 +225,20 @@
     </div>
     
     <script>
+        // ── Se já está logado como admin, redireciona direto ──────────────────
+        (function() {
+            const token = localStorage.getItem('token');
+            const user  = JSON.parse(localStorage.getItem('user') || '{}');
+            if (token && user.role === 'admin') {
+                // Verify token is still valid (not expired)
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    if (payload.exp * 1000 > Date.now()) {
+                        window.location.href = '/admin/dashboard';
+                    }
+                } catch {}
+            }
+        })();
         document.querySelector('.password-toggle').addEventListener('click', function() {
             const input = this.parentElement.querySelector('input');
             const icon = this.querySelector('i');

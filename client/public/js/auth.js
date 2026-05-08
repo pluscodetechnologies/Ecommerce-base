@@ -98,6 +98,11 @@ class AuthManager {
         });
         
         if (response.status === 401) {
+            // Don't logout if it's a password validation endpoint — just return the response
+            const passwordEndpoints = ['/api/auth/change-password', '/api/auth/login'];
+            if (passwordEndpoints.some(ep => url.includes(ep))) {
+                return response;
+            }
             this.logout();
             throw new Error('Sessão expirada');
         }
