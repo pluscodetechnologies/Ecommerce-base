@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const logger = require('../config/logger');
 const { getDB } = require('../config/database');
 
 /**
@@ -28,11 +29,13 @@ function hashToken(token) {
 /**
  * Cria um refresh token novo no banco e retorna a versão crua (pra cliente).
  */
-async function createRefreshToken(userId, { ip, userAgent } = {}) {
+async function createRefreshToken(userId, { ip, userAgent, rememberMe } = {}) {
     const db = getDB();
     const raw  = generateRawToken();
     const hash = hashToken(raw);
-    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
+    // "Lembrar de mim" estende o refresh token para 30 dias
+    const ttlDays = rememberMe ? 30 : REFRESH_TOKEN_TTL_DAYS;
+    const expiresAt = new Date(Date.now() + ttlDays * 24 * 60 * 60 * 1000);
 
     await db.execute(
         `INSERT INTO refresh_tokens (user_id, token_hash, expires_at, user_agent, ip_address)
@@ -69,7 +72,7 @@ async function rotateRefreshToken(rawToken, { ip, userAgent } = {}) {
 
     // Reuso de token revogado → ataque. Revoga toda a sessão do usuário.
     if (record.revoked_at) {
-        console.warn(`[refresh-token] reuso detectado para user ${record.user_id} — revogando todas as sessões`);
+        logger.warn(`[refresh-token] reuso detectado para user ${record.user_id} — revogando todas as sessões`);
         await revokeAllUserTokens(record.user_id);
         return null;
     }

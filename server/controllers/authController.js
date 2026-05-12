@@ -94,7 +94,7 @@ class AuthController {
 
             const db = getDB();
             const [users] = await db.execute(
-                'SELECT id, name, email, password, role, token_version, auth_provider FROM users WHERE email = ?',
+                'SELECT id, name, email, password, role, token_version, auth_provider, totp_enabled FROM users WHERE email = ?',
                 [email]
             );
 
@@ -123,17 +123,39 @@ class AuthController {
             await loginAttempts.recordAttempt(email, ip, true);
             await loginAttempts.clearAttempts(email);
 
+            // Se admin com 2FA ativo, retorna pendente de TOTP
+            if (user.role === 'admin' && user.totp_enabled) {
+                // Gera token temporário só pra identificar quem está no meio do 2FA
+                const crypto = require('crypto');
+                const pendingToken = crypto.randomBytes(32).toString('hex');
+                const pendingExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+
+                const db = getDB();
+                await db.execute(
+                    'UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?',
+                    ['2fa_' + pendingToken, pendingExpires, user.id]
+                );
+
+                return res.json({
+                    success: true,
+                    requires2FA: true,
+                    pendingToken,
+                });
+            }
+
+            // "Lembrar de mim" — refresh token mais longo
+            const rememberMe = req.body.rememberMe === true;
+            const { token: refreshToken, expiresAt } =
+                await refreshTokenService.createRefreshToken(user.id, { ip, userAgent, rememberMe });
+
             // Emite access + refresh token
             const accessToken = generateAccessToken(user);
-            const { token: refreshToken, expiresAt } =
-                await refreshTokenService.createRefreshToken(user.id, { ip, userAgent });
-
             setRefreshCookie(res, refreshToken, expiresAt);
 
             res.json({
                 success: true,
                 data: {
-                    token:        accessToken,   // mantido pra compat com frontend antigo
+                    token:        accessToken,
                     accessToken,
                     expiresIn:    process.env.ACCESS_TOKEN_TTL || '15m',
                     user: {

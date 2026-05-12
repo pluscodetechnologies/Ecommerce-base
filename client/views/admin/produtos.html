@@ -885,8 +885,9 @@
                         const color = st === 0 ? '#c62828' : (st <= lim ? '#e65100' : '#2e7d32');
                         const bg    = st === 0 ? '#ffebee'  : (st <= lim ? '#fff3e0'  : '#e8f5e9');
                         const border= st === 0 ? '#ffcdd2'  : (st <= lim ? '#ffe0b2'  : '#c8e6c9');
-                        el.innerHTML = '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:' + bg + ';color:' + color + ';border:1px solid ' + border + ';">' +
-                            '<span style="width:7px;height:7px;border-radius:50%;background:' + color + ';display:inline-block;flex-shrink:0;"></span>' +
+                        el.style.justifyContent = 'flex-start';
+                        el.innerHTML = '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:' + bg + ';color:' + color + ';border:1px solid ' + border + ';width:fit-content;">' +
+                            '<span style="width:8px;height:8px;border-radius:50%;background:' + color + ';display:inline-block;flex-shrink:0;"></span>' +
                             st + ' un.' +
                         '</span>';
                         return;

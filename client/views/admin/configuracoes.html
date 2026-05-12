@@ -152,6 +152,16 @@
         html.dark .c-body { background: #22223a; }
         html.dark .c-header { background: #22223a !important; border-bottom-color: #2a2a3e !important; }
         html.dark .c-name-label { color: #e0e0e0 !important; }
+        /* ── 2FA ── */
+        .qr-wrap { text-align: center; margin: 20px 0; }
+        .qr-wrap img { border: 8px solid white; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); max-width: 200px; }
+        .secret-box { background: #f5f7fa; border-radius: 8px; padding: 10px 14px; font-family: monospace; font-size: 13px; letter-spacing: 2px; text-align: center; color: #333; margin: 12px 0; word-break: break-all; }
+        .totp-code-input { text-align: center; letter-spacing: 8px; font-size: 22px; font-weight: 700; }
+        .badge-2fa-on  { display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;background:#d4edda;color:#155724; }
+        .badge-2fa-off { display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;background:#f8d7da;color:#721c24; }
+        html.dark .secret-box { background: #22223a; color: #ccc; }
+        html.dark .qr-wrap img { border-color: #22223a; }
+
         html.dark .color-block { background: #1a1a2e !important; border-color: #2a2a3e !important; }
     </style>
 </head>
@@ -277,6 +287,76 @@
             </div>
             <button class="btn-primary" id="savePasswordBtn">Salvar senha</button>
         </div>
+
+        <!-- Card: 2FA -->
+        <div class="card" id="card2fa">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-mobile-alt"></i></div>
+                <div>
+                    <h2>Autenticação em 2 etapas (2FA)</h2>
+                    <p>Adicione uma camada extra de segurança ao painel admin</p>
+                </div>
+            </div>
+
+            <div class="feedback" id="twoFaFeedback"></div>
+
+            <!-- Status atual -->
+            <div class="setting-row" style="margin-bottom:20px;">
+                <div class="setting-info">
+                    <span class="setting-label">Status atual</span>
+                    <span class="setting-desc">Quando ativo, um código do Google Authenticator é exigido a cada login.</span>
+                </div>
+                <div id="twoFaStatusBadge"><span class="badge-2fa-off"><i class="fas fa-times-circle"></i> Inativo</span></div>
+            </div>
+
+            <!-- Setup: quando desativado -->
+            <div id="twoFaSetupSection">
+                <hr style="border:none;border-top:1px solid #f0f0f0;margin:0 0 20px;">
+                <p style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;">
+                    Para ativar, clique em <strong>Configurar</strong>. Você precisará escanear um QR code com o app
+                    <strong>Google Authenticator</strong> (disponível no
+                    <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" style="color:#1a1a2e;">Android</a> e
+                    <a href="https://apps.apple.com/app/google-authenticator/id388497605" target="_blank" style="color:#1a1a2e;">iOS</a>).
+                </p>
+                <button class="btn-primary" id="btn2faSetup" onclick="setup2FA()">
+                    <i class="fas fa-qrcode" style="margin-right:8px;"></i>Configurar 2FA
+                </button>
+            </div>
+
+            <!-- QR code + verificação: após clicar em Configurar -->
+            <div id="twoFaQrSection" style="display:none;">
+                <hr style="border:none;border-top:1px solid #f0f0f0;margin:0 0 20px;">
+                <p style="font-size:13px;color:#555;margin-bottom:4px;"><strong>Passo 1:</strong> Abra o Google Authenticator e escaneie o QR code abaixo.</p>
+                <div class="qr-wrap"><img id="qrCodeImg" src="" alt="QR Code 2FA"></div>
+                <p style="font-size:12px;color:#888;text-align:center;margin-bottom:6px;">Ou digite o código manualmente no app:</p>
+                <div class="secret-box" id="totpSecretDisplay"></div>
+                <hr style="border:none;border-top:1px solid #f0f0f0;margin:20px 0;">
+                <p style="font-size:13px;color:#555;margin-bottom:12px;"><strong>Passo 2:</strong> Digite o código de 6 dígitos gerado pelo app para confirmar.</p>
+                <div class="form-group">
+                    <input type="text" id="verifyTotpInput" class="totp-code-input" placeholder="000000" maxlength="6" inputmode="numeric">
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <button class="btn-primary" id="btnVerifyTotp" onclick="verifyAndEnable2FA()">
+                        <i class="fas fa-check" style="margin-right:8px;"></i>Confirmar e Ativar
+                    </button>
+                    <button onclick="cancelSetup2FA()" style="padding:13px 20px;background:#f5f7fa;color:#555;border:1.5px solid #e0e0e0;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;cursor:pointer;">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- Desativar: quando ativo -->
+            <div id="twoFaDisableSection" style="display:none;">
+                <hr style="border:none;border-top:1px solid #f0f0f0;margin:0 0 20px;">
+                <p style="font-size:13px;color:#555;margin-bottom:12px;">Para desativar, confirme com o código atual do seu autenticador.</p>
+                <div class="form-group">
+                    <label>Código de verificação</label>
+                    <input type="text" id="disableTotpInput" class="totp-code-input" placeholder="000000" maxlength="6" inputmode="numeric">
+                </div>
+                <button class="btn-primary" id="btnDisableTotp" onclick="disable2FA()" style="background:linear-gradient(135deg,#c0392b,#a93226);">
+                    <i class="fas fa-times" style="margin-right:8px;"></i>Desativar 2FA
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -362,6 +442,126 @@
             btn.disabled = false;
             btn.textContent = 'Salvar senha';
         });
+
+        // ── 2FA ──────────────────────────────────────────────────────────────
+        async function load2FAStatus() {
+            try {
+                const res  = await adminFetch('/api/admin/2fa/status');
+                const data = await res.json();
+                if (!data.success) return;
+                update2FAUI(data.data.enabled);
+            } catch {}
+        }
+
+        function update2FAUI(enabled) {
+            const badge    = document.getElementById('twoFaStatusBadge');
+            const setup    = document.getElementById('twoFaSetupSection');
+            const disable  = document.getElementById('twoFaDisableSection');
+            const qrSec    = document.getElementById('twoFaQrSection');
+
+            badge.innerHTML = enabled
+                ? '<span class="badge-2fa-on"><i class="fas fa-check-circle"></i> Ativo</span>'
+                : '<span class="badge-2fa-off"><i class="fas fa-times-circle"></i> Inativo</span>';
+
+            setup.style.display   = enabled ? 'none' : 'block';
+            disable.style.display = enabled ? 'block' : 'none';
+            qrSec.style.display   = 'none';
+        }
+
+        async function setup2FA() {
+            const btn = document.getElementById('btn2faSetup');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Gerando QR...';
+            try {
+                const res  = await adminFetch('/api/admin/2fa/setup');
+                const data = await res.json();
+                if (!data.success) {
+                    showFeedback('twoFaFeedback', data.message || 'Erro ao gerar QR code', 'error'); return;
+                }
+                document.getElementById('qrCodeImg').src        = data.data.qrCode;
+                document.getElementById('totpSecretDisplay').textContent = data.data.secret;
+                document.getElementById('twoFaSetupSection').style.display = 'none';
+                document.getElementById('twoFaQrSection').style.display    = 'block';
+            } catch {
+                showFeedback('twoFaFeedback', 'Erro ao configurar 2FA', 'error');
+            } finally {
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-qrcode" style="margin-right:8px;"></i>Configurar 2FA';
+            }
+        }
+
+        function cancelSetup2FA() {
+            document.getElementById('twoFaQrSection').style.display    = 'none';
+            document.getElementById('twoFaSetupSection').style.display = 'block';
+            document.getElementById('verifyTotpInput').value = '';
+        }
+
+        async function verifyAndEnable2FA() {
+            const code = document.getElementById('verifyTotpInput').value.replace(/\D/g, '');
+            const btn  = document.getElementById('btnVerifyTotp');
+            if (code.length < 6) { showFeedback('twoFaFeedback', 'Digite o código de 6 dígitos.', 'error'); return; }
+
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Ativando...';
+            try {
+                const res  = await adminFetch('/api/admin/2fa/verify', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showFeedback('twoFaFeedback', '2FA ativado com sucesso! Ele será exigido no próximo login.', 'success');
+                    update2FAUI(true);
+                    document.getElementById('verifyTotpInput').value = '';
+                } else {
+                    showFeedback('twoFaFeedback', data.message || 'Código inválido.', 'error');
+                    document.getElementById('verifyTotpInput').value = '';
+                    document.getElementById('verifyTotpInput').focus();
+                }
+            } catch {
+                showFeedback('twoFaFeedback', 'Erro ao verificar código.', 'error');
+            } finally {
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-check" style="margin-right:8px;"></i>Confirmar e Ativar';
+            }
+        }
+
+        async function disable2FA() {
+            const code = document.getElementById('disableTotpInput').value.replace(/\D/g, '');
+            const btn  = document.getElementById('btnDisableTotp');
+            if (code.length < 6) { showFeedback('twoFaFeedback', 'Digite o código atual do autenticador.', 'error'); return; }
+
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Desativando...';
+            try {
+                const res  = await adminFetch('/api/admin/2fa/disable', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showFeedback('twoFaFeedback', '2FA desativado.', 'success');
+                    update2FAUI(false);
+                    document.getElementById('disableTotpInput').value = '';
+                } else {
+                    showFeedback('twoFaFeedback', data.message || 'Código inválido.', 'error');
+                }
+            } catch {
+                showFeedback('twoFaFeedback', 'Erro ao desativar.', 'error');
+            } finally {
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-times" style="margin-right:8px;"></i>Desativar 2FA';
+            }
+        }
+
+        // Auto-submit com 6 dígitos
+        ['verifyTotpInput', 'disableTotpInput'].forEach(function(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                if (this.value.length === 6) {
+                    if (id === 'verifyTotpInput') verifyAndEnable2FA();
+                    else disable2FA();
+                }
+            });
+        });
+
+        load2FAStatus();
 
         // Esqueceu a senha
         document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {

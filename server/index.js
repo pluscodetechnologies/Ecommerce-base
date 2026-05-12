@@ -38,14 +38,6 @@ const isProduction = process.env.NODE_ENV === 'production';
 // ────────────────────────────────────────────────────────────────────
 app.set('trust proxy', 1);
 
-app.get('/meu-ip', (req, res) => {
-    res.json({
-        ip: req.ip,
-        forwarded: req.headers['x-forwarded-for'],
-        remote: req.socket?.remoteAddress,
-    });
-});
-
 // ────────────────────────────────────────────────────────────────────
 // Helmet com CSP adequado
 // ────────────────────────────────────────────────────────────────────
@@ -55,7 +47,7 @@ app.use(helmet({
             defaultSrc:  ["'self'"],
             // 'unsafe-inline' em scriptSrc só porque há código inline nos HTMLs.
             // Quando migrar pra scripts externos, REMOVA 'unsafe-inline'.
-            scriptSrc:   ["'self'", "'unsafe-inline'",
+            scriptSrc:   ["'self'", "'unsafe-inline'", "'unsafe-hashes'",
                           "https://www.mercadopago.com",
                           "https://sdk.mercadopago.com",
                           "https://accounts.google.com",
@@ -200,6 +192,7 @@ const colorRoutes     = require('./routes/colors');
 
 app.use('/api/auth',       authRoutes);
 app.use('/api/admin',      adminRoutes);
+app.use('/api/admin/2fa',  require('./routes/admin2fa'));
 app.use('/api/cart',       cartRoutes);
 app.use('/api/checkout',   checkoutRoutes);
 app.use('/api/reviews',    reviewRoutes);
