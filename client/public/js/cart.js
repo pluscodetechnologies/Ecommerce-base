@@ -67,6 +67,12 @@ function updateCartDisplay() {
 }
 
 async function addToCart(productId, quantity = 1, color = null, size = null) {
+    // Redireciona para login se não estiver autenticado
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    if (!token) {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+        return false;
+    }
     try {
         const headers = { 'Content-Type': 'application/json' };
         if (sessionId) headers['X-Session-Id'] = sessionId;

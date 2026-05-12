@@ -2,7 +2,7 @@ const express = require('express');
 const router  = express.Router();
 
 const checkoutController = require('../controllers/checkoutController');
-const { optionalAuthMiddleware } = require('../middleware/auth');
+const { optionalAuthMiddleware, authMiddleware } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const { webhookLimiter } = require('../middleware/rateLimits');
 const {
@@ -19,11 +19,16 @@ router.post('/shipping-proxy',
     validate({ body: calculateShippingSchema }),
     (req, res) => checkoutController.shippingProxy(req, res));
 
-// Criar pedido: aceita logado e deslogado (guest checkout) — controller checa
+// Criar pedido: requer autenticação
 router.post('/order',
-    optionalAuthMiddleware,
+    authMiddleware,
     validate({ body: createOrderSchema }),
     (req, res) => checkoutController.createOrder(req, res));
+
+// Consulta status do pagamento diretamente no MP (usado pelo frontend após retornar do checkout)
+router.get('/status/:orderNumber',
+    authMiddleware,
+    (req, res) => checkoutController.checkPaymentStatus(req, res));
 
 // Webhook: validação de assinatura está dentro do controller.
 // IMPORTANTE: express.raw() é obrigatório porque a assinatura HMAC do MP

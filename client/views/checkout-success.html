@@ -10,27 +10,117 @@
         :root { --primary: #8B7355; --dark: #1A1817; --light: #FDFCFB; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Montserrat', sans-serif; background: var(--light); display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .success-container { text-align: center; padding: 40px; }
-        .success-icon { width: 100px; height: 100px; background: #2E8B57; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; color: white; font-size: 50px; }
+        .success-container { text-align: center; padding: 40px; max-width: 480px; }
+        .success-icon { width: 100px; height: 100px; background: #2E8B57; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; color: white; font-size: 50px; transition: background 0.4s; }
+        .success-icon.pending { background: #DAA520; }
         h1 { font-family: 'Cormorant Garamond', serif; font-size: 36px; margin-bottom: 15px; }
         p { color: #666; margin-bottom: 10px; font-size: 16px; }
         .order-number { font-weight: 600; color: var(--primary); font-size: 20px; margin: 20px 0; }
-        .btn { display: inline-block; padding: 14px 36px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; margin-top: 20px; }
+        .status-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin: 10px 0 20px; }
+        .status-paid { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .pix-instructions { background: #fffbf0; border: 1.5px solid #f0c040; border-radius: 8px; padding: 16px 20px; margin: 16px 0; text-align: left; font-size: 13px; color: #666; line-height: 1.6; }
+        .pix-instructions strong { color: var(--dark); }
+        .polling-indicator { font-size: 12px; color: #aaa; margin-top: 8px; }
+        .polling-indicator i { animation: spin 1.2s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn { display: inline-block; padding: 14px 36px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; margin-top: 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; }
+        .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); margin-left: 10px; }
     </style>
 </head>
 <body>
     <div class="success-container">
-        <div class="success-icon"><i class="fas fa-check"></i></div>
-        <h1>Pedido Confirmado!</h1>
-        <p>Seu pedido foi recebido e está sendo processado.</p>
+        <div class="success-icon" id="statusIcon"><i class="fas fa-check" id="statusIconI"></i></div>
+        <h1 id="statusTitle">Pedido Confirmado!</h1>
+        <p id="statusSubtitle">Seu pedido foi recebido e está sendo processado.</p>
         <div class="order-number" id="orderNumber"></div>
-        <p>Você receberá um email com os detalhes.</p>
-        <a href="/" class="btn">Voltar para Home</a>
+        <span class="status-badge status-pending" id="statusBadge" style="display:none"></span>
+        <div class="pix-instructions" id="pixInstructions" style="display:none">
+            <strong>Pagamento via PIX</strong><br>
+            Seu pedido foi criado. Para confirmar, complete o pagamento no app do Mercado Pago.<br>
+            Assim que o pagamento for identificado, seu pedido será atualizado automaticamente.
+        </div>
+        <p id="emailNote">Você receberá um email com os detalhes.</p>
+        <div class="polling-indicator" id="pollingIndicator" style="display:none">
+            <i class="fas fa-spinner"></i> Aguardando confirmação do pagamento...
+        </div>
+        <div style="margin-top:10px;">
+            <a href="/orders" class="btn">Meus Pedidos</a>
+            <a href="/" class="btn btn-outline">Voltar para Home</a>
+        </div>
     </div>
+
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const order = params.get('order') || params.get('external_reference');
-        if (order) document.getElementById('orderNumber').textContent = 'Pedido #' + order;
+        (function() {
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+            if (!token) { window.location.href = '/'; return; }
+
+            const params = new URLSearchParams(window.location.search);
+            const orderNumber = params.get('order') || params.get('external_reference');
+            if (!orderNumber) { window.location.href = '/orders'; return; }
+
+            document.getElementById('orderNumber').textContent = 'Pedido #' + orderNumber;
+
+            // Limpa sessionStorage do checkout (já foi concluído)
+            sessionStorage.removeItem('cartShipping');
+            sessionStorage.removeItem('cartCoupon');
+            localStorage.removeItem('cartSessionId');
+
+            // Polling: consulta status do pedido a cada 5s por até 2 minutos
+            let attempts = 0;
+            const MAX_ATTEMPTS = 24; // 24 × 5s = 2 minutos
+
+            async function checkOrderStatus() {
+                try {
+                    const res  = await fetch(`/api/checkout/status/${orderNumber}`, {
+                        headers: { Authorization: 'Bearer ' + token }
+                    });
+                    const data = await res.json();
+                    if (!data.success) return;
+
+                    // O endpoint /api/checkout/status retorna { status, payment_status } diretamente
+                    const isPaid    = data.status === 'paid' || data.payment_status === 'approved';
+                    const isPending = data.status === 'pending' || data.payment_status === 'pending' || data.payment_status === 'in_process';
+
+                    if (isPaid) {
+                        document.getElementById('statusIcon').classList.remove('pending');
+                        document.getElementById('statusIconI').className = 'fas fa-check';
+                        document.getElementById('statusTitle').textContent = 'Pagamento Confirmado!';
+                        document.getElementById('statusSubtitle').textContent = 'Seu pedido está confirmado e será processado em breve.';
+                        document.getElementById('statusBadge').textContent = 'Pago';
+                        document.getElementById('statusBadge').className = 'status-badge status-paid';
+                        document.getElementById('statusBadge').style.display = 'inline-block';
+                        document.getElementById('pixInstructions').style.display = 'none';
+                        document.getElementById('pollingIndicator').style.display = 'none';
+                        return; // para o polling
+                    }
+
+                    if (isPending) {
+                        document.getElementById('statusIcon').classList.add('pending');
+                        document.getElementById('statusIconI').className = 'fas fa-clock';
+                        document.getElementById('statusTitle').textContent = 'Aguardando Pagamento';
+                        document.getElementById('statusSubtitle').textContent = 'Seu pedido foi criado. Complete o pagamento no app do Mercado Pago.';
+                        document.getElementById('statusBadge').textContent = 'Pendente';
+                        document.getElementById('statusBadge').className = 'status-badge status-pending';
+                        document.getElementById('statusBadge').style.display = 'inline-block';
+                        document.getElementById('pixInstructions').style.display = 'block';
+                        document.getElementById('pollingIndicator').style.display = 'block';
+                    }
+
+                    attempts++;
+                    if (attempts < MAX_ATTEMPTS && isPending) {
+                        setTimeout(checkOrderStatus, 5000);
+                    } else {
+                        document.getElementById('pollingIndicator').style.display = 'none';
+                    }
+                } catch (e) {
+                    console.warn('Erro ao checar status:', e);
+                }
+            }
+
+            // Inicia polling após 2s (dá tempo do MP processar)
+            setTimeout(checkOrderStatus, 2000);
+        })();
     </script>
     <script src="/js/cookies.js"></script>
 </body>

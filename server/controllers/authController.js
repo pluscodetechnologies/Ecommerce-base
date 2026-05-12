@@ -43,16 +43,26 @@ class AuthController {
 
             const db = getDB();
 
-            // Email já existe? (resposta genérica pra não vazar info)
-            const [existing] = await db.execute(
-                'SELECT id FROM users WHERE email = ?',
-                [email]
-            );
-            if (existing.length > 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Não foi possível criar a conta. Verifique os dados.',
-                });
+            // Verifica email
+            const [byEmail] = await db.execute('SELECT id FROM users WHERE email = ?', [email]);
+            if (byEmail.length > 0) {
+                return res.status(400).json({ success: false, message: 'Este e-mail já está cadastrado.' });
+            }
+
+            // Verifica CPF (só se foi informado)
+            if (cpf) {
+                const [byCpf] = await db.execute('SELECT id FROM users WHERE cpf = ?', [cpf]);
+                if (byCpf.length > 0) {
+                    return res.status(400).json({ success: false, message: 'Este CPF já está cadastrado.' });
+                }
+            }
+
+            // Verifica telefone (só se foi informado)
+            if (phone) {
+                const [byPhone] = await db.execute('SELECT id FROM users WHERE phone = ?', [phone]);
+                if (byPhone.length > 0) {
+                    return res.status(400).json({ success: false, message: 'Este telefone já está cadastrado.' });
+                }
             }
 
             const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);

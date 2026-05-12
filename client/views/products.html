@@ -424,7 +424,10 @@
                             const price = parseFloat(p.price)||0, promo = p.promotional_price?parseFloat(p.promotional_price):null;
                             const img   = p.main_image || p.images?.[0] || 'https://via.placeholder.com/400';
                             const isFav = favoriteIds.has(String(p.id));
-                            return `<div class="product-card"><div class="product-image"><a href="/product?id=${p.id}"><img src="${img}" alt="${p.name}"></a>${promo?`<span class="product-badge">-${Math.round((1-promo/price)*100)}%</span>`:''}<div class="card-actions">${Wishlist.button(p.id, isFav)}</div></div><div class="product-info"><h3><a href="/product?id=${p.id}">${p.name}</a></h3><div class="product-price">${promo?`<span class="old-price">R$ ${price.toFixed(2)}</span><span class="current-price">R$ ${promo.toFixed(2)}</span>`:`<span class="current-price">R$ ${price.toFixed(2)}</span>`}</div></div></div>`;
+                            const cartBtn = p.has_variations
+                                ? `<button class="quickcart-btn" onclick="quickAddToCart(this,${p.id},true)" title="Ver opções"><i class="fas fa-eye"></i></button>`
+                                : `<button class="quickcart-btn" onclick="quickAddToCart(this,${p.id},false)" title="Adicionar ao carrinho"><i class="fas fa-shopping-bag"></i></button>`;
+                            return `<div class="product-card"><div class="product-image"><a href="/product?id=${p.id}"><img src="${img}" alt="${p.name}"></a>${promo?`<span class="product-badge">-${Math.round((1-promo/price)*100)}%</span>`:''}<div class="card-actions">${Wishlist.button(p.id, isFav)}${cartBtn}</div></div><div class="product-info"><h3><a href="/product?id=${p.id}">${p.name}</a></h3><div class="product-price">${promo?`<span class="old-price">R$ ${price.toFixed(2)}</span><span class="current-price">R$ ${promo.toFixed(2)}</span>`:`<span class="current-price">R$ ${price.toFixed(2)}</span>`}</div></div></div>`;
                         }).join('');
                     }
                     document.getElementById('productCount').textContent = `${data.total} produtos`;
@@ -442,7 +445,18 @@
             } catch (e) { console.error(e); }
         }
 
-        window.quickAddToCart = async function(btn, productId) {
+        window.quickAddToCart = async function(btn, productId, hasVariations) {
+            // Redireciona para login se não estiver autenticado
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                return;
+            }
+            // Se o produto tem variações, vai para o detalhe para escolher cor/tamanho
+            if (hasVariations) {
+                window.location.href = '/product?id=' + productId;
+                return;
+            }
             btn.disabled = true;
             const ok = await addToCart(productId, 1);
             if (ok) {

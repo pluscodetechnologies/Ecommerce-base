@@ -64,6 +64,7 @@ const createReviewSchema = z.object({
     rating:  z.coerce.number().int().min(1).max(5),
     title:   z.string().trim().max(150).optional().or(z.literal('')),
     comment: z.string().trim().max(2000).optional().or(z.literal('')),
+    images:  z.array(z.string().min(1).max(500)).max(5).optional(),
 });
 
 // ────────────────────────────────────────────────────────────────────

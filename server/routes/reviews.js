@@ -16,7 +16,7 @@ router.get('/:productId',
         try {
             const db = getDB();
             const [reviews] = await db.execute(`
-                SELECT r.id, r.rating, r.title, r.comment, r.created_at, u.name as user_name
+                SELECT r.id, r.rating, r.title, r.comment, r.images, r.created_at, r.user_id, u.name as user_name
                 FROM product_reviews r
                 JOIN users u ON r.user_id = u.id
                 WHERE r.product_id = ? AND r.status = 'approved'
@@ -46,15 +46,16 @@ router.post('/:productId',
     async (req, res) => {
         try {
             const db        = getDB();
-            const { rating, title, comment } = req.body;
+            const { rating, title, comment, images } = req.body;
             const productId = req.params.productId;
             const userId    = req.userId;
 
-            // Só pode avaliar quem comprou
+            // Pode avaliar quem comprou (qualquer status pós-pagamento)
             const [purchases] = await db.execute(`
                 SELECT oi.id FROM order_items oi
                 JOIN orders o ON oi.order_id = o.id
-                WHERE o.user_id = ? AND oi.product_id = ? AND o.status = 'paid'
+                WHERE o.user_id = ? AND oi.product_id = ?
+                  AND o.status IN ('paid', 'processing', 'shipped', 'delivered')
                 LIMIT 1
             `, [userId, productId]);
 
@@ -74,10 +75,15 @@ router.post('/:productId',
                 return res.status(400).json({ success: false, message: 'Você já avaliou este produto.' });
             }
 
+            // Salva imagens como JSON (array de URLs do Cloudinary)
+            const imagesJson = Array.isArray(images) && images.length
+                ? JSON.stringify(images.slice(0, 5)) // máximo 5 imagens
+                : null;
+
             await db.execute(
-                `INSERT INTO product_reviews (product_id, user_id, rating, title, comment, status)
-                 VALUES (?, ?, ?, ?, ?, 'approved')`,
-                [productId, userId, rating, title || '', comment || '']
+                `INSERT INTO product_reviews (product_id, user_id, rating, title, comment, images, status)
+                 VALUES (?, ?, ?, ?, ?, ?, 'approved')`,
+                [productId, userId, rating, title || '', comment || '', imagesJson]
             );
 
             res.json({ success: true, message: 'Avaliação enviada com sucesso!' });
@@ -88,14 +94,21 @@ router.post('/:productId',
     }
 );
 
-// DELETE /api/reviews/:id — somente admin
+// DELETE /api/reviews/:id — dono da avaliação ou admin
 router.delete('/:id',
     authMiddleware,
-    adminMiddleware,
     validate({ params: idParamSchema }),
     async (req, res) => {
         try {
             const db = getDB();
+            const [rows] = await db.execute('SELECT user_id FROM product_reviews WHERE id = ?', [req.params.id]);
+            if (!rows.length) return res.status(404).json({ success: false, message: 'Avaliação não encontrada' });
+
+            // Permite deletar se for o dono ou admin
+            if (rows[0].user_id !== req.userId && req.userRole !== 'admin') {
+                return res.status(403).json({ success: false, message: 'Sem permissão' });
+            }
+
             await db.execute('DELETE FROM product_reviews WHERE id = ?', [req.params.id]);
             res.json({ success: true });
         } catch (e) {

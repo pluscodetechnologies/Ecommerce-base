@@ -260,11 +260,22 @@ class CheckoutController {
             // ── Cálculo de totais (server-side, autoritativo) ───────────────
             const subtotal = items.reduce((s, i) => s + (parseFloat(i.final_price) * i.quantity), 0);
 
+            // Valida que o frete foi selecionado (nome obrigatório)
+            if (!shipping?.name_shipping && !shipping?.shipping_name && parseFloat(shipping?.cost) === 0 && !shipping?.free_shipping) {
+                // Permite frete zero apenas se vier explicitamente marcado como grátis
+                // Se cost=0 e não tem nome de modalidade, é porque não selecionou frete
+            }
+            const shippingName = shipping?.name_shipping || shipping?.shipping_name || shipping?.freight_name || null;
+            const rawCost = parseFloat(shipping?.cost);
+            if (!shippingName && isNaN(rawCost)) {
+                await connection.rollback();
+                return res.status(400).json({ success: false, message: 'Selecione uma opção de frete antes de finalizar.' });
+            }
+
             // Limite máximo absoluto pro frete (defesa contra valores absurdos vindos do client).
-            // O ideal é recalcular o frete aqui, mas o fluxo atual confia na cotação prévia.
             const RAW_SHIPPING_MAX = 1000;
             const shippingCost = Math.min(
-                Math.max(parseFloat(shipping?.cost) || 0, 0),
+                Math.max(rawCost || 0, 0),
                 RAW_SHIPPING_MAX
             );
 
@@ -466,6 +477,14 @@ class CheckoutController {
                     webhook: `${baseUrl}/api/checkout/webhook`,
                 }
             });
+
+            // Salva o preference_id para usar no polling de status
+            if (preference.id) {
+                await getDB().execute(
+                    'UPDATE orders SET payment_preference_id = ? WHERE id = ?',
+                    [preference.id, orderId]
+                );
+            }
 
             // Prefere init_point em produção; sandbox_init_point em dev
             const paymentUrl = process.env.NODE_ENV === 'production'
@@ -669,6 +688,93 @@ class CheckoutController {
         } catch (error) {
             logger.error('[webhook]', error);
             res.sendStatus(500);
+        }
+    }
+    // ════════════════════════════════════════════════════════════════════════
+    // POLLING DE STATUS — consultado pelo frontend após retornar do MP
+    // Busca o status diretamente na API do Mercado Pago e atualiza o pedido.
+    // ════════════════════════════════════════════════════════════════════════
+    async checkPaymentStatus(req, res) {
+        try {
+            const { orderNumber } = req.params;
+            const userId = req.userId;
+
+            const db = getDB();
+            const [rows] = await db.execute(
+                'SELECT id, status, payment_status, payment_id, payment_preference_id, user_id FROM orders WHERE order_number = ?',
+                [orderNumber]
+            );
+
+            if (!rows.length) {
+                return res.status(404).json({ success: false, message: 'Pedido não encontrado' });
+            }
+
+            const order = rows[0];
+
+            if (order.user_id !== userId) {
+                return res.status(403).json({ success: false, message: 'Acesso negado' });
+            }
+
+            // Se já está pago/cancelado, retorna direto
+            if (order.status === 'paid' || order.status === 'cancelled') {
+                return res.json({ success: true, status: order.status, payment_status: order.payment_status });
+            }
+
+            if (process.env.MP_ACCESS_TOKEN) {
+                try {
+                    const { MercadoPagoConfig, Payment } = require('mercadopago');
+                    const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
+                    const paymentClient = new Payment(client);
+
+                    let payment = null;
+
+                    // Tenta pelo payment_id direto primeiro
+                    if (order.payment_id) {
+                        payment = await paymentClient.get({ id: order.payment_id });
+                    }
+                    // Se não tem payment_id, busca pelo preference_id (pós-pagamento no MP)
+                    else if (order.payment_preference_id) {
+                        const searchResult = await paymentClient.search({
+                            options: { external_reference: orderNumber }
+                        });
+                        const items = searchResult?.results || [];
+                        if (items.length > 0) {
+                            // Pega o mais recente
+                            payment = items.sort((a, b) => new Date(b.date_created) - new Date(a.date_created))[0];
+                        }
+                    }
+
+                    if (payment) {
+                        const statusMap = {
+                            approved:   'paid',
+                            pending:    'pending',
+                            in_process: 'pending',
+                            rejected:   'cancelled',
+                            cancelled:  'cancelled',
+                            refunded:   'cancelled',
+                        };
+                        const newStatus = statusMap[payment.status] || 'pending';
+
+                        // Atualiza banco se mudou
+                        if (newStatus !== order.status || order.payment_status !== payment.status) {
+                            await db.execute(
+                                'UPDATE orders SET status = ?, payment_status = ?, payment_id = ? WHERE order_number = ?',
+                                [newStatus, payment.status, String(payment.id), orderNumber]
+                            );
+                        }
+
+                        return res.json({ success: true, status: newStatus, payment_status: payment.status });
+                    }
+                } catch (mpErr) {
+                    logger.warn('[checkPaymentStatus] erro ao consultar MP:', mpErr.message);
+                }
+            }
+
+            return res.json({ success: true, status: order.status, payment_status: order.payment_status });
+
+        } catch (error) {
+            logger.error('[checkPaymentStatus]', error);
+            res.status(500).json({ success: false, message: 'Erro ao consultar status' });
         }
     }
 }

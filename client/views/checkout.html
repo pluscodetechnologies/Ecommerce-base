@@ -84,13 +84,6 @@
         .pay-info-banner div strong { display: block; font-size: 13px; color: #1a5e35; margin-bottom: 2px; }
         .pay-info-banner div span { font-size: 12px; color: #2d6a4f; }
 
-        .pay-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
-        .pay-opt { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 10px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s; text-align: center; }
-        .pay-opt:hover { border-color: var(--primary); transform: translateY(-1px); }
-        .pay-opt.active { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 0 3px rgba(139,115,85,0.12); }
-        .pay-opt i { font-size: 22px; color: var(--primary); }
-        .pay-opt span { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--mid); }
-        .pay-opt small { font-size: 10px; color: var(--gray); }
         .pay-hint { font-size: 11px; color: var(--gray); text-align: center; margin-bottom: 20px; }
 
         /* ── CUPOM ── */
@@ -152,7 +145,6 @@
         @media (max-width: 520px) {
             .field-row.cols-2 { grid-template-columns: 1fr; }
             .field-row.cols-3 { grid-template-columns: 1fr 1fr; }
-            .pay-methods { grid-template-columns: repeat(3, 1fr); }
         }
     </style>
     <link rel="stylesheet" href="/css/mobile.css">
@@ -289,35 +281,16 @@
             <div class="card">
                 <div class="card-header">
                     <div class="card-header-num">3</div>
-                    <h2>Forma de Pagamento</h2>
+                    <h2>Finalizar Pedido</h2>
                 </div>
                 <div class="card-body">
                     <div class="pay-info-banner">
                         <i class="fas fa-shield-alt"></i>
                         <div>
                             <strong>Ambiente seguro — Mercado Pago</strong>
-                            <span>Seus dados são protegidos com criptografia SSL. Você será redirecionado para concluir o pagamento.</span>
+                            <span>Você escolhe como pagar (PIX, cartão ou boleto) na próxima tela. Seus dados são protegidos com criptografia SSL.</span>
                         </div>
                     </div>
-
-                    <div class="pay-methods" id="paymentMethods">
-                        <div class="pay-opt active" data-method="checkout_pro">
-                            <i class="fas fa-credit-card"></i>
-                            <span>Cartão</span>
-                            <small>Crédito ou débito</small>
-                        </div>
-                        <div class="pay-opt" data-method="pix">
-                            <i class="fas fa-qrcode"></i>
-                            <span>PIX</span>
-                            <small>Aprovação imediata</small>
-                        </div>
-                        <div class="pay-opt" data-method="boleto">
-                            <i class="fas fa-barcode"></i>
-                            <span>Boleto</span>
-                            <small>Vence em 3 dias</small>
-                        </div>
-                    </div>
-                    <p class="pay-hint"><i class="fas fa-info-circle" style="margin-right:4px;"></i>O método selecionado será pré-selecionado na tela de pagamento</p>
 
                     <!-- CUPOM -->
                     <div style="padding-top:20px;border-top:1px solid var(--border);">
@@ -397,16 +370,7 @@
         let selectedShipping = null;
         let discountAmount   = 0;
         let appliedCoupon    = null;
-        let selectedPayment  = 'checkout_pro';
-
-        // ── Método de pagamento ──────────────────────────────────────────────
-        document.querySelectorAll('.pay-opt').forEach(opt => {
-            opt.addEventListener('click', () => {
-                document.querySelectorAll('.pay-opt').forEach(o => o.classList.remove('active'));
-                opt.classList.add('active');
-                selectedPayment = opt.dataset.method;
-            });
-        });
+        let selectedPayment  = 'checkout_pro'; // MP exibe todas as opções na própria tela
 
         // ── Máscaras ─────────────────────────────────────────────────────────
         document.getElementById('shippingCep').addEventListener('input', function () {
@@ -652,6 +616,10 @@
         // ── Submit ────────────────────────────────────────────────────────────
         document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (!selectedShipping) {
+                showToast('Selecione uma opção de frete antes de continuar.');
+                return;
+            }
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Processando...</span>';

@@ -139,20 +139,41 @@
         .bar-count { width: 20px; color: var(--gray); text-align: right; }
         .btn-write-review { width: 100%; margin-top: 20px; padding: 12px; border: 2px solid var(--primary); color: var(--primary); background: transparent; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; }
         .btn-write-review:hover { background: var(--primary); color: white; }
-        .reviews-list { display: flex; flex-direction: column; gap: 24px; }
-        .review-card { border-bottom: 1px solid var(--border-light); padding-bottom: 24px; }
-        .review-card:last-child { border-bottom: none; }
-        .review-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
-        .review-author { font-weight: 600; font-size: 14px; }
-        .review-date { font-size: 12px; color: var(--gray); margin-top: 2px; }
-        .review-stars { display: flex; gap: 2px; margin-bottom: 6px; }
-        .review-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-        .review-comment { font-size: 14px; color: #555; line-height: 1.6; }
+        .reviews-list { display: flex; flex-direction: column; gap: 14px; }
+        /* Card de avaliação com fundo */
+        .review-card { background: #fff; border: 1px solid var(--border-light); border-radius: 12px; padding: 20px 22px; transition: box-shadow .2s; }
+        .review-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .review-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .review-card-left { display: flex; align-items: center; gap: 12px; }
+        .review-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; flex-shrink: 0; }
+        .review-author { font-weight: 600; font-size: 14px; color: var(--dark); }
+        .review-date { font-size: 11px; color: var(--gray); margin-top: 2px; }
+        .review-card-right { display: flex; align-items: center; gap: 8px; }
+        .review-stars { display: flex; gap: 2px; }
+        .btn-delete-review { background: none; border: none; color: #ddd; cursor: pointer; font-size: 13px; padding: 4px 6px; border-radius: 4px; transition: color .2s; line-height: 1; }
+        .btn-delete-review:hover { color: #C45C5C; }
+        .review-comment { font-size: 14px; color: #4a4a4a; line-height: 1.75; padding-left: 52px; }
+        .review-images { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-left: 52px; }
+        .review-images img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-light); cursor: zoom-in; transition: transform .2s, box-shadow .2s; }
+        .review-images img:hover { transform: scale(1.06); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
         .reviews-empty { text-align: center; padding: 40px; color: var(--gray); font-size: 14px; }
         .reviews-empty i { font-size: 40px; display: block; margin-bottom: 12px; opacity: 0.3; }
         .review-form-wrap { display: none; background: #F8F6F4; border-radius: 12px; padding: 28px; margin-bottom: 30px; }
         .review-form-wrap.visible { display: block; }
         .review-form-wrap h3 { font-family: 'Cormorant Garamond', serif; font-size: 22px; margin-bottom: 20px; }
+        /* Fotos via upload */
+        .review-img-upload { margin-top: 16px; }
+        .review-img-upload > label { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); display: block; margin-bottom: 8px; }
+        .review-img-dropzone { border: 2px dashed var(--border-light); border-radius: 10px; padding: 22px 16px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; }
+        .review-img-dropzone:hover, .review-img-dropzone.drag-over { border-color: var(--primary); background: #faf8f5; }
+        .review-img-dropzone i { font-size: 26px; color: var(--primary); display: block; margin-bottom: 6px; }
+        .review-img-dropzone span { font-size: 13px; color: var(--dark); font-weight: 500; display: block; }
+        .review-img-dropzone small { font-size: 11px; color: var(--gray); margin-top: 4px; display: block; }
+        .review-img-preview { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .review-img-preview-item { position: relative; width: 72px; height: 72px; border-radius: 8px; overflow: hidden; border: 1.5px solid var(--border-light); }
+        .review-img-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+        .review-img-preview-item .remove-img { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); border: none; border-radius: 50%; width: 18px; height: 18px; color: #fff; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .review-img-preview-item .upload-progress { position: absolute; inset: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--primary); }
         .star-picker { display: flex; gap: 6px; margin-bottom: 20px; flex-direction: row-reverse; justify-content: flex-end; }
         .star-picker input { display: none; }
         .star-picker label { font-size: 28px; color: #DDD; cursor: pointer; transition: color 0.1s; }
@@ -280,9 +301,18 @@
                                 <input type="radio" name="rating" id="s1" value="1"><label for="s1"><i class="fas fa-star"></i></label>
                             </div>
                         </div>
-                        <div class="rf-group"><label>Título</label><input type="text" id="reviewTitle" placeholder="Resumo da sua avaliação"></div>
-                        <div class="rf-group"><label>Comentário</label><textarea id="reviewComment" placeholder="Conte o que achou do produto..."></textarea></div>
-                        <div class="review-form-actions">
+                        <div class="rf-group"><label>Comentário</label><textarea id="reviewComment" placeholder="Conte o que achou do produto..." rows="4"></textarea></div>
+                        <div class="review-img-upload">
+                            <label>Fotos (opcional, até 5)</label>
+                            <div class="review-img-dropzone" id="reviewDropzone" onclick="document.getElementById('reviewFileInput').click()">
+                                <i class="fas fa-camera"></i>
+                                <span>Clique para adicionar fotos ou arraste aqui</span>
+                                <small>JPG, PNG, WEBP • Máx. 8MB cada</small>
+                            </div>
+                            <input type="file" id="reviewFileInput" accept="image/*" multiple style="display:none">
+                            <div class="review-img-preview" id="reviewImgPreview"></div>
+                        </div>
+                        <div class="review-form-actions" style="margin-top:20px;">
                             <button class="btn-submit-review" onclick="submitReview()">Enviar Avaliação</button>
                             <button class="btn-cancel-review" onclick="toggleReviewForm()">Cancelar</button>
                         </div>
@@ -417,7 +447,7 @@
                     </div>
                     <div class="product-meta">
                         <div class="meta-item"><span class="meta-label">Categoria:</span><span class="meta-value">${product.category_name || '-'}</span></div>
-                        <div class="meta-item"><span class="meta-label">Disponibilidade:</span><span class="meta-value stock-status ${stockClass}" id="stockStatusLabel">${stockStatus}</span></div>
+                        <div class="meta-item" id="stockMetaItem" style="display:none"><span class="meta-label">Disponibilidade:</span><span class="meta-value stock-status ${stockClass}" id="stockStatusLabel">${stockStatus}</span></div>
                     </div>
                     <div class="purchase-section">
                         <div id="variationsSection" class="variations-section"></div>
@@ -657,40 +687,65 @@
             const addBtn      = document.getElementById('addToCartBtn');
             const qtyInput    = document.getElementById('quantity');
             const statusLabel = document.getElementById('stockStatusLabel');
+            const stockMeta   = document.getElementById('stockMetaItem');
             if (!warning || !addBtn) return;
 
-            const color = window._selectedColor;
-            const size  = window._selectedSize;
+            // Sincroniza com o DOM — evita estado fantasma ao trocar cor
+            const activeSizeBtn  = document.querySelector('#sizeOptions .var-btn.selected');
+            const activeColorBtn = document.querySelector('.var-btn[data-type="color"].selected');
+            if (!activeSizeBtn)  window._selectedSize  = null;
+            if (!activeColorBtn) window._selectedColor = null;
 
-            const match = window._variations.find(v =>
-                (!color || v.color === color) && (!size || v.size === size)
+            const color    = window._selectedColor || null;
+            const size     = window._selectedSize  || null;
+            const vars     = window._variations || [];
+            const hasColors = Array.isArray(window._colors) && window._colors.length > 0;
+            const hasSizes  = vars.some(v => v.size);
+
+            // Precisa de cor se o produto tem cores; precisa de tamanho se tem tamanhos
+            if ((hasColors && !color) || (hasSizes && !size)) {
+                if (stockMeta) stockMeta.style.display = 'none';
+                addBtn.disabled = true;
+                warning.classList.remove('visible');
+                return;
+            }
+
+            // Filtra variantes que batem exatamente com cor e tamanho selecionados
+            const matched = vars.filter(v =>
+                (!hasColors || v.color === color) &&
+                (!hasSizes  || v.size  === size)
             );
+            const totalStock = matched.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
 
-            if (match) {
-                qtyInput.max    = match.stock;
-                qtyInput.value  = Math.min(parseInt(qtyInput.value) || 1, match.stock || 1);
-                addBtn.disabled = match.stock === 0;
+            if (!matched.length) {
+                if (stockMeta) stockMeta.style.display = 'none';
+                addBtn.disabled = true;
+                warning.classList.remove('visible');
+                return;
+            }
 
-                // Atualiza o label de Disponibilidade com o estoque do tamanho selecionado
-                if (statusLabel) {
-                    statusLabel.className = 'meta-value stock-status';
-                    if (match.stock === 0) {
-                        statusLabel.textContent = 'Esgotado';
-                        statusLabel.classList.add('out');
-                    } else if (match.stock <= 5) {
-                        statusLabel.textContent = `Apenas ${match.stock} unidade${match.stock > 1 ? 's' : ''} restante${match.stock > 1 ? 's' : ''}`;
-                        statusLabel.classList.add('low');
-                    } else {
-                        statusLabel.textContent = `${match.stock} unidades disponíveis`;
-                    }
-                }
+            if (stockMeta) stockMeta.style.display = '';
 
-                if (match.stock === 0) {
-                    warning.textContent = 'Esta combinação está esgotada.';
-                    warning.classList.add('visible');
+            qtyInput.max   = totalStock;
+            qtyInput.value = Math.min(parseInt(qtyInput.value) || 1, totalStock || 1);
+            addBtn.disabled = totalStock === 0;
+
+            if (statusLabel) {
+                statusLabel.className = 'meta-value stock-status';
+                if (totalStock === 0) {
+                    statusLabel.textContent = 'Esgotado';
+                    statusLabel.classList.add('out');
+                } else if (totalStock <= 5) {
+                    statusLabel.textContent = `Apenas ${totalStock} unidade${totalStock > 1 ? 's' : ''} restante${totalStock > 1 ? 's' : ''}`;
+                    statusLabel.classList.add('low');
                 } else {
-                    warning.classList.remove('visible');
+                    statusLabel.textContent = `${totalStock} unidades disponíveis`;
                 }
+            }
+
+            if (totalStock === 0) {
+                warning.textContent = 'Esta combinação está esgotada.';
+                warning.classList.add('visible');
             } else {
                 warning.classList.remove('visible');
             }
@@ -753,19 +808,56 @@
                 el.innerHTML = `<div class="reviews-empty"><i class="fas fa-comment-slash"></i>Nenhuma avaliação ainda. Seja o primeiro a avaliar!</div>`;
                 return;
             }
-            el.innerHTML = reviews.map(r => `
-                <div class="review-card">
-                    <div class="review-header">
-                        <div>
-                            <div class="review-author">${r.user_name}</div>
-                            <div class="review-date">${new Date(r.created_at).toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'})}</div>
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            el.innerHTML = reviews.map(r => {
+                let imgs = [];
+                try { imgs = r.images ? (typeof r.images === 'string' ? JSON.parse(r.images) : r.images) : []; } catch {}
+                const imgsHtml = imgs.length
+                    ? `<div class="review-images">${imgs.map(u => `<img src="${u}" alt="Foto da avaliação" onclick="openLightbox('${u}')">`).join('')}</div>`
+                    : '';
+                const isOwner = currentUser.id && r.user_id === currentUser.id;
+                const initial = (r.user_name || '?')[0].toUpperCase();
+                const deleteBtn = isOwner
+                    ? `<button class="btn-delete-review" onclick="deleteReview(${r.id})" title="Excluir minha avaliação"><i class="fas fa-trash-alt"></i></button>`
+                    : '';
+                return `
+                <div class="review-card" id="review-${r.id}">
+                    <div class="review-card-top">
+                        <div class="review-card-left">
+                            <div class="review-avatar">${initial}</div>
+                            <div>
+                                <div class="review-author">${r.user_name}</div>
+                                <div class="review-date">${new Date(r.created_at).toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'})}</div>
+                            </div>
+                        </div>
+                        <div class="review-card-right">
+                            <div class="review-stars">${renderStars(r.rating, 13)}</div>
+                            ${deleteBtn}
                         </div>
                     </div>
-                    <div class="review-stars">${renderStars(r.rating, 13)}</div>
-                    ${r.title   ? `<div class="review-title">${r.title}</div>`   : ''}
                     ${r.comment ? `<div class="review-comment">${r.comment}</div>` : ''}
-                </div>`).join('');
+                    ${imgsHtml}
+                </div>`;
+            }).join('');
         }
+
+        window.deleteReview = async function(reviewId) {
+            if (!confirm('Excluir sua avaliação?')) return;
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+            try {
+                const res = await fetch(`/api/reviews/${reviewId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById(`review-${reviewId}`)?.remove();
+                    loadReviews(); // recarrega stats
+                } else {
+                    alert(data.message || 'Erro ao excluir.');
+                }
+            } catch { alert('Erro de conexão.'); }
+        };
 
         window.toggleReviewForm = function() {
             const wrap = document.getElementById('reviewFormWrap');
@@ -773,9 +865,97 @@
             if (isVisible) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
+        // ── Upload de imagens da avaliação ───────────────────────────────────
+        let reviewImages = []; // URLs já salvas no servidor
+
+        function refreshImgPreview() {
+            const preview = document.getElementById('reviewImgPreview');
+            if (!preview) return;
+            preview.innerHTML = reviewImages.map((src, i) => `
+                <div class="review-img-preview-item">
+                    <img src="${src}" alt="Foto ${i+1}">
+                    <button class="remove-img" onclick="removeReviewImg(${i})" type="button">&times;</button>
+                </div>`).join('');
+            // Esconde dropzone se atingiu limite
+            const dz = document.getElementById('reviewDropzone');
+            if (dz) { dz.style.display = reviewImages.length >= 5 ? 'none' : ''; }
+        }
+
+        window.removeReviewImg = function(idx) {
+            reviewImages.splice(idx, 1);
+            refreshImgPreview();
+        };
+
+        async function uploadReviewFile(file) {
+            const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+            const fd = new FormData();
+            fd.append('image', file);
+            const res = await fetch('/api/uploads/review-image', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: fd
+            });
+            const data = await res.json();
+            if (data.success) return data.url;
+            throw new Error(data.message || 'Erro no upload');
+        }
+
+        async function handleReviewFiles(files) {
+            const remaining = 5 - reviewImages.length;
+            const toUpload = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, remaining);
+            if (!toUpload.length) return;
+
+            // Mostra previews temporários enquanto faz upload
+            const preview = document.getElementById('reviewImgPreview');
+            const tempIds = toUpload.map((_, i) => `temp-${Date.now()}-${i}`);
+            toUpload.forEach((file, i) => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const div = document.createElement('div');
+                    div.className = 'review-img-preview-item';
+                    div.id = tempIds[i];
+                    div.innerHTML = `<img src="${e.target.result}"><div class="upload-progress"><i class="fas fa-spinner fa-spin"></i></div>`;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Faz upload de cada arquivo
+            for (let i = 0; i < toUpload.length; i++) {
+                try {
+                    const url = await uploadReviewFile(toUpload[i]);
+                    reviewImages.push(url);
+                    document.getElementById(tempIds[i])?.remove();
+                } catch (e) {
+                    document.getElementById(tempIds[i])?.remove();
+                    console.warn('Upload falhou:', e);
+                }
+            }
+            refreshImgPreview();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('reviewFileInput');
+            const dropzone  = document.getElementById('reviewDropzone');
+            if (!fileInput || !dropzone) return;
+
+            fileInput.addEventListener('change', () => {
+                handleReviewFiles(fileInput.files);
+                fileInput.value = '';
+            });
+
+            // Drag & drop
+            dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+            dropzone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropzone.classList.remove('drag-over');
+                handleReviewFiles(e.dataTransfer.files);
+            });
+        });
+
         window.submitReview = async function() {
             const ratingEl = document.querySelector('input[name="rating"]:checked');
-            const title    = document.getElementById('reviewTitle').value.trim();
             const comment  = document.getElementById('reviewComment').value.trim();
             const msgEl    = document.getElementById('reviewMsg');
 
@@ -790,24 +970,34 @@
                 msgEl.style.color = '#C45C5C'; msgEl.style.display = 'block';
                 return;
             }
+
+            const btn = document.querySelector('.btn-submit-review');
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+
             try {
-                const res  = await fetch(`/api/reviews/${productId}`, {
+                const res = await fetch(`/api/reviews/${productId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ rating: parseInt(ratingEl.value), title, comment })
+                    body: JSON.stringify({ rating: parseInt(ratingEl.value), comment, images: reviewImages })
                 });
                 const data = await res.json();
                 if (data.success) {
                     msgEl.textContent = '✓ Avaliação enviada!';
                     msgEl.style.color = '#2E8B57'; msgEl.style.display = 'block';
+                    reviewImages = [];
+                    refreshImgPreview();
                     setTimeout(() => { document.getElementById('reviewFormWrap').classList.remove('visible'); msgEl.style.display = 'none'; loadReviews(); }, 1500);
                 } else {
                     msgEl.textContent = data.message || 'Erro ao enviar.';
                     msgEl.style.color = '#C45C5C'; msgEl.style.display = 'block';
                 }
-            } catch (e) {
+            } catch {
                 msgEl.textContent = 'Erro de conexão.';
                 msgEl.style.color = '#C45C5C'; msgEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Enviar Avaliação';
             }
         };
 

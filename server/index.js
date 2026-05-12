@@ -65,7 +65,11 @@ app.use(helmet({
                           "https://api.mercadopago.com",
                           "https://sdk.mercadopago.com",
                           "https://accounts.google.com",
-                          "https://graph.facebook.com"],
+                          "https://graph.facebook.com",
+                          "https://api.cloudinary.com",
+                          "https://viacep.com.br",
+                          "https://melhorenvio.com.br",
+                          "https://sandbox.melhorenvio.com.br"],
             frameSrc:    ["'self'",
                           "https://www.mercadopago.com",
                           "https://accounts.google.com",
@@ -117,11 +121,11 @@ app.use(cors({
 // ────────────────────────────────────────────────────────────────────
 app.use((req, res, next) => {
     if (req.originalUrl === '/api/checkout/webhook') return next();
-    express.json({ limit: '1mb' })(req, res, next);
+    express.json({ limit: '10mb' })(req, res, next);
 });
 app.use((req, res, next) => {
     if (req.originalUrl === '/api/checkout/webhook') return next();
-    express.urlencoded({ extended: true, limit: '1mb' })(req, res, next);
+    express.urlencoded({ extended: true, limit: '10mb' })(req, res, next);
 });
 
 app.use(cookieParser());
@@ -196,6 +200,7 @@ app.use('/api/admin/2fa',  require('./routes/admin2fa'));
 app.use('/api/cart',       cartRoutes);
 app.use('/api/checkout',   checkoutRoutes);
 app.use('/api/reviews',    reviewRoutes);
+app.use('/api/uploads',    require('./routes/uploads'));
 app.use('/api/orders',     orderRoutes);
 app.use('/api/wishlist',   wishlistRoutes);
 app.use('/api/addresses',  addressRoutes);
@@ -218,7 +223,8 @@ app.get('/api/products/featured', async (req, res) => {
     try {
         const db = require('./config/database').getDB();
         const [products] = await db.execute(`
-            SELECT p.*, c.name as category_name, COALESCE(p.images, '[]') as images
+            SELECT p.*, c.name as category_name, COALESCE(p.images, '[]') as images,
+                   (SELECT COUNT(*) FROM product_variations pv WHERE pv.product_id = p.id) as variation_count
             FROM products p LEFT JOIN categories c ON p.category_id = c.id
             WHERE p.status = 'active' AND p.is_featured = 1
             ORDER BY p.created_at DESC LIMIT 8
@@ -231,7 +237,8 @@ app.get('/api/products/new-arrivals', async (req, res) => {
     try {
         const db = require('./config/database').getDB();
         const [products] = await db.execute(`
-            SELECT p.*, c.name as category_name, COALESCE(p.images, '[]') as images
+            SELECT p.*, c.name as category_name, COALESCE(p.images, '[]') as images,
+                   (SELECT COUNT(*) FROM product_variations pv WHERE pv.product_id = p.id) as variation_count
             FROM products p LEFT JOIN categories c ON p.category_id = c.id
             WHERE p.status = 'active' ORDER BY p.created_at DESC LIMIT 8
         `);
@@ -370,6 +377,34 @@ app.get('/account',              v('../client/views/account.html'));
 app.get('/rastreamento',         v('../client/views/rastreamento.html'));
 app.get('/orders',               v('../client/views/orders.html'));
 app.get('/ajuda',                v('../client/views/ajuda.html'));
+
+// ── SEO: robots.txt e sitemap.xml ────────────────────────────────────────────
+const BASE_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+app.get('/robots.txt', (req, res) => {
+    res.type('text/plain');
+    res.send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nDisallow: /cart\nDisallow: /account\nDisallow: /orders\nSitemap: ${BASE_URL}/sitemap.xml`);
+});
+app.get('/sitemap.xml', async (req, res) => {
+    try {
+        const db = require('./config/database').getDB();
+        const [products] = await db.execute(
+            'SELECT id, updated_at FROM products WHERE status = "active" ORDER BY updated_at DESC'
+        );
+        const [categories] = await db.execute(
+            'SELECT slug FROM categories WHERE status = "active"'
+        );
+        const staticPages = ['/', '/products', '/ajuda'];
+        const urls = [
+            ...staticPages.map(p => `  <url><loc>${BASE_URL}${p}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`),
+            ...categories.map(c => `  <url><loc>${BASE_URL}/products?category=${c.slug}</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>`),
+            ...products.map(p => `  <url><loc>${BASE_URL}/product?id=${p.id}</loc><lastmod>${new Date(p.updated_at || Date.now()).toISOString().split('T')[0]}</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>`),
+        ];
+        res.type('application/xml');
+        res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`);
+    } catch (e) {
+        res.status(500).send('Erro ao gerar sitemap');
+    }
+});
 // ── Proteção do painel admin ─────────────────────────────────────────────────
 app.use('/admin', adminProtect);
 app.use('/api/admin', adminProtect, adminApiLimiter);

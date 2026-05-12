@@ -39,6 +39,9 @@ class AuthManager {
         localStorage.setItem('token', token);
         localStorage.setItem('authToken', token);   // compat com código legado
         if (user) localStorage.setItem('user', JSON.stringify(user));
+        // Limpa dados de frete/cupom da sessão anterior para não vazar entre contas
+        sessionStorage.removeItem('cartShipping');
+        sessionStorage.removeItem('cartCoupon');
     }
 
     clearSession() {

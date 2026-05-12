@@ -398,6 +398,12 @@
             document.getElementById('applyCouponBtn').addEventListener('click', applyCoupon);
             document.getElementById('couponInput').addEventListener('keydown', e => { if (e.key === 'Enter') applyCoupon(); });
             document.getElementById('checkoutBtn').addEventListener('click', () => {
+                // Redireciona para login se não estiver autenticado
+                const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+                if (!token) {
+                    window.location.href = '/login?redirect=/checkout';
+                    return;
+                }
                 // Garante que cupom está salvo no sessionStorage
                 if (appliedCoupon) {
                     sessionStorage.setItem('cartCoupon', JSON.stringify(appliedCoupon));

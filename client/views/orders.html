@@ -114,6 +114,21 @@
             .progress-steps { display:none; }
             .order-footer { flex-direction:column; align-items:flex-start; }
         }
+        /* ── Modal Rastreamento ── */
+        .tracking-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9000; align-items:center; justify-content:center; }
+        .tracking-modal-overlay.open { display:flex; }
+        .tracking-modal { background:#fff; border-radius:14px; padding:32px 28px; max-width:420px; width:90%; box-shadow:0 8px 40px rgba(0,0,0,0.18); position:relative; }
+        .tracking-modal h3 { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:600; margin-bottom:6px; }
+        .tracking-modal p { font-size:13px; color:var(--gray); margin-bottom:20px; }
+        .tracking-code-box { display:flex; align-items:center; gap:10px; background:#f7f5f2; border:1.5px solid var(--border-light); border-radius:8px; padding:12px 16px; margin-bottom:20px; }
+        .tracking-code-box span { flex:1; font-size:15px; font-weight:700; letter-spacing:2px; color:var(--dark); word-break:break-all; }
+        .btn-copy { background:none; border:none; cursor:pointer; color:var(--primary); font-size:18px; padding:2px 4px; transition:opacity .2s; }
+        .btn-copy:hover { opacity:.7; }
+        .btn-correios { display:block; width:100%; padding:14px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-family:'Montserrat',sans-serif; font-size:13px; font-weight:600; letter-spacing:1px; cursor:pointer; text-align:center; text-decoration:none; transition:background .2s; margin-bottom:10px; }
+        .btn-correios:hover { background:var(--primary-dark); }
+        .btn-modal-close { display:block; width:100%; padding:11px; background:transparent; border:1.5px solid var(--border-light); border-radius:8px; font-family:'Montserrat',sans-serif; font-size:13px; cursor:pointer; color:var(--gray); transition:border-color .2s; }
+        .btn-modal-close:hover { border-color:var(--gray); }
+        .modal-x { position:absolute; top:14px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:var(--gray); line-height:1; }
     </style>
 </head>
 <body>
@@ -275,7 +290,7 @@
             : `<div class="order-shipping-info"><i class="fas fa-clock"></i> Código de rastreio será disponibilizado após o envio</div>`;
 
         const trackBtn = o.shipping_tracking
-            ? `<a class="btn-track" href="https://rastreamento.correios.com.br/app/index.php?id=${o.shipping_tracking}" target="_blank"><i class="fas fa-search-location"></i> Rastrear Pedido</a>`
+            ? `<button class="btn-track" onclick="openTrackingModal('${o.shipping_tracking}')"><i class="fas fa-search-location"></i> Rastrear Entrega</button>`
             : `<button class="btn-track" style="opacity:.5;cursor:not-allowed;" disabled><i class="fas fa-search-location"></i> Aguardando Envio</button>`;
 
         return `
@@ -374,5 +389,44 @@
     })();
     </script>
     <script src="/js/cookies.js"></script>
+    <!-- Modal Rastreamento -->
+    <div class="tracking-modal-overlay" id="trackingModalOverlay">
+        <div class="tracking-modal">
+            <button class="modal-x" onclick="closeTrackingModal()" aria-label="Fechar">&times;</button>
+            <h3><i class="fas fa-truck" style="color:var(--primary);margin-right:8px;"></i>Rastrear Entrega</h3>
+            <p>Use o código abaixo no site dos Correios para acompanhar sua entrega.</p>
+            <div class="tracking-code-box">
+                <span id="trackingCodeDisplay"></span>
+                <button class="btn-copy" title="Copiar código" onclick="copyTrackingCode()"><i class="fas fa-copy"></i></button>
+            </div>
+            <a id="trackingCorreiosLink" href="#" target="_blank" class="btn-correios">
+                <i class="fas fa-external-link-alt" style="margin-right:6px;"></i>Abrir Correios
+            </a>
+            <button class="btn-modal-close" onclick="closeTrackingModal()">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        function openTrackingModal(code) {
+            document.getElementById('trackingCodeDisplay').textContent = code;
+            document.getElementById('trackingCorreiosLink').href =
+                'https://rastreamento.correios.com.br/app/index.php?id=' + encodeURIComponent(code);
+            document.getElementById('trackingModalOverlay').classList.add('open');
+        }
+        function closeTrackingModal() {
+            document.getElementById('trackingModalOverlay').classList.remove('open');
+        }
+        function copyTrackingCode() {
+            const code = document.getElementById('trackingCodeDisplay').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1800);
+            });
+        }
+        document.getElementById('trackingModalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeTrackingModal();
+        });
+    </script>
 </body>
 </html>

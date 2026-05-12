@@ -93,11 +93,12 @@ async function sendOrderConfirmationEmail(toEmail, order) {
         : (shipping_address || {});
 
     const paymentLabel = {
-        checkout_pro: 'Cartão de Crédito/Débito',
+        checkout_pro: 'Mercado Pago',
         pix:          'PIX',
         boleto:       'Boleto Bancário',
         credit_card:  'Cartão de Crédito',
-    }[payment_method] || payment_method || 'Mercado Pago';
+        manual:       'Pagamento Manual',
+    }[payment_method] || 'Mercado Pago';
 
     const subtotal = parseFloat(total_amount) - parseFloat(shipping_amount || 0) + parseFloat(discount_amount || 0);
 

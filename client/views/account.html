@@ -318,6 +318,8 @@
         .status-delivered{ background: #D4EDDA; color: #155724; }
         .status-cancelled{ background: #F8D7DA; color: #721C24; }
         .order-total { font-weight: 600; font-size: 15px; }
+        .order-card-link { display:block; text-decoration:none; color:inherit; transition:box-shadow .2s, border-color .2s; }
+        .order-card-link:hover { border-color:var(--primary); box-shadow:0 2px 12px rgba(139,115,85,0.1); }
     </style>
     <script>
         if (!auth.isAuthenticated()) window.location.href = '/login';
@@ -649,9 +651,9 @@
                     el.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>Nenhum pedido ainda.</p><a href="/products">Explorar produtos →</a></div>`;
                     return;
                 }
-                const statusLabel = { pending: 'Aguardando', paid: 'Pago', shipped: 'Enviado', delivered: 'Entregue', cancelled: 'Cancelado' };
+                const statusLabel = { pending: 'Aguardando', paid: 'Pago', processing: 'Em preparo', shipped: 'Enviado', delivered: 'Entregue', cancelled: 'Cancelado' };
                 el.innerHTML = data.data.map(o => `
-                    <div class="order-card">
+                    <a href="/orders" class="order-card order-card-link">
                         <div class="order-header">
                             <div>
                                 <div class="order-number">#${o.order_number}</div>
@@ -659,8 +661,9 @@
                             </div>
                             <span class="order-status status-${o.status}">${statusLabel[o.status] || o.status}</span>
                             <div class="order-total">R$ ${parseFloat(o.total_amount).toFixed(2)}</div>
+                            <i class="fas fa-chevron-right" style="color:var(--gray);font-size:13px;"></i>
                         </div>
-                    </div>`).join('');
+                    </a>`).join('');
             } catch (e) { el.innerHTML = 'Erro ao carregar pedidos.'; }
         }
 
@@ -838,5 +841,6 @@
     </script>
     <!-- ═══ fim MOBILE DRAWER ═══ -->
     <script src="/js/cookies.js"></script>
+
 </body>
 </html>
