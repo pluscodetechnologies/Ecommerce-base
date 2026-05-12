@@ -97,6 +97,27 @@ const uploadLimiter = rateLimit({
     handler,
 });
 
+
+// ── Admin: rate limit muito agressivo ────────────────────────────────────────
+// Página de login do admin: 5 tentativas por 15min por IP
+const adminLoginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max:      5,
+    standardHeaders: true,
+    legacyHeaders:   false,
+    handler,
+    skipSuccessfulRequests: true,
+});
+
+// Rotas da API admin: 60 reqs por minuto (uso legítimo não passa nem perto)
+const adminApiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max:      60,
+    standardHeaders: true,
+    legacyHeaders:   false,
+    handler,
+});
+
 module.exports = {
     loginLimiter,
     registerLimiter,
@@ -106,4 +127,6 @@ module.exports = {
     webhookLimiter,
     apiLimiter,
     uploadLimiter,
+    adminLoginLimiter,
+    adminApiLimiter,
 };

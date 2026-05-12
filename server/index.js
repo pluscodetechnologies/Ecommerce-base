@@ -14,18 +14,20 @@ dotenv.config();
 const REQUIRED_ENV = ['JWT_SECRET', 'DB_HOST', 'DB_USER', 'DB_NAME'];
 const missing = REQUIRED_ENV.filter(k => !process.env[k]);
 if (missing.length) {
-    console.error(`❌ Variáveis de ambiente obrigatórias ausentes: ${missing.join(', ')}`);
-    console.error('   Configure-as no .env antes de iniciar o servidor.');
+    logger.error(`❌ Variáveis de ambiente obrigatórias ausentes: ${missing.join(', ')}`);
+    logger.error('   Configure-as no .env antes de iniciar o servidor.');
     process.exit(1);
 }
 if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
-    console.error('❌ JWT_SECRET muito curto (mínimo 32 caracteres). Gere com: openssl rand -hex 64');
+    logger.error('❌ JWT_SECRET muito curto (mínimo 32 caracteres). Gere com: openssl rand -hex 64');
     process.exit(1);
 }
 
 // ────────────────────────────────────────────────────────────────────
 const { connectDB } = require('./config/database');
-const { apiLimiter } = require('./middleware/rateLimits');
+const logger        = require('./config/logger');
+const { apiLimiter, adminLoginLimiter, adminApiLimiter } = require('./middleware/rateLimits');
+const { adminProtect, adminRecordFailure } = require('./middleware/adminProtect');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +38,14 @@ const isProduction = process.env.NODE_ENV === 'production';
 // ────────────────────────────────────────────────────────────────────
 app.set('trust proxy', 1);
 
+app.get('/meu-ip', (req, res) => {
+    res.json({
+        ip: req.ip,
+        forwarded: req.headers['x-forwarded-for'],
+        remote: req.socket?.remoteAddress,
+    });
+});
+
 // ────────────────────────────────────────────────────────────────────
 // Helmet com CSP adequado
 // ────────────────────────────────────────────────────────────────────
@@ -45,13 +55,12 @@ app.use(helmet({
             defaultSrc:  ["'self'"],
             // 'unsafe-inline' em scriptSrc só porque há código inline nos HTMLs.
             // Quando migrar pra scripts externos, REMOVA 'unsafe-inline'.
-            scriptSrc:   ["'self'", "'unsafe-inline'", "'unsafe-hashes'",
+            scriptSrc:   ["'self'", "'unsafe-inline'",
                           "https://www.mercadopago.com",
                           "https://sdk.mercadopago.com",
                           "https://accounts.google.com",
                           "https://connect.facebook.net",
                           "https://cdnjs.cloudflare.com"],
-            scriptSrcAttr: ["'unsafe-inline'"],   // ← adicione esta linha
             styleSrc:    ["'self'", "'unsafe-inline'",
                           "https://fonts.googleapis.com",
                           "https://cdnjs.cloudflare.com"],
@@ -60,7 +69,6 @@ app.use(helmet({
                           "https://cdnjs.cloudflare.com"],
             imgSrc:      ["'self'", "data:", "blob:", "https:"],
             connectSrc:  ["'self'",
-                        "https://viacep.com.br",
                           "https://api.mercadopago.com",
                           "https://sdk.mercadopago.com",
                           "https://accounts.google.com",
@@ -128,7 +136,27 @@ app.use(cookieParser());
 // ────────────────────────────────────────────────────────────────────
 // Logger — em prod, formato 'combined' (logs estruturados); em dev, 'dev'
 // ────────────────────────────────────────────────────────────────────
-app.use(morgan(isProduction ? 'combined' : 'dev'));
+// Em dev usa morgan colorido no console; em prod loga via winston
+if (!isProduction) {
+    const morgan = require('morgan');
+    app.use(morgan('dev'));
+} else {
+    // Log de requisições HTTP em produção via winston
+    app.use((req, res, next) => {
+        const start = Date.now();
+        res.on('finish', () => {
+            const ms = Date.now() - start;
+            const level = res.statusCode >= 500 ? 'error'
+                        : res.statusCode >= 400 ? 'warn'
+                        : 'info';
+            logger[level](`${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms`, {
+                ip:     req.ip,
+                ua:     req.headers['user-agent']?.slice(0, 80),
+            });
+        });
+        next();
+    });
+}
 
 // ────────────────────────────────────────────────────────────────────
 // Static files
@@ -164,6 +192,8 @@ const checkoutRoutes  = require('./routes/checkout');
 const reviewRoutes    = require('./routes/reviews');
 const orderRoutes     = require('./routes/orders');
 const wishlistRoutes  = require('./routes/wishlist');
+const addressRoutes   = require('./routes/addresses');
+const trackingRoutes  = require('./routes/tracking');
 const variationRoutes = require('./routes/variations');
 const colorRoutes     = require('./routes/colors');
 
@@ -174,6 +204,8 @@ app.use('/api/checkout',   checkoutRoutes);
 app.use('/api/reviews',    reviewRoutes);
 app.use('/api/orders',     orderRoutes);
 app.use('/api/wishlist',   wishlistRoutes);
+app.use('/api/addresses',  addressRoutes);
+app.use('/api/tracking',   trackingRoutes);
 app.use('/api/variations', variationRoutes);
 app.use('/api/colors',     colorRoutes);
 
@@ -198,7 +230,7 @@ app.get('/api/products/featured', async (req, res) => {
             ORDER BY p.created_at DESC LIMIT 8
         `);
         res.json({ success: true, data: products.map(parseProduct) });
-    } catch (e) { console.error(e); res.json({ success: true, data: [] }); }
+    } catch (e) { logger.error(e); res.json({ success: true, data: [] }); }
 });
 
 app.get('/api/products/new-arrivals', async (req, res) => {
@@ -210,7 +242,7 @@ app.get('/api/products/new-arrivals', async (req, res) => {
             WHERE p.status = 'active' ORDER BY p.created_at DESC LIMIT 8
         `);
         res.json({ success: true, data: products.map(parseProduct) });
-    } catch (e) { console.error(e); res.json({ success: true, data: [] }); }
+    } catch (e) { logger.error(e); res.json({ success: true, data: [] }); }
 });
 
 app.get('/api/products', async (req, res) => {
@@ -250,7 +282,7 @@ app.get('/api/products', async (req, res) => {
         const [total] = await db.execute(cq, cp);
 
         res.json({ success: true, data: products.map(parseProduct), total: total[0].count, page, totalPages: Math.ceil(total[0].count / limit) });
-    } catch (e) { console.error(e); res.json({ success: true, data: [], total: 0, page: 1, totalPages: 0 }); }
+    } catch (e) { logger.error(e); res.json({ success: true, data: [], total: 0, page: 1, totalPages: 0 }); }
 });
 
 app.get('/api/product/:id', async (req, res) => {
@@ -267,7 +299,7 @@ app.get('/api/product/:id', async (req, res) => {
         `, [id]);
         if (!rows.length) return res.status(404).json({ success: false, message: 'Produto não encontrado' });
         res.json({ success: true, data: parseProduct(rows[0]) });
-    } catch (e) { console.error(e); res.status(500).json({ success: false, message: 'Erro ao buscar produto' }); }
+    } catch (e) { logger.error(e); res.status(500).json({ success: false, message: 'Erro ao buscar produto' }); }
 });
 
 app.get('/api/alerts', async (req, res) => {
@@ -291,7 +323,7 @@ app.get('/api/categories', async (req, res) => {
         const db = require('./config/database').getDB();
         const [categories] = await db.execute('SELECT * FROM categories WHERE status = "active" ORDER BY sort_order, name');
         res.json({ success: true, data: categories });
-    } catch (e) { console.error(e); res.status(500).json({ success: false, data: [] }); }
+    } catch (e) { logger.error(e); res.status(500).json({ success: false, data: [] }); }
 });
 
 // Validate coupon — agora com Zod
@@ -320,7 +352,7 @@ app.post('/api/coupons/validate',
                 if (prevOrders.length) return res.status(400).json({ success: false, message: 'Este cupom é válido apenas para a primeira compra' });
             }
             res.json({ success: true, data: { id: c.id, code: c.code, discount_type: c.discount_type, discount_value: parseFloat(c.discount_value), min_purchase: parseFloat(c.min_purchase || 0), description: c.description, coupon_type: c.coupon_type || null } });
-        } catch (e) { console.error('[coupons/validate]', e); res.status(500).json({ success: false, message: 'Erro ao validar cupom' }); }
+        } catch (e) { logger.error('[coupons/validate]', e); res.status(500).json({ success: false, message: 'Erro ao validar cupom' }); }
     }
 );
 
@@ -341,9 +373,14 @@ app.get('/checkout-success',     v('../client/views/checkout-success.html'));
 app.get('/checkout-pending',     v('../client/views/checkout-pending.html'));
 app.get('/checkout-error',       v('../client/views/checkout-error.html'));
 app.get('/account',              v('../client/views/account.html'));
+app.get('/rastreamento',         v('../client/views/rastreamento.html'));
 app.get('/orders',               v('../client/views/orders.html'));
 app.get('/ajuda',                v('../client/views/ajuda.html'));
-app.get('/admin',                v('../client/views/admin/login.html'));
+// ── Proteção do painel admin ─────────────────────────────────────────────────
+app.use('/admin', adminProtect);
+app.use('/api/admin', adminProtect, adminApiLimiter);
+
+app.get('/admin',                adminLoginLimiter, adminRecordFailure, v('../client/views/admin/login.html'));
 app.get('/admin/dashboard',      v('../client/views/admin/dashboard.html'));
 app.get('/admin/produtos',       v('../client/views/admin/produtos.html'));
 app.get('/admin/pedidos',        v('../client/views/admin/pedidos.html'));
@@ -370,7 +407,7 @@ app.use((err, req, res, next) => {
     }
 
     // Log completo apenas no servidor
-    console.error('[error-handler]', err);
+    logger.error('[error-handler]', err);
 
     // Resposta genérica pro cliente
     res.status(err.status || 500).json({
@@ -388,7 +425,7 @@ app.use((req, res) => res.status(404).json({ success: false, message: 'Rota não
 // ────────────────────────────────────────────────────────────────────
 connectDB().then(() => {
     app.listen(PORT, () => {
-        console.log(`🚀 Servidor rodando em http://localhost:${PORT} [${process.env.NODE_ENV || 'development'}]`);
+        logger.info(`🚀 Servidor rodando em http://localhost:${PORT} [${process.env.NODE_ENV || 'development'}]`);
 
         // Job de limpeza diário (refresh tokens expirados + tentativas de login antigas)
         const refreshSvc = require('./services/refreshTokenService');
@@ -397,12 +434,29 @@ connectDB().then(() => {
             try {
                 const tk = await refreshSvc.cleanupExpiredTokens();
                 const at = await attemptsSvc.cleanupOldAttempts();
-                if (tk || at) console.log(`🧹 Limpeza: ${tk} tokens, ${at} tentativas`);
-            } catch (e) { console.error('[cleanup]', e); }
+                if (tk || at) logger.info(`🧹 Limpeza: ${tk} tokens, ${at} tentativas`);
+            } catch (e) { logger.error('[cleanup]', e); }
         }, 24 * 60 * 60 * 1000);
+
+        // Job horário: cancela pedidos pendentes há mais de 24 horas
+        setInterval(async () => {
+            try {
+                const db = getDB();
+                const [result] = await db.execute(
+                    `UPDATE orders
+                     SET status = 'cancelled', payment_status = 'cancelled'
+                     WHERE status = 'pending'
+                       AND payment_status IN ('pending', 'null', '')
+                       AND created_at < DATE_SUB(NOW(), INTERVAL 24 HOUR)`
+                );
+                if (result.affectedRows > 0) {
+                    logger.info(`🧹 ${result.affectedRows} pedidos pendentes cancelados automaticamente`);
+                }
+            } catch (e) { logger.error('[cleanup-orders]', e); }
+        }, 60 * 60 * 1000);
     });
 }).catch(error => {
-    console.error('❌ Falha ao iniciar servidor:', error);
+    logger.error('❌ Falha ao iniciar servidor:', error);
     process.exit(1);
 });
 

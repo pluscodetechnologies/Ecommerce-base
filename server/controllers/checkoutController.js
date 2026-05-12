@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const logger = require('../config/logger');
 const https  = require('https');
 
 const { getDB } = require('../config/database');
@@ -72,7 +73,7 @@ class CheckoutController {
                     resultado = await melhorEnvioRequest(host, token, payload);
                     break;
                 } catch (e) {
-                    console.log(`⚠️  Melhor Envio falhou em ${host}:`, e.data || e.message);
+                    logger.info(`⚠️  Melhor Envio falhou em ${host}:`, e.data || e.message);
                 }
             }
 
@@ -98,7 +99,7 @@ class CheckoutController {
 
             res.json({ success: true, data: opcoes });
         } catch (error) {
-            console.error('[calculateShipping]', error?.data || error.message);
+            logger.error('[calculateShipping]', error?.data || error.message);
             res.json({ success: true, fallback: true, data: fallbackOptions() });
         }
     }
@@ -174,7 +175,7 @@ class CheckoutController {
             if (!opcoes.length) return res.json({ success: false, message: 'Nenhuma opção disponível para este CEP.' });
             res.json({ success: true, data: opcoes });
         } catch (error) {
-            console.log('[shippingProxy] fallback:', error?.data || error.message);
+            logger.info('[shippingProxy] fallback:', error?.data || error.message);
             res.json({ success: true, fallback: true, data: fallbackOptions() });
         }
     }
@@ -342,6 +343,63 @@ class CheckoutController {
             await Cart.clearCart(cart.id);
             await connection.commit();
 
+            // Email de confirmacao (assincrono)
+            try {
+                const { sendOrderConfirmationEmail } = require('../services/emailService');
+                const orderForEmail = {
+                    order_number:     orderNumber,
+                    customer_name:    shipping.name,
+                    total_amount:     totalAmount,
+                    shipping_amount:  shippingCost,
+                    discount_amount:  discountAmount,
+                    payment_method:   payment.method,
+                    shipping_address: shippingAddress,
+                    items:            items.map(i => ({
+                        product_name: i.name,
+                        quantity:     i.quantity,
+                        unit_price:   parseFloat(i.final_price),
+                        color:        i.color || null,
+                        size:         i.size  || null,
+                    })),
+                };
+                sendOrderConfirmationEmail(shipping.email, orderForEmail).catch(err =>
+                    logger.error('[email] confirmacao de pedido falhou:', err)
+                );
+            } catch (emailErr) {
+                logger.error('[email] erro ao importar emailService:', emailErr);
+            }
+
+            // Salvar endereco no historico (usuario logado)
+            if (userId) {
+                try {
+                    const db = getDB();
+                    const [existing] = await db.execute(
+                        `SELECT id FROM user_addresses
+                         WHERE user_id = ? AND zip_code = ? AND street = ? AND number = ?
+                         LIMIT 1`,
+                        [userId, shipping.zip_code, shipping.street, shipping.number]
+                    );
+                    if (!existing.length) {
+                        const [count] = await db.execute(
+                            'SELECT COUNT(*) as total FROM user_addresses WHERE user_id = ?',
+                            [userId]
+                        );
+                        const isDefault = count[0].total === 0 ? 1 : 0;
+                        await db.execute(
+                            `INSERT INTO user_addresses
+                             (user_id, street, number, complement, neighborhood, city, state, zip_code, is_default)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                            [userId, shipping.street, shipping.number, shipping.complement || null,
+                             shipping.neighborhood, shipping.city, shipping.state,
+                             shipping.zip_code.replace(/\D/g, '').replace(/^(\d{5})(\d{3})$/, '$1-$2'),
+                             isDefault]
+                        );
+                    }
+                } catch (addrErr) {
+                    logger.error('[address] erro ao salvar endereco:', addrErr);
+                }
+            }
+
             // ── Preferência Mercado Pago ────────────────────────────────────
             const mpItems = items.map(item => ({
                 id: String(item.product_id),
@@ -391,7 +449,7 @@ class CheckoutController {
 
         } catch (error) {
             await connection.rollback();
-            console.error('[createOrder]', error);
+            logger.error('[createOrder]', error);
             // Não vaza error.message — pode conter detalhes internos
             res.status(500).json({ success: false, message: 'Erro ao processar pedido. Tente novamente.' });
         } finally {
@@ -424,10 +482,10 @@ class CheckoutController {
         // Sem secret configurado → REJEITA em produção; em dev, aceita com aviso.
         if (!secret || secret === 'COLOQUE_SEU_SECRET_AQUI') {
             if (process.env.NODE_ENV === 'production') {
-                console.error('[webhook] MP_WEBHOOK_SECRET não configurado em produção — webhook rejeitado');
+                logger.error('[webhook] MP_WEBHOOK_SECRET não configurado em produção — webhook rejeitado');
                 return false;
             }
-            console.warn('[webhook] MP_WEBHOOK_SECRET ausente — aceitando em dev (NÃO USE EM PROD)');
+            logger.warn('[webhook] MP_WEBHOOK_SECRET ausente — aceitando em dev (NÃO USE EM PROD)');
             return true;
         }
 
@@ -435,7 +493,7 @@ class CheckoutController {
         const xRequestId = req.headers['x-request-id'];
 
         if (!xSignature || !xRequestId) {
-            console.warn('[webhook] headers x-signature/x-request-id ausentes');
+            logger.warn('[webhook] headers x-signature/x-request-id ausentes');
             return false;
         }
 
@@ -449,14 +507,14 @@ class CheckoutController {
         const ts = parts.ts;
         const v1 = parts.v1;
         if (!ts || !v1) {
-            console.warn('[webhook] x-signature mal formatada');
+            logger.warn('[webhook] x-signature mal formatada');
             return false;
         }
 
         // Proteção contra replay attack: timestamp não pode ter mais de 5 minutos
         const tsNum = parseInt(ts);
         if (Number.isNaN(tsNum) || Math.abs(Date.now() / 1000 - tsNum) > 300) {
-            console.warn('[webhook] timestamp fora da janela aceita (replay attack?)');
+            logger.warn('[webhook] timestamp fora da janela aceita (replay attack?)');
             return false;
         }
 
@@ -473,7 +531,7 @@ class CheckoutController {
             } catch {}
         }
         if (!dataId) {
-            console.warn('[webhook] data.id não encontrado para validar assinatura');
+            logger.warn('[webhook] data.id não encontrado para validar assinatura');
             return false;
         }
 
@@ -492,7 +550,7 @@ class CheckoutController {
         try {
             // 1) Validar assinatura ANTES de qualquer coisa
             if (!this.verifyMercadoPagoSignature(req)) {
-                console.warn('[webhook] assinatura inválida — rejeitando');
+                logger.warn('[webhook] assinatura inválida — rejeitando');
                 return res.sendStatus(401);
             }
 
@@ -502,7 +560,7 @@ class CheckoutController {
                 const bodyStr = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : '';
                 parsedBody = bodyStr ? JSON.parse(bodyStr) : {};
             } catch (e) {
-                console.error('[webhook] body inválido');
+                logger.error('[webhook] body inválido');
                 return res.sendStatus(400);
             }
 
@@ -531,7 +589,7 @@ class CheckoutController {
                     [payment.external_reference]
                 );
                 if (!currentRows.length) {
-                    console.warn(`[webhook] order ${payment.external_reference} não encontrado`);
+                    logger.warn(`[webhook] order ${payment.external_reference} não encontrado`);
                     return res.sendStatus(200);
                 }
 
@@ -560,7 +618,7 @@ class CheckoutController {
 
             res.sendStatus(200);
         } catch (error) {
-            console.error('[webhook]', error);
+            logger.error('[webhook]', error);
             res.sendStatus(500);
         }
     }

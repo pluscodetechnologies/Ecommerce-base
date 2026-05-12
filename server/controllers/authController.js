@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const logger = require('../config/logger');
 const crypto = require('crypto');
 
 const { getDB } = require('../config/database');
@@ -12,12 +13,11 @@ const BCRYPT_ROUNDS = 12;   // 10 era OK em 2018; 12 é o mínimo aceitável em 
 // Helper: configura cookie httpOnly para o refresh token
 // ────────────────────────────────────────────────────────────────────
 function setRefreshCookie(res, token, expiresAt) {
-    const isNgrok = process.env.NGROK_MODE === 'true';
     res.cookie('refreshToken', token, {
         httpOnly: true,
-        secure:   process.env.NODE_ENV === 'production' || isNgrok,
-        sameSite: isNgrok ? 'none' : 'lax',  // 'none' é obrigatório com secure cross-site
-        path:     '/api/auth',
+        secure:   process.env.NODE_ENV === 'production',   // só HTTPS em prod
+        sameSite: 'lax',                                   // bloqueia CSRF cross-site
+        path:     '/api/auth',                             // só vai pras rotas de auth
         expires:  expiresAt,
     });
 }
@@ -69,7 +69,7 @@ class AuthController {
                 data:    { userId: result.insertId },
             });
         } catch (error) {
-            console.error('[register]', error);
+            logger.error('[register]', error);
             res.status(500).json({ success: false, message: 'Erro ao criar usuário. Tente novamente.' });
         }
     }
@@ -145,7 +145,7 @@ class AuthController {
                 },
             });
         } catch (error) {
-            console.error('[login]', error);
+            logger.error('[login]', error);
             res.status(500).json({ success: false, message: 'Erro ao fazer login' });
         }
     }
@@ -197,7 +197,7 @@ class AuthController {
                 },
             });
         } catch (error) {
-            console.error('[refresh]', error);
+            logger.error('[refresh]', error);
             res.status(500).json({ success: false, message: 'Erro ao renovar sessão' });
         }
     }
@@ -212,7 +212,7 @@ class AuthController {
             clearRefreshCookie(res);
             res.json({ success: true, message: 'Logout realizado' });
         } catch (error) {
-            console.error('[logout]', error);
+            logger.error('[logout]', error);
             // Logout deve ser idempotente — sempre 200
             clearRefreshCookie(res);
             res.json({ success: true });
@@ -230,7 +230,7 @@ class AuthController {
             clearRefreshCookie(res);
             res.json({ success: true, message: 'Todas as sessões foram encerradas' });
         } catch (error) {
-            console.error('[logoutAll]', error);
+            logger.error('[logoutAll]', error);
             res.status(500).json({ success: false, message: 'Erro ao encerrar sessões' });
         }
     }
@@ -302,7 +302,7 @@ class AuthController {
                 },
             });
         } catch (error) {
-            console.error('[socialLogin]', error);
+            logger.error('[socialLogin]', error);
             res.status(500).json({ success: false, message: 'Erro ao fazer login social' });
         }
     }
@@ -324,7 +324,7 @@ class AuthController {
             }
             res.json({ success: true, data: users[0] });
         } catch (error) {
-            console.error('[getProfile]', error);
+            logger.error('[getProfile]', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar perfil' });
         }
     }
@@ -342,7 +342,7 @@ class AuthController {
             );
             res.json({ success: true, message: 'Perfil atualizado com sucesso' });
         } catch (error) {
-            console.error('[updateProfile]', error);
+            logger.error('[updateProfile]', error);
             res.status(500).json({ success: false, message: 'Erro ao atualizar perfil' });
         }
     }
@@ -396,7 +396,7 @@ class AuthController {
                 data: { token: accessToken, accessToken },
             });
         } catch (error) {
-            console.error('[changePassword]', error);
+            logger.error('[changePassword]', error);
             res.status(500).json({ success: false, message: 'Erro ao alterar senha' });
         }
     }
@@ -433,12 +433,12 @@ class AuthController {
                 await sendClientPasswordResetEmail(email, token);
             } catch (emailErr) {
                 // Não vaza falha de email pro atacante — apenas loga
-                console.error('[forgotPassword] erro ao enviar email:', emailErr);
+                logger.error('[forgotPassword] erro ao enviar email:', emailErr);
             }
 
             return genericResponse();
         } catch (error) {
-            console.error('[forgotPassword]', error);
+            logger.error('[forgotPassword]', error);
             res.status(500).json({ success: false, message: 'Erro ao processar solicitação' });
         }
     }
@@ -474,7 +474,7 @@ class AuthController {
 
             res.json({ success: true, message: 'Senha redefinida com sucesso' });
         } catch (error) {
-            console.error('[resetPassword]', error);
+            logger.error('[resetPassword]', error);
             res.status(500).json({ success: false, message: 'Erro ao redefinir senha' });
         }
     }
@@ -508,7 +508,7 @@ class AuthController {
             await db.execute('UPDATE users SET email = ? WHERE id = ?', [newEmail, req.userId]);
             res.json({ success: true, message: 'Email atualizado com sucesso' });
         } catch (error) {
-            console.error('[updateEmail]', error);
+            logger.error('[updateEmail]', error);
             res.status(500).json({ success: false, message: 'Erro ao atualizar email' });
         }
     }

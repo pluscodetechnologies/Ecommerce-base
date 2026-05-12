@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const logger = require('../config/logger');
 const { getDB } = require('../config/database');
 
 // ────────────────────────────────────────────────────────────────────
@@ -103,7 +104,7 @@ async function authMiddleware(req, res, next) {
         req.userRole = rows[0].role || 'user';   // role autoritativo vem do DB, não do token
         next();
     } catch (error) {
-        console.error('[authMiddleware]', error);
+        logger.error('[authMiddleware]', error);
         res.status(500).json({ success: false, message: 'Erro na autenticação' });
     }
 }
@@ -138,7 +139,7 @@ async function optionalAuthMiddleware(req, res, next) {
         next();
     } catch (error) {
         // Em modo opcional, nunca derruba o request
-        console.error('[optionalAuthMiddleware]', error);
+        logger.error('[optionalAuthMiddleware]', error);
         next();
     }
 }

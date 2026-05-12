@@ -8,6 +8,7 @@ router.use(adminMiddleware);
 
 router.get('/dashboard/stats', adminController.getDashboardStats.bind(adminController));
 router.get('/orders', adminController.getOrders.bind(adminController));
+router.get('/orders/:id', adminController.getOrderById.bind(adminController));
 router.post('/orders', adminController.createManualOrder.bind(adminController));
 router.put('/orders/:id/status', adminController.updateOrderStatus.bind(adminController));
 router.get('/products', adminController.getProducts.bind(adminController));

@@ -1,4 +1,5 @@
 const { getDB } = require('../config/database');
+const logger = require('../config/logger');
 
 class AdminController {
     async getDashboardStats(req, res) {
@@ -35,7 +36,7 @@ class AdminController {
                 }
             });
         } catch (error) {
-            console.error('Erro ao buscar stats:', error);
+            logger.error('Erro ao buscar stats:', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar estatísticas' });
         }
     }
@@ -74,8 +75,40 @@ class AdminController {
 
             res.json({ success: true, data: { orders, total: total[0].count, page, totalPages: Math.ceil(total[0].count / limit) } });
         } catch (error) {
-            console.error('Erro ao buscar pedidos:', error);
+            logger.error('Erro ao buscar pedidos:', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar pedidos' });
+        }
+    }
+
+    async getOrderById(req, res) {
+        try {
+            const { id } = req.params;
+            const db = getDB();
+
+            const [orders] = await db.execute(
+                `SELECT id, order_number, status, payment_status, payment_method,
+                        customer_name, customer_email, customer_phone,
+                        total_amount, shipping_amount, discount_amount,
+                        shipping_tracking, shipping_address, created_at, updated_at
+                 FROM orders WHERE id = ? LIMIT 1`,
+                [id]
+            );
+
+            if (!orders.length) {
+                return res.status(404).json({ success: false, message: 'Pedido não encontrado' });
+            }
+
+            const [items] = await db.execute(
+                `SELECT product_name, quantity, unit_price, total_price,
+                        color, size
+                 FROM order_items WHERE order_id = ?`,
+                [id]
+            );
+
+            res.json({ success: true, data: { ...orders[0], items } });
+        } catch (error) {
+            logger.error('Erro ao buscar pedido:', error);
+            res.status(500).json({ success: false, message: 'Erro ao buscar pedido' });
         }
     }
 
@@ -113,7 +146,7 @@ class AdminController {
 
             res.status(201).json({ success: true, message: 'Pedido criado com sucesso', data: { id: orderId, order_number: orderNum } });
         } catch (error) {
-            console.error('Erro ao criar pedido manual:', error);
+            logger.error('Erro ao criar pedido manual:', error);
             res.status(500).json({ success: false, message: 'Erro ao criar pedido: ' + error.message });
         }
     }
@@ -121,14 +154,41 @@ class AdminController {
     async updateOrderStatus(req, res) {
         try {
             const { id } = req.params;
-            const { status } = req.body;
+            const { status, tracking_code } = req.body;
             const db = getDB();
-            
-            await db.execute('UPDATE orders SET status = ? WHERE id = ?', [status, id]);
-            
+
+            if (tracking_code) {
+                await db.execute(
+                    'UPDATE orders SET status = ?, shipping_tracking = ? WHERE id = ?',
+                    [status, tracking_code.trim().toUpperCase(), id]
+                );
+            } else {
+                await db.execute('UPDATE orders SET status = ? WHERE id = ?', [status, id]);
+            }
+
+            // Dispara email de "pedido enviado" quando status muda para shipped
+            if (status === 'shipped') {
+                try {
+                    const [rows] = await db.execute(
+                        'SELECT order_number, customer_name, customer_email, shipping_tracking FROM orders WHERE id = ?',
+                        [id]
+                    );
+                    if (rows.length && rows[0].customer_email) {
+                        const { sendOrderShippedEmail } = require('../services/emailService');
+                        sendOrderShippedEmail(rows[0].customer_email, {
+                            order_number:      rows[0].order_number,
+                            customer_name:     rows[0].customer_name,
+                            shipping_tracking: tracking_code || rows[0].shipping_tracking,
+                        }).catch(err => logger.error('[email] pedido enviado falhou:', err));
+                    }
+                } catch (emailErr) {
+                    logger.error('[email] erro ao enviar email de envio:', emailErr);
+                }
+            }
+
             res.json({ success: true, message: 'Status atualizado com sucesso' });
         } catch (error) {
-            console.error('Erro ao atualizar status:', error);
+            logger.error('Erro ao atualizar status:', error);
             res.status(500).json({ success: false, message: 'Erro ao atualizar status' });
         }
     }
@@ -176,7 +236,7 @@ class AdminController {
                 }
             });
         } catch (error) {
-            console.error('Erro ao buscar produtos:', error);
+            logger.error('Erro ao buscar produtos:', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar produtos' });
         }
     }
@@ -212,7 +272,7 @@ class AdminController {
             data: { id: result.insertId }
         });
     } catch (error) {
-        console.error('Erro ao criar produto:', error);
+        logger.error('Erro ao criar produto:', error);
         res.status(500).json({ success: false, message: 'Erro ao criar produto' });
     }
 }
@@ -228,7 +288,7 @@ async updateProductStatus(req, res) {
             await db.execute('UPDATE products SET status = ? WHERE id = ?', [status, id]);
             res.json({ success: true, message: 'Status atualizado' });
         } catch (error) {
-            console.error('Erro ao atualizar status:', error);
+            logger.error('Erro ao atualizar status:', error);
             res.status(500).json({ success: false, message: 'Erro ao atualizar status' });
         }
     }
@@ -257,7 +317,7 @@ async updateProductStatus(req, res) {
         
         res.json({ success: true, message: 'Produto atualizado com sucesso' });
     } catch (error) {
-        console.error('Erro ao atualizar produto:', error);
+        logger.error('Erro ao atualizar produto:', error);
         res.status(500).json({ success: false, message: 'Erro ao atualizar produto' });
     }
 }
@@ -271,7 +331,7 @@ async updateProductStatus(req, res) {
             
             res.json({ success: true, message: 'Produto excluído com sucesso' });
         } catch (error) {
-            console.error('Erro ao excluir produto:', error);
+            logger.error('Erro ao excluir produto:', error);
             res.status(500).json({ success: false, message: 'Erro ao excluir produto' });
         }
     }
@@ -283,7 +343,7 @@ async updateProductStatus(req, res) {
             
             res.json({ success: true, data: categories });
         } catch (error) {
-            console.error('Erro ao buscar categorias:', error);
+            logger.error('Erro ao buscar categorias:', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar categorias' });
         }
     }
@@ -302,7 +362,7 @@ async updateProductStatus(req, res) {
         );
         res.status(201).json({ success: true, message: 'Categoria criada com sucesso', data: { id: result.insertId } });
     } catch (error) {
-        console.error('Erro ao criar categoria:', error);
+        logger.error('Erro ao criar categoria:', error);
         res.status(500).json({ success: false, message: 'Erro ao criar categoria' });
     }
 }
@@ -320,7 +380,7 @@ async updateCategory(req, res) {
         );
         res.json({ success: true, message: 'Categoria atualizada com sucesso' });
     } catch (error) {
-        console.error('Erro ao atualizar categoria:', error);
+        logger.error('Erro ao atualizar categoria:', error);
         res.status(500).json({ success: false, message: 'Erro ao atualizar categoria' });
     }
 }
@@ -343,7 +403,7 @@ async updateCategory(req, res) {
             
             res.json({ success: true, message: 'Categoria excluída com sucesso' });
         } catch (error) {
-            console.error('Erro ao excluir categoria:', error);
+            logger.error('Erro ao excluir categoria:', error);
             res.status(500).json({ success: false, message: 'Erro ao excluir categoria' });
         }
     }
@@ -379,7 +439,7 @@ async updateCategory(req, res) {
                 }
             });
         } catch (error) {
-            console.error('Erro ao buscar clientes:', error);
+            logger.error('Erro ao buscar clientes:', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar clientes' });
         }
     }
@@ -391,7 +451,7 @@ async updateCategory(req, res) {
             
             res.json({ success: true, data: banners });
         } catch (error) {
-            console.error('Erro ao buscar banners:', error);
+            logger.error('Erro ao buscar banners:', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar banners' });
         }
     }
@@ -412,7 +472,7 @@ async updateCategory(req, res) {
                 data: { id: result.insertId }
             });
         } catch (error) {
-            console.error('Erro ao criar banner:', error);
+            logger.error('Erro ao criar banner:', error);
             res.status(500).json({ success: false, message: 'Erro ao criar banner' });
         }
     }
@@ -430,7 +490,7 @@ async updateCategory(req, res) {
             
             res.json({ success: true, message: 'Banner atualizado com sucesso' });
         } catch (error) {
-            console.error('Erro ao atualizar banner:', error);
+            logger.error('Erro ao atualizar banner:', error);
             res.status(500).json({ success: false, message: 'Erro ao atualizar banner' });
         }
     }
@@ -444,7 +504,7 @@ async updateCategory(req, res) {
             
             res.json({ success: true, message: 'Banner excluído com sucesso' });
         } catch (error) {
-            console.error('Erro ao excluir banner:', error);
+            logger.error('Erro ao excluir banner:', error);
             res.status(500).json({ success: false, message: 'Erro ao excluir banner' });
         }
     }
@@ -456,7 +516,7 @@ async updateCategory(req, res) {
             
             res.json({ success: true, data: coupons });
         } catch (error) {
-            console.error('Erro ao buscar cupons:', error);
+            logger.error('Erro ao buscar cupons:', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar cupons' });
         }
     }
@@ -478,7 +538,7 @@ async updateCategory(req, res) {
                 data: { id: result.insertId }
             });
         } catch (error) {
-            console.error('Erro ao criar cupom:', error);
+            logger.error('Erro ao criar cupom:', error);
             res.status(500).json({ success: false, message: 'Erro ao criar cupom' });
         }
     }
@@ -492,7 +552,7 @@ async updateCategory(req, res) {
             
             res.json({ success: true, message: 'Cupom excluído com sucesso' });
         } catch (error) {
-            console.error('Erro ao excluir cupom:', error);
+            logger.error('Erro ao excluir cupom:', error);
             res.status(500).json({ success: false, message: 'Erro ao excluir cupom' });
         }
     }
@@ -523,7 +583,7 @@ async updateCategory(req, res) {
 
             res.json({ success: true, message: 'Cupom atualizado com sucesso' });
         } catch (error) {
-            console.error('Erro ao atualizar cupom:', error);
+            logger.error('Erro ao atualizar cupom:', error);
             res.status(500).json({ success: false, message: 'Erro ao atualizar cupom' });
         }
     }
@@ -537,7 +597,7 @@ async updateCategory(req, res) {
             );
             res.json({ success: true, data: coupons });
         } catch (error) {
-            console.error('Erro ao buscar cupons especiais:', error);
+            logger.error('Erro ao buscar cupons especiais:', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar cupons especiais' });
         }
     }
@@ -571,7 +631,7 @@ async updateCategory(req, res) {
 
             res.json({ success: true, message: 'Cupom especial salvo com sucesso' });
         } catch (error) {
-            console.error('Erro ao salvar cupom especial:', error);
+            logger.error('Erro ao salvar cupom especial:', error);
             res.status(500).json({ success: false, message: 'Erro ao salvar cupom especial' });
         }
     }
@@ -605,7 +665,7 @@ async updateCategory(req, res) {
             
             res.json({ success: true, data: report });
         } catch (error) {
-            console.error('Erro ao gerar relatório:', error);
+            logger.error('Erro ao gerar relatório:', error);
             res.status(500).json({ success: false, message: 'Erro ao gerar relatório' });
         }
     }
@@ -704,7 +764,7 @@ async updateCategory(req, res) {
             
             res.json({ success: true, data: settings });
         } catch (error) {
-            console.error('Erro ao buscar configurações:', error);
+            logger.error('Erro ao buscar configurações:', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar configurações' });
         }
     }
@@ -723,7 +783,7 @@ async updateCategory(req, res) {
             
             res.json({ success: true, message: 'Configurações atualizadas com sucesso' });
         } catch (error) {
-            console.error('Erro ao atualizar configurações:', error);
+            logger.error('Erro ao atualizar configurações:', error);
             res.status(500).json({ success: false, message: 'Erro ao atualizar configurações' });
         }
     }

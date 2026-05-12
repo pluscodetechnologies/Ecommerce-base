@@ -1,12 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <script>// ── Aplicar tema salvo ────────────────────────────────────────────────
-        (function() {
-            if (localStorage.getItem('adminTheme') === 'dark') {
-                document.documentElement.classList.add('dark');
-            }
-        })();</script>
+    <script>(function() { if (localStorage.getItem('adminTheme') === 'dark') { document.documentElement.classList.add('dark'); } })();</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedidos - Velvet Store Admin</title>
@@ -16,92 +11,34 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background: #f5f7fa; display: flex; }
         
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            padding: 20px 0;
-        }
-        
-        .sidebar-header {
-            padding: 20px 25px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
-        }
-        
+        .sidebar { width: 280px; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; position: fixed; left: 0; top: 0; padding: 20px 0; }
+        .sidebar-header { padding: 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
         .sidebar-header h2 { color: white; font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: 2px; }
         .sidebar-header span { color: rgba(255,255,255,0.6); font-size: 12px; text-transform: uppercase; }
-        
         .sidebar-menu { list-style: none; padding: 0 15px; }
         .sidebar-menu li { margin-bottom: 5px; }
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            padding: 14px 20px;
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-size: 15px;
-        }
+        .sidebar-menu a { display: flex; align-items: center; padding: 14px 20px; color: rgba(255,255,255,0.7); text-decoration: none; border-radius: 12px; transition: all 0.3s ease; font-size: 15px; }
         .sidebar-menu a i { width: 24px; margin-right: 12px; font-size: 18px; }
         .sidebar-menu a:hover { background: rgba(255,255,255,0.1); color: white; }
         .sidebar-menu .active { background: rgba(255,255,255,0.15); color: white; }
-        
-        .sidebar-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 20px 25px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        
+        .sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 25px; border-top: 1px solid rgba(255,255,255,0.1); }
         .user-info { display: flex; align-items: center; margin-bottom: 15px; }
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            color: white;
-            font-size: 20px;
-        }
+        .user-avatar { width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 20px; }
         .user-details h4 { color: white; font-size: 14px; margin-bottom: 2px; }
         .user-details p { color: rgba(255,255,255,0.6); font-size: 12px; }
-        
-        .logout-btn {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-        }
-        .logout-btn:hover { background: rgba(231, 76, 60, 0.3); }
+        .logout-btn { display: flex; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.1); color: white; text-decoration: none; border-radius: 10px; }
+        .logout-btn:hover { background: rgba(231,76,60,0.3); }
         .logout-btn i { margin-right: 10px; }
         
         .main-content { flex: 1; margin-left: 280px; padding: 30px; }
-        
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .page-title h1 { font-size: 28px; color: #1a1a2e; margin-bottom: 5px; }
         .page-title p { color: #666; font-size: 14px; }
-        
-        .filters {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+        .filters { display: flex; gap: 15px; margin-bottom: 20px; }
         
         .btn-primary { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; font-family: 'Poppins', sans-serif; }
         .btn-primary:hover { opacity: 0.85; }
+
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; }
         .modal.open { display: flex; }
         .modal-content { background: white; border-radius: 16px; padding: 30px; max-width: 640px; width: 90%; max-height: 90vh; overflow-y: auto; margin: auto; }
@@ -120,7 +57,29 @@
         .mo-item-row input:focus { border-color: #1a1a2e; }
         .mo-item-remove { width: 32px; height: 32px; background: #fff0f0; color: #e74c3c; border: 1px solid #fcc; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .mo-msg-success { background: #d4edda; color: #155724; padding: 12px 15px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; display: none; }
-        .mo-msg-error   { background: #f8d7da; color: #721c24; padding: 12px 15px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; display: none; }
+        .mo-msg-error { background: #f8d7da; color: #721c24; padding: 12px 15px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; display: none; }
+
+        .filter-select { padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-family: 'Poppins', sans-serif; background: white; cursor: pointer; }
+        
+        .orders-table { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; color: #666; font-weight: 500; font-size: 13px; border-bottom: 1px solid #eee; }
+        td { padding: 15px; border-bottom: 1px solid #f5f7fa; }
+        
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .status-pending  { background: #fff3cd; color: #856404; }
+        .status-paid     { background: #d4edda; color: #155724; }
+        .status-shipped  { background: #d1ecf1; color: #0c5460; }
+        .status-delivered{ background: #d4edda; color: #155724; }
+        .status-cancelled{ background: #f8d7da; color: #721c24; }
+
+        .products-link { cursor: pointer; color: #1976d2; text-decoration: underline; font-size: 12px; }
+        .products-link:hover { color: #0d47a1; }
+
+        /* ── Tema Escuro ── */
+        html.dark body { background: #0f0f1a; color: #e0e0e0; }
+        html.dark .sidebar { background: linear-gradient(180deg, #0a0a15 0%, #10101f 100%); }
+        html.dark .main-content { background: transparent; }
         html.dark .modal-content { background: #1a1a2e; }
         html.dark .modal-header h3 { color: #e0e0e0; }
         html.dark .close-modal { color: #666; }
@@ -128,123 +87,11 @@
         html.dark .form-group input, html.dark .form-group select, html.dark .form-group textarea,
         html.dark .mo-item-row input { background: #22223a; border-color: #2a2a3e; color: #e0e0e0; }
         html.dark .mo-items-label { color: #ccc; }
-        .filter-select {
-            padding: 10px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-family: 'Poppins', sans-serif;
-            background: white;
-            cursor: pointer;
-        }
-        
-        .orders-table {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th {
-            text-align: left;
-            padding: 15px;
-            color: #666;
-            font-weight: 500;
-            font-size: 13px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #f5f7fa;
-        }
-        
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        
-        .status-pending { background: #fff3cd; color: #856404; }
-        .status-paid { background: #d4edda; color: #155724; }
-        .status-shipped { background: #d1ecf1; color: #0c5460; }
-        .status-delivered { background: #d4edda; color: #155724; }
-        .status-cancelled { background: #f8d7da; color: #721c24; }
-        
-        .action-btn {
-            padding: 8px 15px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.3s ease;
-        }
-        
-        .view-btn { background: #e3f2fd; color: #1976d2; }
-        .view-btn:hover { background: #1976d2; color: white; }
-
-        /* ── Tema Escuro ─────────────────────────────────────────────────────── */
-        html.dark body { background: #0f0f1a; color: #e0e0e0; }
-        html.dark .sidebar { background: linear-gradient(180deg, #0a0a15 0%, #10101f 100%); }
-        html.dark .main-content { background: transparent; }
-        html.dark .card,
-        html.dark .products-panel,
-        html.dark .coupons-table,
-        html.dark .filters-bar,
-        html.dark .alert-card,
-        html.dark .banner-card,
-        html.dark .category-card,
-        html.dark .modal-content,
-        html.dark .special-card { background: #1a1a2e !important; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
         html.dark .page-title h1 { color: #e0e0e0; }
         html.dark .page-title p { color: #888; }
         html.dark table { background: #1a1a2e; }
         html.dark th { color: #888; border-bottom-color: #2a2a3e; }
         html.dark td { border-bottom-color: #22223a; color: #ccc; }
-        html.dark .product-name-cell strong,
-        html.dark .panel-header-title { color: #e0e0e0; }
-        html.dark .panel-header { border-bottom-color: #2a2a3e; }
-        html.dark .cat-tab { background: #1a1a2e; border-color: #2a2a3e; color: #aaa; }
-        html.dark .cat-tab:hover { border-color: #7b6cf6; color: #e0e0e0; }
-        html.dark .cat-tab.active { background: #7b6cf6; border-color: #7b6cf6; color: white; }
-        html.dark .search-box { background: #22223a; }
-        html.dark .search-box input { color: #e0e0e0; }
-        html.dark .search-box i { color: #666; }
-        html.dark .form-group input,
-        html.dark .form-group select,
-        html.dark .form-group textarea { background: #22223a; border-color: #2a2a3e; color: #e0e0e0; }
-        html.dark .form-group label { color: #ccc; }
-        html.dark .form-group .hint { color: #666; }
-        html.dark .card-header { border-bottom-color: #2a2a3e; }
-        html.dark .card-header h2 { color: #e0e0e0; }
-        html.dark .card-icon { background: #22223a; color: #aaa; }
-        html.dark .info-box { background: #1a2535; border-left-color: #4a90d9; }
-        html.dark .info-box p { color: #a0bcd8; }
-        html.dark .alert-preview { background: #0f0f1a; }
-        html.dark .banner-image { opacity: 0.85; }
-        html.dark .status-active { background: #1a3a2a; color: #6ee7b7; }
-        html.dark .status-inactive { background: #3a1a1a; color: #fca5a5; }
-        html.dark .featured-badge { background: #3a2e0a; color: #fbbf24; }
-        html.dark .product-sku { color: #666; }
-        html.dark .empty-state { color: #555; }
-        html.dark .section-title { color: #ccc; }
-        html.dark .special-card::before { background: #2a2a3e; }
-        html.dark .special-card.enabled::before { background: linear-gradient(180deg, #7b6cf6, #4a90d9); }
-        html.dark .special-card-fields input,
-        html.dark .special-card-fields select,
-        html.dark .code-row input { background: #22223a; border-color: #2a2a3e; color: #e0e0e0; }
-        html.dark .special-status-pill.pill-active { background: #1a3a2a; color: #6ee7b7; }
-        html.dark .special-status-pill.pill-inactive { background: #22223a; color: #666; }
-        html.dark .toggle-label { color: #666; }
-        html.dark .c-body { background: #22223a; }
-        html.dark .c-header { background: #22223a !important; border-bottom-color: #2a2a3e !important; }
-        html.dark .c-name-label { color: #e0e0e0 !important; }
-        html.dark .color-block { background: #1a1a2e !important; border-color: #2a2a3e !important; }
         html.dark .orders-table { background: #1a1a2e !important; border: 1px solid #2a2a3e; }
         html.dark .filters { background: #1a1a2e !important; border: 1px solid #2a2a3e; }
         html.dark .filter-select { background: #22223a !important; border-color: #2a2a3e !important; color: #e0e0e0 !important; }
@@ -258,7 +105,6 @@
             <h2>VELVET</h2>
             <span>administração</span>
         </div>
-        
         <ul class="sidebar-menu">
             <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
             <li><a href="/admin/pedidos" class="active"><i class="fas fa-shopping-cart"></i> Pedidos</a></li>
@@ -271,7 +117,6 @@
             <li><a href="/admin/relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
             <li><a href="/admin/configuracoes"><i class="fas fa-cog"></i> Configurações</a></li>
         </ul>
-        
         <div class="sidebar-footer">
             <div class="user-info">
                 <div class="user-avatar"><i class="fas fa-user"></i></div>
@@ -281,13 +126,10 @@
                 </div>
             </div>
             <a href="/" target="_blank" class="logout-btn" style="margin-bottom:10px;background:rgba(255,255,255,0.07);"><i class="fas fa-store" style="margin-right:10px;"></i> Ver loja</a>
-            <a href="#" class="logout-btn" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                Sair
-            </a>
+            <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</a>
         </div>
     </div>
-    
+
     <div class="main-content">
         <div class="top-bar">
             <div class="page-title">
@@ -296,7 +138,6 @@
             </div>
             <button onclick="openManualOrderModal()" class="btn-primary"><i class="fas fa-plus"></i> Novo Pedido Manual</button>
         </div>
-        
         <div class="filters">
             <select class="filter-select" id="statusFilter">
                 <option value="">Todos os status</option>
@@ -307,7 +148,6 @@
                 <option value="cancelled">Cancelado</option>
             </select>
         </div>
-        
         <div class="orders-table">
             <table>
                 <thead>
@@ -326,113 +166,43 @@
             </table>
         </div>
     </div>
-    
-    <script>
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = localStorage.getItem('token');
-        
-        if (!token || user.role !== 'admin') {
-            window.location.href = '/admin';
-        }
-        
-        document.getElementById('adminName').textContent = user.name || 'Administrador';
-        document.getElementById('logoutBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/admin';
-        });
-        
-        async function loadOrders(status = '') {
-            try {
-                const url = (status ? `/api/admin/orders?status=${status}` : '/api/admin/orders') + (status ? '&include_items=1' : '?include_items=1');
-                const response = await fetch(url, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const result = await response.json();
-                
-                if (result.success) {
-                    const tbody = document.getElementById('ordersTableBody');
-                    tbody.innerHTML = result.data.orders.map(order => {
-                        const shippingAddress = order.shipping_address || {};
-                        const customerName = order.customer_name || shippingAddress.name || 'Cliente';
-                        
-                        let productNames = '<span style="color:#bbb;">—</span>';
-                        if (order.items && order.items.length > 0) {
-                            productNames = order.items.map(i => `${i.product_name}${i.quantity > 1 ? ' x'+i.quantity : ''}`).join(', ');
-                        } else {
-                            // For manual orders, items may be stored in shipping_address JSON
-                            try {
-                                const addr = typeof order.shipping_address === 'string' ? JSON.parse(order.shipping_address) : (order.shipping_address || {});
-                                if (addr.items_manual) productNames = addr.items_manual;
-                            } catch {}
-                        }
 
-                        const statusLabel = { pending: 'Pendente', paid: 'Pago', shipped: 'Enviado', delivered: 'Entregue', cancelled: 'Cancelado' };
+    <!-- ═══ MODAL: CÓDIGO DE RASTREAMENTO ═══ -->
+    <div class="modal" id="trackingModal">
+        <div class="modal-content" style="max-width:440px;">
+            <div class="modal-header">
+                <h3>Código de Rastreamento</h3>
+                <button class="close-modal" onclick="closeTrackingModal()">&times;</button>
+            </div>
+            <p style="color:#666;font-size:14px;margin-bottom:20px;">
+                Pedido <strong id="trackingOrderNum"></strong> será marcado como <strong>Enviado</strong>.
+                Informe o código dos Correios para notificar o cliente por email.
+            </p>
+            <div id="trackingMsg" class="mo-msg-error"></div>
+            <div class="form-group">
+                <label>Código dos Correios <span style="color:#aaa;font-weight:400;">(opcional)</span></label>
+                <input type="text" id="trackingCodeInput" placeholder="Ex: BR123456789BR" style="text-transform:uppercase;">
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+                <button onclick="closeTrackingModal()" style="padding:12px 20px;background:#f5f7fa;color:#555;border:2px solid #e0e0e0;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;cursor:pointer;">Cancelar</button>
+                <button onclick="confirmTracking()" class="btn-primary"><i class="fas fa-paper-plane"></i> Confirmar Envio</button>
+            </div>
+        </div>
+    </div>
 
-                        return `
-                            <tr>
-                                <td>#${order.order_number}</td>
-                                <td>${new Date(order.created_at).toLocaleDateString('pt-BR')}</td>
-                                <td>${customerName}</td>
-                                <td style="font-size:12px;max-width:200px;">${productNames}</td>
-                                <td>R$ ${parseFloat(order.total_amount).toFixed(2)}</td>
-                                <td>${order.payment_method || '-'}</td>
-                                <td>
-                                    <span class="status-badge status-${order.status}" id="badge-${order.id}">${statusLabel[order.status] || order.status}</span>
-                                </td>
-                                <td>
-                                    <select onchange="updateStatus(${order.id}, this.value, this)" style="padding: 5px 10px; border-radius: 5px;">
-                                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendente</option>
-                                        <option value="paid" ${order.status === 'paid' ? 'selected' : ''}>Pago</option>
-                                        <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Enviado</option>
-                                        <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Entregue</option>
-                                        <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelado</option>
-                                    </select>
-                                </td>
-                            </tr>
-                        `;
-                    }).join('');
-                }
-            } catch (error) {
-                console.error('Erro ao carregar pedidos:', error);
-            }
-        }
-        
-        const statusLabel = { pending: 'Pendente', paid: 'Pago', shipped: 'Enviado', delivered: 'Entregue', cancelled: 'Cancelado' };
-
-        window.updateStatus = async function(orderId, status, selectEl) {
-            try {
-                const res = await fetch(`/api/admin/orders/${orderId}/status`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ status })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    // Update badge visually
-                    const badge = document.getElementById(`badge-${orderId}`);
-                    if (badge) {
-                        badge.className = `status-badge status-${status}`;
-                        badge.textContent = statusLabel[status] || status;
-                    }
-                    // Flash the select green briefly
-                    if (selectEl) {
-                        selectEl.style.borderColor = '#27ae60';
-                        setTimeout(() => { selectEl.style.borderColor = ''; }, 1200);
-                    }
-                }
-            } catch (error) {
-                console.error('Erro ao atualizar status:', error);
-            }
-        };
-        
-        document.getElementById('statusFilter').addEventListener('change', (e) => {
-            loadOrders(e.target.value);
-        });
-        
-        loadOrders();
-    </script>
+    <!-- ═══ MODAL: PRODUTOS DO PEDIDO ═══ -->
+    <div class="modal" id="productsModal">
+        <div class="modal-content" style="max-width:680px;">
+            <div class="modal-header">
+                <h3 id="productsModalTitle">Itens do Pedido</h3>
+                <button class="close-modal" onclick="closeProductsModal()">&times;</button>
+            </div>
+            <div id="productsModalBody"></div>
+            <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+                <button onclick="closeProductsModal()" class="btn-primary">Fechar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ═══ MODAL: NOVO PEDIDO MANUAL ═══ -->
     <div class="modal" id="manualOrderModal">
@@ -441,10 +211,8 @@
                 <h3>Novo Pedido Manual</h3>
                 <button class="close-modal" onclick="closeManualOrderModal()">&times;</button>
             </div>
-
             <div id="manualOrderMsg" class="mo-msg-success"></div>
             <div id="manualOrderErr" class="mo-msg-error"></div>
-
             <div class="form-row">
                 <div class="form-group">
                     <label>Nº do Pedido <span style="color:#aaa;font-weight:400;">(opcional)</span></label>
@@ -461,12 +229,10 @@
                     </select>
                 </div>
             </div>
-
             <div class="form-group">
                 <label>Nome do Cliente *</label>
                 <input type="text" id="mo_customer_name" placeholder="Nome completo do cliente">
             </div>
-
             <div class="form-group">
                 <div class="mo-items-label">
                     <span>Produtos</span>
@@ -474,7 +240,6 @@
                 </div>
                 <div id="mo_items"></div>
             </div>
-
             <div class="form-row-3">
                 <div class="form-group">
                     <label>Total *</label>
@@ -496,7 +261,6 @@
                     </select>
                 </div>
             </div>
-
             <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px;">
                 <button onclick="closeManualOrderModal()" style="padding:12px 20px;background:#f5f7fa;color:#555;border:2px solid #e0e0e0;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;cursor:pointer;">Cancelar</button>
                 <button onclick="submitManualOrder()" id="mo_submit_btn" class="btn-primary">Criar Pedido</button>
@@ -505,130 +269,343 @@
     </div>
 
     <script>
-    function openManualOrderModal() {
-        const modal = document.getElementById('manualOrderModal');
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        // Reset
-        ['mo_order_number','mo_customer_name','mo_total'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
-        document.getElementById('mo_shipping').value = '0';
-        document.getElementById('mo_status').value   = 'paid';
-        document.getElementById('mo_payment').value  = 'manual';
-        document.getElementById('mo_items').innerHTML = '';
-        document.getElementById('manualOrderMsg').style.display = 'none';
-        document.getElementById('manualOrderErr').style.display = 'none';
-        itemRowCount = 0;
-        addItemRow();
-    }
+        const user  = JSON.parse(localStorage.getItem('user') || '{}');
+        const token = localStorage.getItem('token');
 
-    function closeManualOrderModal() {
-        document.getElementById('manualOrderModal').classList.remove('open');
-        document.body.style.overflow = '';
-    }
+        if (!token || user.role !== 'admin') window.location.href = '/admin';
 
-    document.getElementById('manualOrderModal').addEventListener('click', function(e) {
-        if (e.target === this) closeManualOrderModal();
-    });
+        document.getElementById('adminName').textContent = user.name || 'Administrador';
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/admin';
+        });
 
-    let itemRowCount = 0;
-    function addItemRow() {
-        itemRowCount++;
-        const id = itemRowCount;
-        const div = document.createElement('div');
-        div.id = 'item_row_' + id;
-        div.className = 'mo-item-row';
-        div.innerHTML = `
-            <input type="text"   id="item_code_${id}"  placeholder="Código (opcional)" onblur="moFetchProduct(this,${id})">
-            <input type="text"   id="item_name_${id}"  placeholder="Nome do produto *">
-            <input type="number" id="item_qty_${id}"   value="1" min="1" placeholder="Qtd" oninput="moRecalcTotal()">
-            <input type="number" id="item_price_${id}" step="0.01" min="0" placeholder="Preço" oninput="moRecalcTotal()">
-            <button class="mo-item-remove" onclick="document.getElementById('item_row_${id}').remove();moRecalcTotal();">&times;</button>
-        `;
-        document.getElementById('mo_items').appendChild(div);
-    }
+        const statusLabel = { pending: 'Pendente', paid: 'Pago', shipped: 'Enviado', delivered: 'Entregue', cancelled: 'Cancelado' };
 
-    async function moFetchProduct(input, rowId) {
-        const code = input.value.trim();
-        if (!code) return;
-        try {
-            const res  = await fetch(`/api/products?search=${encodeURIComponent(code)}`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const data = await res.json();
-            if (data.success && data.data && data.data.length > 0) {
-                const p = data.data[0];
-                const nameEl  = document.getElementById('item_name_'  + rowId);
-                const priceEl = document.getElementById('item_price_' + rowId);
-                if (nameEl  && !nameEl.value)  nameEl.value  = p.name;
-                if (priceEl && !priceEl.value) priceEl.value = p.promotional_price || p.price;
-                input.dataset.productId = p.id;
-                input.style.borderColor = '#27ae60';
-                moRecalcTotal();
+        // ── Carregar pedidos ──────────────────────────────────────────────────
+        async function loadOrders(status = '') {
+            try {
+                const url = '/api/admin/orders?include_items=1' + (status ? `&status=${status}` : '');
+                const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                const result   = await response.json();
+
+                if (result.success) {
+                    document.getElementById('ordersTableBody').innerHTML = result.data.orders.map(order => {
+                        const customerName = order.customer_name || 'Cliente';
+
+                        let productNames = '<span style="color:#bbb;">—</span>';
+                        if (order.items && order.items.length > 0) {
+                            const preview = order.items.slice(0, 2)
+                                .map(i => `${i.product_name}${i.quantity > 1 ? ' x' + i.quantity : ''}`)
+                                .join(', ');
+                            const extra = order.items.length > 2 ? ` <span style="color:#aaa;">+${order.items.length - 2}</span>` : '';
+                            productNames = `<span class="products-link" onclick="openProductsModal(${order.id})" title="Clique para ver detalhes">${preview}${extra}</span>`;
+                        } else {
+                            try {
+                                const addr = typeof order.shipping_address === 'string' ? JSON.parse(order.shipping_address) : (order.shipping_address || {});
+                                if (addr.items_manual) productNames = addr.items_manual;
+                            } catch {}
+                        }
+
+                        return `
+                            <tr>
+                                <td>#${order.order_number}</td>
+                                <td>${new Date(order.created_at).toLocaleDateString('pt-BR')}</td>
+                                <td>${customerName}</td>
+                                <td style="max-width:200px;">${productNames}</td>
+                                <td>R$ ${parseFloat(order.total_amount).toFixed(2)}</td>
+                                <td>${order.payment_method || '-'}</td>
+                                <td>
+                                    <span class="status-badge status-${order.status}" id="badge-${order.id}">${statusLabel[order.status] || order.status}</span>
+                                    ${order.shipping_tracking ? `<div style="font-size:11px;color:#888;margin-top:4px;"><i class="fas fa-truck" style="margin-right:3px;"></i>${order.shipping_tracking}</div>` : ''}
+                                </td>
+                                <td>
+                                    <select class="status-change"
+                                        onchange="updateStatus(${order.id}, this.value, this, '${order.customer_email || ''}', '${order.order_number}')"
+                                        style="padding:5px 10px;border-radius:5px;border:1px solid #ddd;">
+                                        <option value="pending"   ${order.status === 'pending'   ? 'selected' : ''}>Pendente</option>
+                                        <option value="paid"      ${order.status === 'paid'      ? 'selected' : ''}>Pago</option>
+                                        <option value="shipped"   ${order.status === 'shipped'   ? 'selected' : ''}>Enviado</option>
+                                        <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Entregue</option>
+                                        <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelado</option>
+                                    </select>
+                                </td>
+                            </tr>`;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar pedidos:', error);
             }
-        } catch {}
-    }
+        }
 
-    function moRecalcTotal() {
-        let total = 0;
-        document.querySelectorAll('[id^="item_qty_"]').forEach(el => {
-            const id = el.id.replace('item_qty_','');
-            total += (parseFloat(document.getElementById('item_qty_'+id)?.value)||0) * (parseFloat(document.getElementById('item_price_'+id)?.value)||0);
-        });
-        total += parseFloat(document.getElementById('mo_shipping').value)||0;
-        document.getElementById('mo_total').value = total.toFixed(2);
-    }
-
-    document.getElementById('mo_shipping').addEventListener('input', moRecalcTotal);
-
-    async function submitManualOrder() {
-        const btnEl = document.getElementById('mo_submit_btn');
-        document.getElementById('manualOrderMsg').style.display = 'none';
-        document.getElementById('manualOrderErr').style.display = 'none';
-
-        const customerName = document.getElementById('mo_customer_name').value.trim();
-        const total        = document.getElementById('mo_total').value;
-        if (!customerName)                    { showMoMsg('Nome do cliente é obrigatório.', 'error'); return; }
-        if (!total || parseFloat(total) <= 0) { showMoMsg('Informe o valor total do pedido.', 'error'); return; }
-
-        const items = [];
-        document.querySelectorAll('[id^="item_name_"]').forEach(nameEl => {
-            const id = nameEl.id.replace('item_name_','');
-            const codeEl = document.getElementById('item_code_'+id);
-            if (nameEl.value.trim()) items.push({
-                product_id:   codeEl?.dataset?.productId || null,
-                product_name: nameEl.value.trim(),
-                quantity:     parseInt(document.getElementById('item_qty_'+id)?.value)||1,
-                unit_price:   parseFloat(document.getElementById('item_price_'+id)?.value)||0
-            });
-        });
-
-        const payload = {
-            order_number:    document.getElementById('mo_order_number').value.trim(),
-            customer_name:   customerName,
-            total_amount:    parseFloat(total),
-            shipping_amount: parseFloat(document.getElementById('mo_shipping').value)||0,
-            payment_method:  document.getElementById('mo_payment').value,
-            status:          document.getElementById('mo_status').value,
-            items
+        // ── Atualizar status ──────────────────────────────────────────────────
+        window.updateStatus = function(orderId, status, selectEl, customerEmail, orderNumber) {
+            if (status === 'shipped') {
+                openTrackingModal(orderId, status, selectEl, customerEmail, orderNumber);
+                return;
+            }
+            doUpdateStatus(orderId, status, null, selectEl);
         };
 
-        btnEl.disabled = true; btnEl.textContent = 'Salvando...';
-        try {
-            const res  = await fetch('/api/admin/orders', { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify(payload) });
-            const data = await res.json();
-            if (data.success) {
-                showMoMsg(`✅ Pedido ${data.data.order_number} criado com sucesso!`, 'success');
-                setTimeout(() => { closeManualOrderModal(); loadOrders(); }, 1500);
-            } else {
-                showMoMsg(data.message || 'Erro ao criar pedido.', 'error');
-            }
-        } catch { showMoMsg('Erro de conexão. Tente novamente.', 'error'); }
-        finally { btnEl.disabled = false; btnEl.textContent = 'Criar Pedido'; }
-    }
+        async function doUpdateStatus(orderId, status, trackingCode, selectEl) {
+            try {
+                const body = { status };
+                if (trackingCode) body.tracking_code = trackingCode;
 
-    function showMoMsg(msg, type) {
-        const el = document.getElementById(type === 'success' ? 'manualOrderMsg' : 'manualOrderErr');
-        el.textContent = msg;
-        el.style.display = 'block';
-    }
+                const res  = await fetch(`/api/admin/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const badge = document.getElementById(`badge-${orderId}`);
+                    if (badge) {
+                        badge.className   = `status-badge status-${status}`;
+                        badge.textContent = statusLabel[status] || status;
+                        if (trackingCode) {
+                            // Remove tracking anterior se existir
+                            badge.nextElementSibling?.remove();
+                            badge.insertAdjacentHTML('afterend',
+                                `<div style="font-size:11px;color:#888;margin-top:4px;"><i class="fas fa-truck" style="margin-right:3px;"></i>${trackingCode}</div>`
+                            );
+                        }
+                    }
+                    if (selectEl) {
+                        selectEl.style.borderColor = '#27ae60';
+                        setTimeout(() => { selectEl.style.borderColor = ''; }, 1200);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+            }
+        }
+
+        // ── Modal rastreamento ────────────────────────────────────────────────
+        let _trackingData = {};
+
+        function openTrackingModal(orderId, status, selectEl, customerEmail, orderNumber) {
+            _trackingData = { orderId, status, selectEl, customerEmail, orderNumber };
+            document.getElementById('trackingOrderNum').textContent = '#' + orderNumber;
+            document.getElementById('trackingCodeInput').value = '';
+            document.getElementById('trackingMsg').style.display = 'none';
+            document.getElementById('trackingModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => document.getElementById('trackingCodeInput').focus(), 100);
+        }
+
+        function closeTrackingModal() {
+            document.getElementById('trackingModal').classList.remove('open');
+            document.body.style.overflow = '';
+            // Reverte o select para o valor anterior
+            if (_trackingData.selectEl) _trackingData.selectEl.value = 'paid';
+        }
+
+        window.confirmTracking = async function() {
+            const trackingCode = document.getElementById('trackingCodeInput').value.trim().toUpperCase();
+            const { orderId, status, selectEl } = _trackingData;
+            await doUpdateStatus(orderId, status, trackingCode || null, selectEl);
+            document.getElementById('trackingModal').classList.remove('open');
+            document.body.style.overflow = '';
+        };
+
+        document.getElementById('trackingModal').addEventListener('click', function(e) {
+            if (e.target === this) closeTrackingModal();
+        });
+
+        // ── Modal produtos do pedido ──────────────────────────────────────────
+        window.openProductsModal = async function(orderId) {
+            document.getElementById('productsModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('productsModalBody').innerHTML =
+                '<p style="color:#999;text-align:center;padding:20px;">Carregando...</p>';
+
+            try {
+                const res  = await fetch(`/api/admin/orders/${orderId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success && data.data) {
+                    const order = data.data;
+                    const items = order.items || [];
+                    document.getElementById('productsModalTitle').textContent = `Pedido #${order.order_number}`;
+                    document.getElementById('productsModalBody').innerHTML = items.length ? `
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;padding:10px 12px;font-size:12px;color:#666;border-bottom:2px solid #eee;">Produto</th>
+                                    <th style="text-align:center;padding:10px 12px;font-size:12px;color:#666;border-bottom:2px solid #eee;">Variações</th>
+                                    <th style="text-align:center;padding:10px 12px;font-size:12px;color:#666;border-bottom:2px solid #eee;">Qtd</th>
+                                    <th style="text-align:right;padding:10px 12px;font-size:12px;color:#666;border-bottom:2px solid #eee;">Unit.</th>
+                                    <th style="text-align:right;padding:10px 12px;font-size:12px;color:#666;border-bottom:2px solid #eee;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${items.map(i => `
+                                    <tr>
+                                        <td style="padding:12px;font-size:13px;font-weight:500;border-bottom:1px solid #f5f7fa;">${i.product_name}</td>
+                                        <td style="padding:12px;text-align:center;border-bottom:1px solid #f5f7fa;">
+                                            ${i.color ? `<span style="background:#f0ede8;padding:2px 8px;border-radius:4px;font-size:11px;margin:2px;display:inline-block;">${i.color}</span>` : ''}
+                                            ${i.size  ? `<span style="background:#f0ede8;padding:2px 8px;border-radius:4px;font-size:11px;margin:2px;display:inline-block;">${i.size}</span>`  : ''}
+                                            ${!i.color && !i.size ? '<span style="color:#bbb;font-size:12px;">—</span>' : ''}
+                                        </td>
+                                        <td style="padding:12px;text-align:center;font-size:13px;border-bottom:1px solid #f5f7fa;">${i.quantity}</td>
+                                        <td style="padding:12px;text-align:right;font-size:13px;border-bottom:1px solid #f5f7fa;">R$ ${parseFloat(i.unit_price).toFixed(2)}</td>
+                                        <td style="padding:12px;text-align:right;font-size:13px;font-weight:600;border-bottom:1px solid #f5f7fa;">R$ ${parseFloat(i.total_price).toFixed(2)}</td>
+                                    </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<p style="color:#999;text-align:center;padding:20px;">Nenhum item encontrado.</p>';
+                }
+            } catch {
+                document.getElementById('productsModalBody').innerHTML =
+                    '<p style="color:#e74c3c;text-align:center;padding:20px;">Erro ao carregar itens.</p>';
+            }
+        };
+
+        window.closeProductsModal = function() {
+            document.getElementById('productsModal').classList.remove('open');
+            document.body.style.overflow = '';
+        };
+
+        document.getElementById('productsModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProductsModal();
+        });
+
+        document.getElementById('statusFilter').addEventListener('change', (e) => loadOrders(e.target.value));
+        loadOrders();
+
+        // ── Modal pedido manual ───────────────────────────────────────────────
+        function openManualOrderModal() {
+            document.getElementById('manualOrderModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+            ['mo_order_number','mo_customer_name','mo_total'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.value = '';
+            });
+            document.getElementById('mo_shipping').value = '0';
+            document.getElementById('mo_status').value   = 'paid';
+            document.getElementById('mo_payment').value  = 'manual';
+            document.getElementById('mo_items').innerHTML = '';
+            document.getElementById('manualOrderMsg').style.display = 'none';
+            document.getElementById('manualOrderErr').style.display = 'none';
+            itemRowCount = 0;
+            addItemRow();
+        }
+
+        function closeManualOrderModal() {
+            document.getElementById('manualOrderModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('manualOrderModal').addEventListener('click', function(e) {
+            if (e.target === this) closeManualOrderModal();
+        });
+
+        let itemRowCount = 0;
+        function addItemRow() {
+            itemRowCount++;
+            const id  = itemRowCount;
+            const div = document.createElement('div');
+            div.id        = 'item_row_' + id;
+            div.className = 'mo-item-row';
+            div.innerHTML = `
+                <input type="text"   id="item_code_${id}"  placeholder="Código (opcional)" onblur="moFetchProduct(this,${id})">
+                <input type="text"   id="item_name_${id}"  placeholder="Nome do produto *">
+                <input type="number" id="item_qty_${id}"   value="1" min="1" placeholder="Qtd" oninput="moRecalcTotal()">
+                <input type="number" id="item_price_${id}" step="0.01" min="0" placeholder="Preço" oninput="moRecalcTotal()">
+                <button class="mo-item-remove" onclick="document.getElementById('item_row_${id}').remove();moRecalcTotal();">&times;</button>`;
+            document.getElementById('mo_items').appendChild(div);
+        }
+
+        async function moFetchProduct(input, rowId) {
+            const code = input.value.trim();
+            if (!code) return;
+            try {
+                const res  = await fetch(`/api/products?search=${encodeURIComponent(code)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success && data.data && data.data.length > 0) {
+                    const p      = data.data[0];
+                    const nameEl  = document.getElementById('item_name_'  + rowId);
+                    const priceEl = document.getElementById('item_price_' + rowId);
+                    if (nameEl  && !nameEl.value)  nameEl.value  = p.name;
+                    if (priceEl && !priceEl.value) priceEl.value = p.promotional_price || p.price;
+                    input.dataset.productId  = p.id;
+                    input.style.borderColor  = '#27ae60';
+                    moRecalcTotal();
+                }
+            } catch {}
+        }
+
+        function moRecalcTotal() {
+            let total = 0;
+            document.querySelectorAll('[id^="item_qty_"]').forEach(el => {
+                const id = el.id.replace('item_qty_', '');
+                total += (parseFloat(document.getElementById('item_qty_'   + id)?.value) || 0)
+                       * (parseFloat(document.getElementById('item_price_' + id)?.value) || 0);
+            });
+            total += parseFloat(document.getElementById('mo_shipping').value) || 0;
+            document.getElementById('mo_total').value = total.toFixed(2);
+        }
+
+        document.getElementById('mo_shipping').addEventListener('input', moRecalcTotal);
+
+        async function submitManualOrder() {
+            const btnEl = document.getElementById('mo_submit_btn');
+            document.getElementById('manualOrderMsg').style.display = 'none';
+            document.getElementById('manualOrderErr').style.display = 'none';
+
+            const customerName = document.getElementById('mo_customer_name').value.trim();
+            const total        = document.getElementById('mo_total').value;
+            if (!customerName)                    { showMoMsg('Nome do cliente é obrigatório.', 'error'); return; }
+            if (!total || parseFloat(total) <= 0) { showMoMsg('Informe o valor total do pedido.', 'error'); return; }
+
+            const items = [];
+            document.querySelectorAll('[id^="item_name_"]').forEach(nameEl => {
+                const id     = nameEl.id.replace('item_name_', '');
+                const codeEl = document.getElementById('item_code_' + id);
+                if (nameEl.value.trim()) items.push({
+                    product_id:   codeEl?.dataset?.productId || null,
+                    product_name: nameEl.value.trim(),
+                    quantity:     parseInt(document.getElementById('item_qty_'   + id)?.value) || 1,
+                    unit_price:   parseFloat(document.getElementById('item_price_' + id)?.value) || 0
+                });
+            });
+
+            const payload = {
+                order_number:    document.getElementById('mo_order_number').value.trim(),
+                customer_name:   customerName,
+                total_amount:    parseFloat(total),
+                shipping_amount: parseFloat(document.getElementById('mo_shipping').value) || 0,
+                payment_method:  document.getElementById('mo_payment').value,
+                status:          document.getElementById('mo_status').value,
+                items
+            };
+
+            btnEl.disabled = true; btnEl.textContent = 'Salvando...';
+            try {
+                const res  = await fetch('/api/admin/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showMoMsg(`✅ Pedido ${data.data.order_number} criado com sucesso!`, 'success');
+                    setTimeout(() => { closeManualOrderModal(); loadOrders(); }, 1500);
+                } else {
+                    showMoMsg(data.message || 'Erro ao criar pedido.', 'error');
+                }
+            } catch { showMoMsg('Erro de conexão. Tente novamente.', 'error'); }
+            finally { btnEl.disabled = false; btnEl.textContent = 'Criar Pedido'; }
+        }
+
+        function showMoMsg(msg, type) {
+            const el = document.getElementById(type === 'success' ? 'manualOrderMsg' : 'manualOrderErr');
+            el.textContent    = msg;
+            el.style.display  = 'block';
+        }
     </script>
 </body>
 </html>
