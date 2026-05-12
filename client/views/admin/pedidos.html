@@ -7,6 +7,7 @@
     <title>Pedidos - Velvet Store Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/admin-auth.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background: #f5f7fa; display: flex; }
@@ -270,17 +271,9 @@
 
     <script>
         const user  = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = localStorage.getItem('token');
-
-        if (!token || user.role !== 'admin') window.location.href = '/admin';
 
         document.getElementById('adminName').textContent = user.name || 'Administrador';
-        document.getElementById('logoutBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/admin';
-        });
+        document.getElementById('logoutBtn').addEventListener('click', e => { e.preventDefault(); adminLogout(); });
 
         const statusLabel = { pending: 'Pendente', paid: 'Pago', shipped: 'Enviado', delivered: 'Entregue', cancelled: 'Cancelado' };
 
@@ -288,7 +281,7 @@
         async function loadOrders(status = '') {
             try {
                 const url = '/api/admin/orders?include_items=1' + (status ? `&status=${status}` : '');
-                const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                const response = await adminFetch(url);
                 const result   = await response.json();
 
                 if (result.success) {
@@ -354,11 +347,7 @@
                 const body = { status };
                 if (trackingCode) body.tracking_code = trackingCode;
 
-                const res  = await fetch(`/api/admin/orders/${orderId}/status`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(body)
-                });
+                const res  = await adminFetch(`/api/admin/orders/${orderId}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
                 const data = await res.json();
                 if (data.success) {
                     const badge = document.getElementById(`badge-${orderId}`);
@@ -423,9 +412,7 @@
                 '<p style="color:#999;text-align:center;padding:20px;">Carregando...</p>';
 
             try {
-                const res  = await fetch(`/api/admin/orders/${orderId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res  = await adminFetch(`/api/admin/orders/${orderId}`);
                 const data = await res.json();
                 if (data.success && data.data) {
                     const order = data.data;
@@ -523,7 +510,7 @@
             const code = input.value.trim();
             if (!code) return;
             try {
-                const res  = await fetch(`/api/products?search=${encodeURIComponent(code)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res  = await adminFetch(`/api/products?search=${encodeURIComponent(code)}`);
                 const data = await res.json();
                 if (data.success && data.data && data.data.length > 0) {
                     const p      = data.data[0];
@@ -585,11 +572,7 @@
 
             btnEl.disabled = true; btnEl.textContent = 'Salvando...';
             try {
-                const res  = await fetch('/api/admin/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(payload)
-                });
+                const res  = await adminFetch('/api/admin/orders', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 const data = await res.json();
                 if (data.success) {
                     showMoMsg(`✅ Pedido ${data.data.order_number} criado com sucesso!`, 'success');

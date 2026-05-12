@@ -12,6 +12,7 @@
     <title>Dashboard - Velvet Store Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/admin-auth.js"></script>
     <style>
         * {
             margin: 0;
@@ -512,11 +513,6 @@
     
     <script>
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = localStorage.getItem('token');
-        
-        if (!token || user.role !== 'admin') {
-            window.location.href = '/admin';
-        }
         
         document.getElementById('adminName').textContent = user.name || 'Administrador';
         
@@ -525,18 +521,11 @@
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
         });
         
-        document.getElementById('logoutBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/admin';
-        });
+        document.getElementById('logoutBtn').addEventListener('click', e => { e.preventDefault(); adminLogout(); });
         
         async function loadDashboard() {
             try {
-                const response = await fetch('/api/admin/dashboard/stats', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const response = await adminFetch('/api/admin/dashboard/stats');
                 
                 const result = await response.json();
                 

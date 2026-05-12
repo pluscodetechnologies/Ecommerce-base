@@ -560,7 +560,7 @@
         document.getElementById('calcShippingBtn').addEventListener('click', async () => {
             const rawCep = document.getElementById('cepCalc').value;
             const cep    = rawCep.replace(/\D/g, '');
-            if (cep.length !== 8) { alert('Digite um CEP válido.'); return; }
+            if (cep.length !== 8) { showToast('Digite um CEP válido.'); return; }
 
             document.getElementById('shippingCep').value = rawCep;
             await buscaCep(cep);
@@ -604,7 +604,7 @@
                     wrap.innerHTML = '<p style="color:var(--error);font-size:13px;">Não foi possível calcular o frete para este CEP.</p>';
                 }
             } catch {
-                alert('Erro de conexão ao calcular frete.');
+                showToast('Erro de conexão ao calcular frete.');
             } finally {
                 btn.textContent = 'Calcular';
                 btn.disabled    = false;
@@ -694,12 +694,12 @@
                     if (Array.isArray(data.errors) && data.errors.length) {
                         msg = data.errors.map(e => e.message).join(' • ');
                     }
-                    alert(msg);
+                    showToast(msg);
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-lock"></i><span>Ir para Pagamento</span><i class="fas fa-arrow-right arrow"></i>';
                 }
             } catch {
-                alert('Erro de conexão. Tente novamente.');
+                showToast('Erro de conexão. Tente novamente.');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-lock"></i><span>Ir para Pagamento</span><i class="fas fa-arrow-right arrow"></i>';
             }
@@ -808,5 +808,23 @@
     </script>
     <!-- ═══ fim MOBILE DRAWER ═══ -->
     <script src="/js/cookies.js"></script>
+
+<style>
+@keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+<script>
+function showToast(message, type = 'error') {
+    const existing = document.getElementById('page-toast');
+    if (existing) existing.remove();
+    const colors = { error:'background:#C45C5C;color:#fff;', success:'background:#2E8B57;color:#fff;', info:'background:#1A1817;color:#fff;' };
+    const t = document.createElement('div');
+    t.id = 'page-toast';
+    t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);${colors[type]||colors.error}padding:12px 24px;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:500;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.2);animation:fadeInUp 0.3s ease;pointer-events:none;`;
+    t.textContent = message;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+}
+</script>
+
 </body>
 </html>

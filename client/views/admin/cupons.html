@@ -12,6 +12,7 @@
     <title>Cupons - Velvet Store Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/admin-auth.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background: #f5f7fa; display: flex; }
@@ -236,8 +237,6 @@
 
     <script>
         const user  = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = localStorage.getItem('token');
-        if (!token || user.role !== 'admin') window.location.href = '/admin';
         document.getElementById('adminName').textContent = user.name || 'Administrador';
         document.getElementById('logoutBtn').addEventListener('click', e => { e.preventDefault(); localStorage.clear(); window.location.href = '/admin'; });
 
@@ -267,7 +266,7 @@
 
         async function loadSpecialCoupons() {
             try {
-                const res = await fetch('/api/admin/coupons/special', { headers: { Authorization: 'Bearer ' + token } });
+                const res = await adminFetch('/api/admin/coupons/special');
                 const result = await res.json();
                 if (result.success) result.data.forEach(c => specialData[c.coupon_type] = c);
             } catch(e) {}
@@ -369,10 +368,7 @@
 
         async function upsertSpecial(type, status, discount_value, discount_type, code, description) {
             try {
-                const res = await fetch('/api/admin/coupons/special/' + type, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-                    body: JSON.stringify({ status, discount_value, discount_type, code, description })
+                const res = await adminFetch('/api/admin/coupons/special/' + type, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status, discount_value, discount_type, code, description })
                 });
                 const result = await res.json();
                 if (result.success) {
@@ -387,7 +383,7 @@
 
         async function loadCoupons() {
             try {
-                const res = await fetch('/api/admin/coupons', { headers: { Authorization: 'Bearer ' + token } });
+                const res = await adminFetch('/api/admin/coupons');
                 const result = await res.json();
                 if (!result.success) return;
                 const manual = result.data.filter(c => !c.coupon_type);
@@ -420,14 +416,14 @@
 
         window.toggleStatus = async function(id, cur) {
             const ns = cur === 'active' ? 'inactive' : 'active';
-            await fetch('/api/admin/coupons/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ status: ns }) });
+            await adminFetch('/api/admin/coupons/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: ns }) });
             showToast('Status atualizado');
             loadCoupons();
         };
 
         window.deleteCoupon = async function(id) {
             if (!confirm('Excluir este cupom?')) return;
-            await fetch('/api/admin/coupons/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+            await adminFetch('/api/admin/coupons/' + id, { method: 'DELETE' });
             showToast('Cupom excluído');
             loadCoupons();
         };
@@ -449,7 +445,7 @@
                 starts_at:      document.getElementById('startsAt').value || null,
                 expires_at:     document.getElementById('expiresAt').value || null
             };
-            const res = await fetch('/api/admin/coupons', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(data) });
+            const res = await adminFetch('/api/admin/coupons', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
             const result = await res.json();
             if (result.success) { modal.style.display = 'none'; showToast('Cupom criado!'); loadCoupons(); }
             else showToast(result.message || 'Erro ao criar cupom', 'error');

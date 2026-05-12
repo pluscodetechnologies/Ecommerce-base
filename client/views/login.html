@@ -591,7 +591,7 @@
             const email = document.getElementById('recoveryEmail').value;
             
             if (!email) {
-                alert('Digite seu email');
+                showToast('Digite seu email');
                 return;
             }
             
@@ -605,20 +605,19 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert('Email de recuperação enviado! Verifique sua caixa de entrada.');
-                    modal.style.display = 'none';
-                    document.getElementById('recoveryEmail').value = '';
+                    showToast('Email enviado! Verifique sua caixa de entrada.', 'success');
+                    setTimeout(() => { modal.style.display = 'none'; document.getElementById('recoveryEmail').value = ''; }, 2000);
                 } else if (response.status === 429) {
-                    alert('Muitas tentativas. Aguarde alguns minutos e tente novamente.');
+                    showToast('Muitas tentativas. Aguarde alguns minutos.', 'error');
                 } else {
                     let msg = result.message || 'Erro ao enviar email.';
                     if (Array.isArray(result.errors) && result.errors.length) {
                         msg = result.errors.map(e => e.message).join(' • ');
                     }
-                    alert(msg);
+                    showToast(msg);
                 }
             } catch (error) {
-                alert('Erro ao enviar email de recuperação');
+                showToast('Erro ao enviar email. Tente novamente.');
             }
         });
 
@@ -889,10 +888,10 @@
                 const redirect = new URLSearchParams(window.location.search).get('redirect') || '/';
                 window.location.href = redirect;
             } else {
-                alert(data.message || 'Erro ao fazer login social.');
+                showToast(data.message || 'Erro ao fazer login social.');
             }
         } catch (e) {
-            alert('Erro de conexão. Tente novamente.');
+            showToast('Erro de conexão. Tente novamente.');
         }
     }
 
@@ -911,7 +910,7 @@
 
     function triggerGoogleLogin() {
         if (!window.google || GOOGLE_CLIENT_ID === 'SEU_GOOGLE_CLIENT_ID') {
-            alert('Login com Google não configurado. Adicione seu GOOGLE_CLIENT_ID no arquivo login.html.');
+            showToast('Login com Google não configurado.');
             return;
         }
         google.accounts.id.prompt();
@@ -929,7 +928,7 @@
             // Check if still placeholder
         }
         if (typeof FB === 'undefined') {
-            alert('Login com Facebook não configurado. Adicione seu FACEBOOK_APP_ID no arquivo login.html.');
+            showToast('Login com Facebook não configurado.');
             return;
         }
         FB.login(function(response) {
@@ -947,5 +946,23 @@
         document.getElementById(id)?.addEventListener('click', triggerFacebookLogin);
     });
     </script>
+
+<style>
+@keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+<script>
+function showToast(message, type = 'error') {
+    const existing = document.getElementById('page-toast');
+    if (existing) existing.remove();
+    const colors = { error:'background:#C45C5C;color:#fff;', success:'background:#2E8B57;color:#fff;', info:'background:#1A1817;color:#fff;' };
+    const t = document.createElement('div');
+    t.id = 'page-toast';
+    t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);${colors[type]||colors.error}padding:12px 24px;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:500;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.2);animation:fadeInUp 0.3s ease;pointer-events:none;`;
+    t.textContent = message;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+}
+</script>
+
 </body>
 </html>

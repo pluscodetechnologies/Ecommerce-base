@@ -61,6 +61,7 @@ app.use(helmet({
                           "https://accounts.google.com",
                           "https://connect.facebook.net",
                           "https://cdnjs.cloudflare.com"],
+            scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc:    ["'self'", "'unsafe-inline'",
                           "https://fonts.googleapis.com",
                           "https://cdnjs.cloudflare.com"],

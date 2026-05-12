@@ -12,6 +12,7 @@
     <title>Configurações - Velvet Store Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/admin-auth.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background: #f5f7fa; display: flex; }
@@ -280,10 +281,8 @@
 
     <script>
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = localStorage.getItem('token');
-        if (!token || user.role !== 'admin') window.location.href = '/admin';
         document.getElementById('adminName').textContent = user.name || 'Administrador';
-        document.getElementById('logoutBtn').addEventListener('click', (e) => { e.preventDefault(); localStorage.clear(); window.location.href = '/admin'; });
+        document.getElementById('logoutBtn').addEventListener('click', e => { e.preventDefault(); adminLogout(); });
 
         function showFeedback(id, message, type) {
             const el = document.getElementById(id);
@@ -344,10 +343,7 @@
             btn.textContent = 'Salvando...';
 
             try {
-                const res = await fetch('/api/auth/change-password', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ currentPassword, newPassword })
+                const res = await adminFetch('/api/auth/change-password', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currentPassword, newPassword })
                 });
                 const result = await res.json();
 

@@ -12,6 +12,7 @@
     <title>Banners - Velvet Store Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/admin-auth.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background: #f5f7fa; display: flex; }
@@ -220,10 +221,8 @@
     
     <script>
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = localStorage.getItem('token');
-        if (!token || user.role !== 'admin') window.location.href = '/admin';
         document.getElementById('adminName').textContent = user.name || 'Administrador';
-        document.getElementById('logoutBtn').addEventListener('click', (e) => { e.preventDefault(); localStorage.clear(); window.location.href = '/admin'; });
+        document.getElementById('logoutBtn').addEventListener('click', e => { e.preventDefault(); adminLogout(); });
 
         const modal = document.getElementById('bannerModal');
 
@@ -244,7 +243,7 @@
 
         async function loadProducts() {
             try {
-                const r = await fetch('/api/products?limit=200', { headers: { Authorization: `Bearer ${token}` } });
+                const r = await adminFetch('/api/products?limit=200');
                 const d = await r.json();
                 allProducts = d.data || [];
             } catch(e) {}
@@ -327,7 +326,7 @@
         // ── Load banners ─────────────────────────────────────────────────────
         async function loadBanners() {
             try {
-                const response = await fetch('/api/admin/banners', { headers: { 'Authorization': `Bearer ${token}` } });
+                const response = await adminFetch('/api/admin/banners');
                 const result = await response.json();
                 if (result.success) {
                     const grid = document.getElementById('bannersGrid');
@@ -358,7 +357,7 @@
         // ── Edit banner ──────────────────────────────────────────────────────
         window.editBanner = async function(id) {
             try {
-                const response = await fetch('/api/admin/banners', { headers: { 'Authorization': `Bearer ${token}` } });
+                const response = await adminFetch('/api/admin/banners');
                 const result = await response.json();
                 const b = result.data.find(x => x.id === id);
                 if (!b) return;
@@ -400,7 +399,7 @@
         window.deleteBanner = async function(id) {
             if (confirm('Tem certeza que deseja excluir este banner?')) {
                 try {
-                    await fetch(`/api/admin/banners/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                    await adminFetch(`/api/admin/banners/${id}`, { method: 'DELETE' });
                     loadBanners();
                 } catch (error) { console.error('Erro ao excluir banner:', error); }
             }
@@ -430,7 +429,7 @@
             try {
                 const url = id ? `/api/admin/banners/${id}` : '/api/admin/banners';
                 const method = id ? 'PUT' : 'POST';
-                await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+                await adminFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
                 modal.style.display = 'none';
                 loadBanners();
             } catch (error) { console.error('Erro ao salvar banner:', error); }
@@ -492,10 +491,7 @@
         async function saveBannerOrder() {
             const cards = Array.from(bannersGrid.querySelectorAll('.banner-card'));
             const items = cards.map(function(c, i) { return { id: parseInt(c.dataset.id), sort_order: i }; });
-            await fetch('/api/admin/banners/reorder', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-                body: JSON.stringify({ items: items })
+            await adminFetch('/api/admin/banners/reorder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: items })
             });
         }
     </script>

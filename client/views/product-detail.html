@@ -451,11 +451,11 @@
                 const hasColors = window._variations.some(v => v.color);
                 const hasSizes  = window._variations.some(v => v.size);
                 if (hasColors && !window._selectedColor) {
-                    alert('Selecione uma cor antes de adicionar ao carrinho.');
+                    showToast('Selecione uma cor antes de adicionar ao carrinho.');
                     return;
                 }
                 if (hasSizes && !window._selectedSize) {
-                    alert('Selecione um tamanho antes de adicionar ao carrinho.');
+                    showToast('Selecione um tamanho antes de adicionar ao carrinho.');
                     return;
                 }
                 const qty = parseInt(document.getElementById('quantity').value);
@@ -960,5 +960,23 @@
     </script>
     <!-- ═══ fim MOBILE DRAWER ═══ -->
     <script src="/js/cookies.js"></script>
+
+<style>
+@keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+<script>
+function showToast(message, type = 'error') {
+    const existing = document.getElementById('page-toast');
+    if (existing) existing.remove();
+    const colors = { error:'background:#C45C5C;color:#fff;', success:'background:#2E8B57;color:#fff;', info:'background:#1A1817;color:#fff;' };
+    const t = document.createElement('div');
+    t.id = 'page-toast';
+    t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);${colors[type]||colors.error}padding:12px 24px;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:500;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.2);animation:fadeInUp 0.3s ease;pointer-events:none;`;
+    t.textContent = message;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+}
+</script>
+
 </body>
 </html>

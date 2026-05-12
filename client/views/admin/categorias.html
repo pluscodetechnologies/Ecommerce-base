@@ -12,6 +12,7 @@
     <title>Categorias - Velvet Store Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/admin-auth.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background: #f5f7fa; display: flex; }
@@ -177,10 +178,8 @@
     
     <script>
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = localStorage.getItem('token');
-        if (!token || user.role !== 'admin') window.location.href = '/admin';
         document.getElementById('adminName').textContent = user.name || 'Administrador';
-        document.getElementById('logoutBtn').addEventListener('click', (e) => { e.preventDefault(); localStorage.clear(); window.location.href = '/admin'; });
+        document.getElementById('logoutBtn').addEventListener('click', e => { e.preventDefault(); adminLogout(); });
         
         const modal = document.getElementById('categoryModal');
         document.getElementById('newCategoryBtn').addEventListener('click', () => { 
@@ -195,7 +194,7 @@
         
         async function loadCategories() {
             try {
-                const response = await fetch('/api/admin/categories', { headers: { 'Authorization': `Bearer ${token}` } });
+                const response = await adminFetch('/api/admin/categories');
                 const result = await response.json();
                 if (result.success) {
                     const grid = document.getElementById('categoriesGrid');
@@ -223,7 +222,7 @@
         
         window.editCategory = async function(id) {
             try {
-                const response = await fetch('/api/admin/categories', { headers: { 'Authorization': `Bearer ${token}` } });
+                const response = await adminFetch('/api/admin/categories');
                 const result = await response.json();
                 const category = result.data.find(c => c.id === id);
                 if (category) {
@@ -241,7 +240,7 @@
         window.deleteCategory = async function(id) {
             if (confirm('Tem certeza que deseja excluir esta categoria?')) {
                 try {
-                    await fetch(`/api/admin/categories/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                    await adminFetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
                     loadCategories();
                 } catch (error) { console.error('Erro ao excluir categoria:', error); }
             }
@@ -259,7 +258,7 @@
             try {
                 const url = id ? `/api/admin/categories/${id}` : '/api/admin/categories';
                 const method = id ? 'PUT' : 'POST';
-                await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+                await adminFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
                 modal.style.display = 'none';
                 loadCategories();
             } catch (error) { console.error('Erro ao salvar categoria:', error); }
@@ -320,10 +319,7 @@
         async function saveCategoryOrder() {
             const cards = Array.from(catGrid.querySelectorAll('.category-card'));
             const items = cards.map(function(c, i) { return { id: parseInt(c.dataset.id), sort_order: i }; });
-            await fetch('/api/admin/categories/reorder', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-                body: JSON.stringify({ items: items })
+            await adminFetch('/api/admin/categories/reorder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: items })
             });
         }
     </script>

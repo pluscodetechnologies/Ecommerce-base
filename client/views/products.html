@@ -460,7 +460,7 @@
 
         window.goToPage = (p) => { page = p; loadProducts(); scrollTo(0,0); };
         document.getElementById('sortSelect').onchange = (e) => { sort = e.target.value; loadProducts(); };
-        document.getElementById('newsletterForm').onsubmit = (e) => { e.preventDefault(); alert('Obrigada por assinar!'); e.target.reset(); };
+        document.getElementById('newsletterForm').onsubmit = (e) => { e.preventDefault(); showToast('Obrigada por assinar! 💌', 'success'); e.target.reset(); };
         
         loadNavCategories();
         loadCategories();
@@ -572,5 +572,23 @@
     </script>
     <!-- ═══ fim MOBILE DRAWER ═══ -->
     <script src="/js/cookies.js"></script>
+
+<style>
+@keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+<script>
+function showToast(message, type = 'success') {
+    const existing = document.getElementById('page-toast');
+    if (existing) existing.remove();
+    const colors = { error:'background:#C45C5C;color:#fff;', success:'background:#2E8B57;color:#fff;', info:'background:#1A1817;color:#fff;' };
+    const t = document.createElement('div');
+    t.id = 'page-toast';
+    t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);${colors[type]||colors.success}padding:12px 24px;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:500;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.2);animation:fadeInUp 0.3s ease;pointer-events:none;`;
+    t.textContent = message;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+}
+</script>
+
 </body>
 </html>

@@ -233,7 +233,22 @@ class CheckoutController {
                         message: `Produto "${item.name}" não está mais disponível.`,
                     });
                 }
-                if (stockRows[0].stock < item.quantity) {
+
+                // Se tem variação, verifica estoque da variação específica
+                if (item.variation_id) {
+                    const [varStock] = await connection.execute(
+                        'SELECT stock FROM product_variations WHERE id = ?',
+                        [item.variation_id]
+                    );
+                    if (!varStock.length || varStock[0].stock < item.quantity) {
+                        const varLabel = [item.variation_color, item.variation_size].filter(Boolean).join(' / ');
+                        await connection.rollback();
+                        return res.status(400).json({
+                            success: false,
+                            message: `"${item.name}" (${varLabel}) sem estoque suficiente.`,
+                        });
+                    }
+                } else if (stockRows[0].stock < item.quantity) {
                     await connection.rollback();
                     return res.status(400).json({
                         success: false,
@@ -319,14 +334,32 @@ class CheckoutController {
             // Itens com SNAPSHOT do preço atual (não confia no que veio do client)
             for (const item of items) {
                 await connection.execute(
-                    `INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price)
-                     VALUES (?, ?, ?, ?, ?, ?)`,
-                    [orderId, item.product_id, item.name, item.quantity, item.final_price, item.final_price * item.quantity]
+                    `INSERT INTO order_items (order_id, product_id, product_name, color, size, variation_id, quantity, unit_price, total_price)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [orderId, item.product_id, item.name,
+                     item.variation_color || null, item.variation_size || null, item.variation_id || null,
+                     item.quantity, item.final_price, item.final_price * item.quantity]
                 );
-                await connection.execute(
-                    'UPDATE products SET stock = stock - ?, sales_count = sales_count + ? WHERE id = ?',
-                    [item.quantity, item.quantity, item.product_id]
-                );
+                // Decrementa estoque da variação específica se existir
+                if (item.variation_id) {
+                    await connection.execute(
+                        'UPDATE product_variations SET stock = GREATEST(0, stock - ?) WHERE id = ?',
+                        [item.quantity, item.variation_id]
+                    );
+                    // Recalcula estoque geral do produto (soma das variações)
+                    await connection.execute(
+                        `UPDATE products SET
+                            stock = (SELECT COALESCE(SUM(pv.stock), 0) FROM product_variations pv WHERE pv.product_id = ?),
+                            sales_count = sales_count + ?
+                         WHERE id = ?`,
+                        [item.product_id, item.quantity, item.product_id]
+                    );
+                } else {
+                    await connection.execute(
+                        'UPDATE products SET stock = stock - ?, sales_count = sales_count + ? WHERE id = ?',
+                        [item.quantity, item.quantity, item.product_id]
+                    );
+                }
             }
 
             if (couponData && discountAmount > 0 && userId) {
@@ -603,10 +636,26 @@ class CheckoutController {
                         [orderId]
                     );
                     for (const item of orderItems) {
-                        await db.execute(
-                            'UPDATE products SET stock = stock + ?, sales_count = GREATEST(0, sales_count - ?) WHERE id = ?',
-                            [item.quantity, item.quantity, item.product_id]
-                        );
+                        // Restaura estoque da variação se existir
+                        if (item.variation_id) {
+                            await db.execute(
+                                'UPDATE product_variations SET stock = stock + ? WHERE id = ?',
+                                [item.quantity, item.variation_id]
+                            );
+                            // Recalcula estoque geral
+                            await db.execute(
+                                `UPDATE products SET
+                                    stock = (SELECT COALESCE(SUM(pv.stock), 0) FROM product_variations pv WHERE pv.product_id = ?),
+                                    sales_count = GREATEST(0, sales_count - ?)
+                                 WHERE id = ?`,
+                                [item.product_id, item.quantity, item.product_id]
+                            );
+                        } else {
+                            await db.execute(
+                                'UPDATE products SET stock = stock + ?, sales_count = GREATEST(0, sales_count - ?) WHERE id = ?',
+                                [item.quantity, item.quantity, item.product_id]
+                            );
+                        }
                     }
                 }
 
