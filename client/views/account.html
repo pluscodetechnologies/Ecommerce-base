@@ -651,7 +651,7 @@
                     el.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>Nenhum pedido ainda.</p><a href="/products">Explorar produtos →</a></div>`;
                     return;
                 }
-                const statusLabel = { pending: 'Aguardando', paid: 'Pago', processing: 'Em preparo', shipped: 'Enviado', delivered: 'Entregue', cancelled: 'Cancelado' };
+                const statusLabel = { pending: 'Aguardando', paid: 'Pago', processing: 'Preparando', shipped: 'Enviado', delivered: 'Entregue', cancelled: 'Cancelado' };
                 el.innerHTML = data.data.map(o => `
                     <a href="/orders" class="order-card order-card-link">
                         <div class="order-header">

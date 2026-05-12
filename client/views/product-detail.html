@@ -154,8 +154,21 @@
         .btn-delete-review:hover { color: #C45C5C; }
         .review-comment { font-size: 14px; color: #4a4a4a; line-height: 1.75; padding-left: 52px; }
         .review-images { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-left: 52px; }
-        .review-images img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-light); cursor: zoom-in; transition: transform .2s, box-shadow .2s; }
-        .review-images img:hover { transform: scale(1.06); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+        .review-thumb { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid transparent; cursor: pointer; transition: border-color .2s, transform .2s; flex-shrink: 0; }
+        .review-thumb:hover { border-color: var(--primary); transform: scale(1.04); }
+        /* Lightbox carrossel estilo Shopee */
+        .review-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; }
+        .review-lightbox.open { display: flex; }
+        .review-lightbox-img { max-width: 90vw; max-height: 75vh; object-fit: contain; border-radius: 8px; }
+        .review-lightbox-thumbs { display: flex; gap: 8px; margin-top: 16px; overflow-x: auto; max-width: 90vw; padding-bottom: 4px; }
+        .review-lightbox-thumbs img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; opacity: .6; transition: all .2s; flex-shrink: 0; }
+        .review-lightbox-thumbs img.active { border-color: #fff; opacity: 1; }
+        .review-lb-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+        .review-lb-nav:hover { background: rgba(255,255,255,0.3); }
+        .review-lb-prev { left: 16px; }
+        .review-lb-next { right: 16px; }
+        .review-lb-close { position: absolute; top: 16px; right: 20px; background: none; border: none; color: #fff; font-size: 28px; cursor: pointer; line-height: 1; }
+        .review-lb-counter { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 13px; font-family: 'Montserrat', sans-serif; }
         .reviews-empty { text-align: center; padding: 40px; color: var(--gray); font-size: 14px; }
         .reviews-empty i { font-size: 40px; display: block; margin-bottom: 12px; opacity: 0.3; }
         .review-form-wrap { display: none; background: #F8F6F4; border-radius: 12px; padding: 28px; margin-bottom: 30px; }
@@ -808,12 +821,14 @@
                 el.innerHTML = `<div class="reviews-empty"><i class="fas fa-comment-slash"></i>Nenhuma avaliação ainda. Seja o primeiro a avaliar!</div>`;
                 return;
             }
+            // Guarda as imagens para o lightbox
+            if (window.storeReviewImages) storeReviewImages(reviews);
             const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
             el.innerHTML = reviews.map(r => {
                 let imgs = [];
                 try { imgs = r.images ? (typeof r.images === 'string' ? JSON.parse(r.images) : r.images) : []; } catch {}
                 const imgsHtml = imgs.length
-                    ? `<div class="review-images">${imgs.map(u => `<img src="${u}" alt="Foto da avaliação" onclick="openLightbox('${u}')">`).join('')}</div>`
+                    ? `<div class="review-images">${imgs.map((u, idx) => `<img class="review-thumb" src="${u}" alt="Foto ${idx+1}" onclick="openReviewLightbox(${r.id}, ${idx})">`).join('')}</div>`
                     : '';
                 const isOwner = currentUser.id && r.user_id === currentUser.id;
                 const initial = (r.user_name || '?')[0].toUpperCase();
@@ -1168,5 +1183,90 @@ function showToast(message, type = 'error') {
 }
 </script>
 
+    <!-- Lightbox carrossel de fotos das avaliações -->
+    <div class="review-lightbox" id="reviewLightbox" onclick="closeReviewLightbox(event)">
+        <button class="review-lb-close" onclick="closeReviewLightbox()">&times;</button>
+        <span class="review-lb-counter" id="lbCounter"></span>
+        <button class="review-lb-nav review-lb-prev" onclick="lbNav(-1)"><i class="fas fa-chevron-left"></i></button>
+        <img class="review-lightbox-img" id="lbMainImg" src="" alt="">
+        <button class="review-lb-nav review-lb-next" onclick="lbNav(1)"><i class="fas fa-chevron-right"></i></button>
+        <div class="review-lightbox-thumbs" id="lbThumbs"></div>
+    </div>
+
+    <script>
+        // Armazena as imagens de cada review para o lightbox
+        window._reviewImagesMap = {};
+
+        const _origRenderReviews = window.renderReviewsList;
+
+        // Armazena as imagens após renderizar
+        function storeReviewImages(reviews) {
+            reviews.forEach(r => {
+                let imgs = [];
+                try { imgs = r.images ? (typeof r.images === 'string' ? JSON.parse(r.images) : r.images) : []; } catch {}
+                if (imgs.length) window._reviewImagesMap[r.id] = imgs;
+            });
+        }
+
+        let _lbImages = [], _lbIdx = 0;
+
+        window.openReviewLightbox = function(reviewId, startIdx) {
+            const imgs = window._reviewImagesMap[reviewId];
+            if (!imgs || !imgs.length) return;
+            _lbImages = imgs;
+            _lbIdx = startIdx;
+            _renderLightbox();
+            document.getElementById('reviewLightbox').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        };
+
+        function _renderLightbox() {
+            document.getElementById('lbMainImg').src = _lbImages[_lbIdx];
+            document.getElementById('lbCounter').textContent = `${_lbIdx + 1} / ${_lbImages.length}`;
+            document.getElementById('lbThumbs').innerHTML = _lbImages.map((u, i) =>
+                `<img src="${u}" class="${i === _lbIdx ? 'active' : ''}" onclick="lbGoTo(${i})" alt="${i+1}">`
+            ).join('');
+            // Scroll thumbnail ativo para view
+            const thumbs = document.getElementById('lbThumbs');
+            const active = thumbs.querySelector('.active');
+            if (active) active.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+            // Esconde setas se só 1 imagem
+            const show = _lbImages.length > 1;
+            document.querySelector('.review-lb-prev').style.display = show ? '' : 'none';
+            document.querySelector('.review-lb-next').style.display = show ? '' : 'none';
+        }
+
+        window.lbNav = function(dir) {
+            _lbIdx = (_lbIdx + dir + _lbImages.length) % _lbImages.length;
+            _renderLightbox();
+        };
+
+        window.lbGoTo = function(idx) {
+            _lbIdx = idx;
+            _renderLightbox();
+        };
+
+        window.closeReviewLightbox = function(e) {
+            if (e && e.target !== document.getElementById('reviewLightbox') && !e.target.classList.contains('review-lb-close')) return;
+            document.getElementById('reviewLightbox').classList.remove('open');
+            document.body.style.overflow = '';
+        };
+
+        // Teclado: setas e ESC
+        document.addEventListener('keydown', e => {
+            if (!document.getElementById('reviewLightbox').classList.contains('open')) return;
+            if (e.key === 'ArrowRight') lbNav(1);
+            if (e.key === 'ArrowLeft')  lbNav(-1);
+            if (e.key === 'Escape') { document.getElementById('reviewLightbox').classList.remove('open'); document.body.style.overflow = ''; }
+        });
+
+        // Intercepta loadReviews para guardar as imagens
+        const _origLoadReviews = window.loadReviews;
+        if (typeof _origLoadReviews === 'function') {
+            window.loadReviews = async function() {
+                await _origLoadReviews();
+            };
+        }
+    </script>
 </body>
 </html>

@@ -216,6 +216,7 @@ function parseProduct(p) {
     p.main_image = p.images[0] || 'https://via.placeholder.com/600';
     p.price = parseFloat(p.price) || 0;
     p.promotional_price = p.promotional_price ? parseFloat(p.promotional_price) : null;
+    p.has_variations = parseInt(p.variation_count) > 0;
     return p;
 }
 
@@ -258,7 +259,8 @@ app.get('/api/products', async (req, res) => {
         const limit    = Math.min(100, Math.max(1, parseInt(req.query.limit) || 12));
         const offset   = (page - 1) * limit;
 
-        let query = `SELECT p.*, c.name as category_name, c.slug as category_slug, COALESCE(p.images, '[]') as images
+        let query = `SELECT p.*, c.name as category_name, c.slug as category_slug, COALESCE(p.images, '[]') as images,
+                     (SELECT COUNT(*) FROM product_variations pv WHERE pv.product_id = p.id) as variation_count
                      FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.status = 'active'`;
         const params = [];
 

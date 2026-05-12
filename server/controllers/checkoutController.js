@@ -625,7 +625,7 @@ class CheckoutController {
                 const payment       = await paymentClient.get({ id: data.id });
 
                 const statusMap = {
-                    approved:   'paid',
+                    approved:   'processing',  // pago → vai direto para em preparo
                     pending:    'pending',
                     in_process: 'pending',
                     rejected:   'cancelled',
@@ -715,8 +715,8 @@ class CheckoutController {
                 return res.status(403).json({ success: false, message: 'Acesso negado' });
             }
 
-            // Se já está pago/cancelado, retorna direto
-            if (order.status === 'paid' || order.status === 'cancelled') {
+            // Se já está em preparo/enviado/entregue/cancelado, retorna direto
+            if (['processing', 'shipped', 'delivered', 'cancelled'].includes(order.status)) {
                 return res.json({ success: true, status: order.status, payment_status: order.payment_status });
             }
 
@@ -746,7 +746,7 @@ class CheckoutController {
 
                     if (payment) {
                         const statusMap = {
-                            approved:   'paid',
+                            approved:   'processing',  // pago → vai direto para em preparo
                             pending:    'pending',
                             in_process: 'pending',
                             rejected:   'cancelled',

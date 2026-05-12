@@ -79,7 +79,7 @@
                     if (!data.success) return;
 
                     // O endpoint /api/checkout/status retorna { status, payment_status } diretamente
-                    const isPaid    = data.status === 'paid' || data.payment_status === 'approved';
+                    const isPaid    = data.status === 'processing' || data.status === 'paid' || data.payment_status === 'approved';
                     const isPending = data.status === 'pending' || data.payment_status === 'pending' || data.payment_status === 'in_process';
 
                     if (isPaid) {
