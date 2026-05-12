@@ -360,7 +360,6 @@
                 </div>
                 <div class="card-body">
                     <div class="summary-items" id="summaryItems">
-                        <!-- items carregados via JS -->
                         <div class="skeleton" style="height:72px;margin-bottom:10px;"></div>
                         <div class="skeleton" style="height:72px;"></div>
                     </div>
@@ -440,7 +439,6 @@
                     document.getElementById('shippingNeighborhood').value = d.bairro     || '';
                     document.getElementById('shippingCity').value         = d.localidade || '';
                     document.getElementById('shippingState').value        = d.uf         || '';
-                    // sincroniza o campo de cálculo de frete
                     document.getElementById('cepCalc').value = document.getElementById('shippingCep').value;
                     document.getElementById('shippingNumber').focus();
                 }
@@ -450,25 +448,19 @@
 
         // ── Restaurar frete e cupom do carrinho ──────────────────────────────
         async function restoreFromCart() {
-            // Frete
             const savedShipping = sessionStorage.getItem('cartShipping');
             if (savedShipping) {
                 try {
                     const s = JSON.parse(savedShipping);
                     selectedShipping = s;
-
-                    // Preenche o CEP
                     if (s.cep) {
                         const formatted = s.cep.replace(/^(\d{5})(\d{3})$/, '$1-$2');
                         const cepField  = document.getElementById('shippingCep');
                         const cepCalc   = document.getElementById('cepCalc');
                         if (cepField) cepField.value = formatted;
                         if (cepCalc)  cepCalc.value  = formatted;
-                        // Busca endereço automaticamente
                         if (typeof buscaCep === 'function') await buscaCep(s.cep);
                     }
-
-                    // Mostra opção de frete selecionada
                     const wrap = document.getElementById('shippingOptions');
                     if (wrap) {
                         wrap.innerHTML = `
@@ -486,7 +478,6 @@
                 } catch(e) { console.warn('restoreFromCart shipping:', e); }
             }
 
-            // Cupom
             const savedCoupon = sessionStorage.getItem('cartCoupon');
             if (savedCoupon) {
                 try {
@@ -571,7 +562,6 @@
             const cep    = rawCep.replace(/\D/g, '');
             if (cep.length !== 8) { alert('Digite um CEP válido.'); return; }
 
-            // sincroniza o campo de CEP do formulário
             document.getElementById('shippingCep').value = rawCep;
             await buscaCep(cep);
 
@@ -599,11 +589,9 @@
                         </label>
                     `).join('');
 
-                    // seleciona primeiro automaticamente
                     selectedShipping = data.data[0];
                     updateTotals();
 
-                    // listeners
                     wrap.querySelectorAll('input[type="radio"]').forEach(radio => {
                         radio.addEventListener('change', function () {
                             wrap.querySelectorAll('.shipping-opt').forEach(l => l.classList.remove('selected'));
@@ -692,6 +680,7 @@
 
                 const res  = await fetch('/api/checkout/order', {
                     method: 'POST', headers,
+                    credentials: 'include',
                     body: JSON.stringify({ shipping, payment: { method: selectedPayment }, coupon: appliedCoupon?.code || null })
                 });
                 const data = await res.json();
@@ -701,7 +690,11 @@
                 } else if (data.success) {
                     window.location.href = `/checkout-success?order=${data.orderNumber}`;
                 } else {
-                    alert(data.message || 'Erro ao processar pedido.');
+                    let msg = data.message || 'Erro ao processar pedido.';
+                    if (Array.isArray(data.errors) && data.errors.length) {
+                        msg = data.errors.map(e => e.message).join(' • ');
+                    }
+                    alert(msg);
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-lock"></i><span>Ir para Pagamento</span><i class="fas fa-arrow-right arrow"></i>';
                 }
@@ -712,13 +705,39 @@
             }
         });
 
+        // ── Pré-preencher campos com dados do usuário logado ─────────────────
+(async function prefillUserData() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.id) return;
+
+    // Nome e email já estão no localStorage
+    if (user.name)  document.getElementById('shippingName').value  = user.name;
+    if (user.email) document.getElementById('shippingEmail').value = user.email;
+
+    // Telefone e CPF buscamos da API
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/auth/profile', {
+            headers: { 'Authorization': `Bearer ${token}` },
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if (data.success) {
+            if (data.data.phone) document.getElementById('shippingPhone').value = data.data.phone;
+            if (data.data.cpf)   document.getElementById('shippingCpf').value   = data.data.cpf;
+        }
+    } catch (e) {
+        // silencioso — campos ficam em branco se falhar
+    }
+})();
+
         loadCart().then(() => {
             restoreFromCart();
         });
     </script>
 
 
-    <!-- ═══ MOBILE DRAWER (independent of .nav-menu) ═══ -->
+    <!-- ═══ MOBILE DRAWER ═══ -->
     <div id="mobileOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:8000;"></div>
     <div id="mobileDrawer" style="display:none;position:fixed;top:0;left:0;width:72vw;max-width:280px;height:100vh;background:#fff;z-index:8001;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,0.2);flex-direction:column;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:#faf8f5;border-bottom:1px solid #f0ede9;">
@@ -741,7 +760,6 @@
 
         if (!btn) return;
 
-        // Copy nav links into drawer on first open
         var navCopied = false;
         function copyNav() {
             if (navCopied) return;

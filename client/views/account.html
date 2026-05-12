@@ -426,55 +426,76 @@
         }
 
         async function saveProfile() {
-            const name  = document.getElementById('editName')?.value.trim();
-            const phone = document.getElementById('editPhone')?.value.trim();
-            const currentPass = document.getElementById('currentPass')?.value;
-            const newPass     = document.getElementById('newPass')?.value;
-            const confirmPass = document.getElementById('confirmPass')?.value;
+    const name  = document.getElementById('editName')?.value.trim();
+    const phone = document.getElementById('editPhone')?.value.trim();
+    const currentPass = document.getElementById('currentPass')?.value;
+    const newPass     = document.getElementById('newPass')?.value;
+    const confirmPass = document.getElementById('confirmPass')?.value;
 
-            const msgEl = document.getElementById('profileMsg');
-            const errEl = document.getElementById('profileErr');
-            msgEl.style.display = 'none';
-            errEl.style.display = 'none';
+    const msgEl = document.getElementById('profileMsg');
+    const errEl = document.getElementById('profileErr');
+    msgEl.style.display = 'none';
+    errEl.style.display = 'none';
 
-            if (!name) { errEl.textContent = 'O nome não pode estar vazio.'; errEl.style.display = 'block'; return; }
+    if (!name) { errEl.textContent = 'O nome não pode estar vazio.'; errEl.style.display = 'block'; return; }
 
-            // Validação de senha somente se algum campo foi preenchido
-            const querAlterarSenha = currentPass || newPass || confirmPass;
-            if (querAlterarSenha) {
-                if (!currentPass) { errEl.textContent = 'Informe a senha atual.'; errEl.style.display = 'block'; return; }
-                if (!newPass)     { errEl.textContent = 'Informe a nova senha.'; errEl.style.display = 'block'; return; }
-                if (newPass !== confirmPass) { errEl.textContent = 'As novas senhas não coincidem.'; errEl.style.display = 'block'; return; }
+    // Validação de senha somente se algum campo foi preenchido
+    const querAlterarSenha = currentPass || newPass || confirmPass;
+    if (querAlterarSenha) {
+        if (!currentPass) { errEl.textContent = 'Informe a senha atual.'; errEl.style.display = 'block'; return; }
+        if (!newPass)     { errEl.textContent = 'Informe a nova senha.'; errEl.style.display = 'block'; return; }
+        if (newPass !== confirmPass) { errEl.textContent = 'As novas senhas não coincidem.'; errEl.style.display = 'block'; return; }
+    }
+
+    try {
+        // Salvar nome/telefone
+        const res = await auth.fetchWithAuth('/api/auth/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, phone })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            let msg = data.message || 'Erro ao salvar.';
+            if (Array.isArray(data.errors) && data.errors.length) {
+                msg = data.errors.map(e => e.message).join(' • ');
             }
-
-            try {
-                // Salvar nome/telefone
-                const res = await auth.fetchWithAuth('/api/auth/profile', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, phone })
-                });
-                const data = await res.json();
-                if (!data.success) { errEl.textContent = data.message || 'Erro ao salvar.'; errEl.style.display = 'block'; return; }
-
-                // Salvar senha se solicitado
-                if (querAlterarSenha) {
-                    const resPass = await auth.fetchWithAuth('/api/auth/change-password', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass })
-                    });
-                    const dataPass = await resPass.json();
-                    if (!dataPass.success) { errEl.textContent = dataPass.message || 'Erro ao alterar senha.'; errEl.style.display = 'block'; return; }
-                }
-
-                profileData.name  = name;
-                profileData.phone = phone;
-                msgEl.textContent = querAlterarSenha ? 'Dados e senha atualizados com sucesso!' : 'Dados atualizados com sucesso!';
-                msgEl.style.display = 'block';
-                setTimeout(() => renderProfileView(profileData), 1500);
-            } catch (e) { errEl.textContent = 'Erro de conexão. Tente novamente.'; errEl.style.display = 'block'; }
+            errEl.textContent = msg;
+            errEl.style.display = 'block';
+            return;
         }
+
+        // Salvar senha se solicitado
+        if (querAlterarSenha) {
+            const resPass = await auth.fetchWithAuth('/api/auth/change-password', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass })
+            });
+            const dataPass = await resPass.json();
+            if (!dataPass.success) {
+                let msg = dataPass.message || 'Erro ao alterar senha.';
+                if (Array.isArray(dataPass.errors) && dataPass.errors.length) {
+                    msg = dataPass.errors.map(e => e.message).join(' • ');
+                }
+                errEl.textContent = msg;
+                errEl.style.display = 'block';
+                return;
+            }
+            // Atualiza token novo que veio da resposta
+            if (dataPass.data?.token) {
+                localStorage.setItem('token', dataPass.data.token);
+                localStorage.setItem('authToken', dataPass.data.token);
+            }
+        }
+
+        profileData.name  = name;
+        profileData.phone = phone;
+        msgEl.textContent = querAlterarSenha ? 'Dados e senha atualizados com sucesso!' : 'Dados atualizados com sucesso!';
+        msgEl.style.display = 'block';
+        setTimeout(() => renderProfileView(profileData), 1500);
+    } catch (e) { errEl.textContent = 'Erro de conexão. Tente novamente.'; errEl.style.display = 'block'; }
+}
 
         function renderPasswordForm() {
             document.getElementById('profileInfo').innerHTML = `
@@ -579,34 +600,43 @@
         }
 
         async function savePassword() {
-            const current = document.getElementById('currentPass').value;
-            const newPass  = document.getElementById('newPass').value;
-            const confirm  = document.getElementById('confirmPass').value;
-            const msgEl = document.getElementById('passMsg');
-            const errEl = document.getElementById('passErr');
-            msgEl.style.display = 'none';
-            errEl.style.display = 'none';
+    const current = document.getElementById('currentPass').value;
+    const newPass  = document.getElementById('newPass').value;
+    const confirm  = document.getElementById('confirmPass').value;
+    const msgEl = document.getElementById('passMsg');
+    const errEl = document.getElementById('passErr');
+    msgEl.style.display = 'none';
+    errEl.style.display = 'none';
 
-            if (!current || !newPass || !confirm) { errEl.textContent = 'Preencha todos os campos.'; errEl.style.display = 'block'; return; }
-            if (newPass !== confirm) { errEl.textContent = 'As senhas não coincidem.'; errEl.style.display = 'block'; return; }
+    if (!current || !newPass || !confirm) { errEl.textContent = 'Preencha todos os campos.'; errEl.style.display = 'block'; return; }
+    if (newPass !== confirm) { errEl.textContent = 'As senhas não coincidem.'; errEl.style.display = 'block'; return; }
 
-            try {
-                const res  = await auth.fetchWithAuth('/api/auth/change-password', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ currentPassword: current, newPassword: newPass })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    msgEl.textContent = 'Senha alterada com sucesso!';
-                    msgEl.style.display = 'block';
-                    setTimeout(() => renderProfileView(profileData), 1500);
-                } else {
-                    errEl.textContent = data.message || 'Erro ao alterar senha.';
-                    errEl.style.display = 'block';
-                }
-            } catch (e) { errEl.textContent = 'Erro de conexão. Tente novamente.'; errEl.style.display = 'block'; }
+    try {
+        const res  = await auth.fetchWithAuth('/api/auth/change-password', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentPassword: current, newPassword: newPass })
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Atualiza token novo que veio da resposta
+            if (data.data?.token) {
+                localStorage.setItem('token', data.data.token);
+                localStorage.setItem('authToken', data.data.token);
+            }
+            msgEl.textContent = 'Senha alterada com sucesso!';
+            msgEl.style.display = 'block';
+            setTimeout(() => renderProfileView(profileData), 1500);
+        } else {
+            let msg = data.message || 'Erro ao alterar senha.';
+            if (Array.isArray(data.errors) && data.errors.length) {
+                msg = data.errors.map(e => e.message).join(' • ');
+            }
+            errEl.textContent = msg;
+            errEl.style.display = 'block';
         }
+    } catch (e) { errEl.textContent = 'Erro de conexão. Tente novamente.'; errEl.style.display = 'block'; }
+}
 
         // ── Meus Pedidos ─────────────────────────────────────────────────────
         async function loadOrders() {

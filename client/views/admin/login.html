@@ -264,6 +264,7 @@
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',   // ← cookie httpOnly do refresh token
                     body: JSON.stringify(data)
                 });
                 
@@ -279,11 +280,19 @@
                     }
                     
                     localStorage.setItem('token', result.data.token);
+                    localStorage.setItem('authToken', result.data.token);
                     localStorage.setItem('user', JSON.stringify(user));
                     
                     window.location.href = '/admin/dashboard';
                 } else {
-                    document.getElementById('errorMessage').textContent = result.message;
+                    let msg = result.message || 'Erro ao fazer login.';
+                    if (Array.isArray(result.errors) && result.errors.length) {
+                        msg = result.errors.map(e => e.message).join(' • ');
+                    }
+                    if (response.status === 429) {
+                        msg = msg || 'Muitas tentativas. Aguarde alguns minutos.';
+                    }
+                    document.getElementById('errorMessage').textContent = msg;
                     document.getElementById('errorMessage').style.display = 'block';
                 }
             } catch (error) {

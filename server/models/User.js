@@ -1,21 +1,22 @@
 const { getDB } = require('../config/database');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const { generateAccessToken, verifyAccessToken } = require('../middleware/auth');
+
+const BCRYPT_ROUNDS = 12;
 
 class User {
     static async create(userData) {
         const db = getDB();
         const { name, email, password, phone, cpf } = userData;
-        
-        // Hash da senha
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
+
+        const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
         const [result] = await db.execute(
-            `INSERT INTO users (name, email, password, phone, cpf, created_at) 
-             VALUES (?, ?, ?, ?, ?, NOW())`,
+            `INSERT INTO users (name, email, password, phone, cpf, auth_provider, created_at)
+             VALUES (?, ?, ?, ?, ?, 'local', NOW())`,
             [name, email, hashedPassword, phone, cpf]
         );
-        
+
         return result.insertId;
     }
 
@@ -31,7 +32,8 @@ class User {
     static async findById(id) {
         const db = getDB();
         const [rows] = await db.execute(
-            'SELECT id, name, email, phone, cpf, created_at, role FROM users WHERE id = ?',
+            // Nunca retornar password ou reset_token aqui
+            'SELECT id, name, email, phone, cpf, created_at, role, auth_provider FROM users WHERE id = ?',
             [id]
         );
         return rows[0];
@@ -40,65 +42,66 @@ class User {
     static async update(id, userData) {
         const db = getDB();
         const { name, phone } = userData;
-        
+
         await db.execute(
             'UPDATE users SET name = ?, phone = ?, updated_at = NOW() WHERE id = ?',
             [name, phone, id]
         );
-        
+
         return true;
     }
 
     static async updatePassword(id, newPassword) {
         const db = getDB();
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        
+        const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+
+        // Incrementa token_version → invalida sessões antigas
         await db.execute(
-            'UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?',
+            'UPDATE users SET password = ?, token_version = token_version + 1, updated_at = NOW() WHERE id = ?',
             [hashedPassword, id]
         );
-        
+
         return true;
     }
 
     static async comparePassword(password, hashedPassword) {
+        if (!hashedPassword) return false;   // social login user
         return await bcrypt.compare(password, hashedPassword);
     }
 
-    static generateToken(userId, role = 'user') {
-        return jwt.sign(
-            { userId, role },
-            process.env.JWT_SECRET || 'secret-key',
-            { expiresIn: '30d' }
-        );
+    // ────────────────────────────────────────────────────────────────
+    // generateToken / verifyToken: delegam pro middleware/auth.js
+    // (mantido só pra compat com código antigo que usa User.generateToken)
+    // ────────────────────────────────────────────────────────────────
+    static generateToken(userId, role = 'user', tokenVersion = 0) {
+        return generateAccessToken({ id: userId, role, token_version: tokenVersion });
     }
 
     static verifyToken(token) {
-        try {
-            return jwt.verify(token, process.env.JWT_SECRET || 'secret-key');
-        } catch (error) {
-            return null;
-        }
+        return verifyAccessToken(token);
     }
 
+    // ────────────────────────────────────────────────────────────────
+    // Endereços
+    // ────────────────────────────────────────────────────────────────
     static async addAddress(userId, addressData) {
         const db = getDB();
         const { street, number, complement, neighborhood, city, state, zip_code, is_default } = addressData;
-        
+
         if (is_default) {
             await db.execute(
                 'UPDATE user_addresses SET is_default = 0 WHERE user_id = ?',
                 [userId]
             );
         }
-        
+
         const [result] = await db.execute(
-            `INSERT INTO user_addresses 
-             (user_id, street, number, complement, neighborhood, city, state, zip_code, is_default) 
+            `INSERT INTO user_addresses
+             (user_id, street, number, complement, neighborhood, city, state, zip_code, is_default)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [userId, street, number, complement, neighborhood, city, state, zip_code, is_default || 0]
         );
-        
+
         return result.insertId;
     }
 

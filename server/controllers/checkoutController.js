@@ -1,7 +1,9 @@
+const crypto = require('crypto');
+const https  = require('https');
+
 const { getDB } = require('../config/database');
 const Cart = require('../models/Cart');
 const { createPreference } = require('../services/mercadoPagoService');
-const https = require('https');
 
 const CEP_ORIGEM = process.env.CEP_ORIGEM || '01310100';
 
@@ -65,7 +67,6 @@ class CheckoutController {
             };
 
             let resultado = null;
-
             for (const host of ['melhorenvio.com.br', 'sandbox.melhorenvio.com.br']) {
                 try {
                     resultado = await melhorEnvioRequest(host, token, payload);
@@ -76,7 +77,6 @@ class CheckoutController {
             }
 
             if (!resultado) {
-                console.log('ℹ️  Melhor Envio indisponível — usando fallback');
                 return res.json({ success: true, fallback: true, data: fallbackOptions() });
             }
 
@@ -97,23 +97,21 @@ class CheckoutController {
             }
 
             res.json({ success: true, data: opcoes });
-
         } catch (error) {
-            console.error('Erro ao calcular frete:', error?.data || error.message);
+            console.error('[calculateShipping]', error?.data || error.message);
             res.json({ success: true, fallback: true, data: fallbackOptions() });
         }
     }
 
-    // ── PROXY MELHOR ENVIO (chamada direta do browser — evita o allowlist) ────
+    // ── PROXY MELHOR ENVIO ────────────────────────────────────────────────────
     async shippingProxy(req, res) {
+        // (mesmo código original, mantido)
         try {
             const { zipcode, items } = req.body;
             const cepDestino = (zipcode || '').replace(/\D/g, '');
-
             if (cepDestino.length !== 8) {
                 return res.status(400).json({ success: false, message: 'CEP inválido' });
             }
-
             const token = process.env.MELHOR_ENVIO_TOKEN;
             if (!token || token === 'SEU_TOKEN_AQUI') {
                 return res.json({ success: true, fallback: true, data: fallbackOptions() });
@@ -121,8 +119,6 @@ class CheckoutController {
 
             const totalItens = (items || []).reduce((s, i) => s + (i.quantity || 1), 0);
             const pesoKg     = Math.max(0.3, totalItens * 0.3);
-
-            // Monta o payload para o Melhor Envio
             const mePayload = {
                 from:    { postal_code: CEP_ORIGEM.replace(/\D/g, '') },
                 to:      { postal_code: cepDestino },
@@ -131,10 +127,9 @@ class CheckoutController {
                 options: { receipt: false, own_hand: false, collect: false, insurance_value: 0 }
             };
 
-            // Repassa o IP real do usuário para o Melhor Envio liberar
-            const userIP  = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
+            const userIP  = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1')
+                .toString().split(',')[0].trim();
             const bodyStr = JSON.stringify(mePayload);
-
             const resultado = await new Promise((resolve, reject) => {
                 const r = https.request({
                     hostname: 'melhorenvio.com.br',
@@ -176,27 +171,44 @@ class CheckoutController {
                 }))
                 .sort((a, b) => a.price - b.price);
 
-            if (!opcoes.length) {
-                return res.json({ success: false, message: 'Nenhuma opção disponível para este CEP.' });
-            }
-
+            if (!opcoes.length) return res.json({ success: false, message: 'Nenhuma opção disponível para este CEP.' });
             res.json({ success: true, data: opcoes });
-
         } catch (error) {
-            console.log('Proxy Melhor Envio falhou, usando fallback:', error?.data || error.message);
+            console.log('[shippingProxy] fallback:', error?.data || error.message);
             res.json({ success: true, fallback: true, data: fallbackOptions() });
         }
     }
 
-    // ── CRIAR PEDIDO ──────────────────────────────────────────────────────────
+    // ════════════════════════════════════════════════════════════════════════
+    // CRIAR PEDIDO
+    // ════════════════════════════════════════════════════════════════════════
+    // Mudanças de segurança:
+    //  - userId vem do JWT (se logado). Atacante não pode forçar userId via body.
+    //  - Preço é SEMPRE recalculado no servidor (nunca confiar no que veio do client).
+    //  - Cupom é revalidado server-side.
+    //  - Cart precisa pertencer ao usuário (se logado) ou casar com sessionId.
+    //  - Frete não vem mais como "shipping.cost" do client — recalculamos pelo nome.
+    //    (Por ora mantemos o cost como veio, mas com limite máximo)
+    // ════════════════════════════════════════════════════════════════════════
     async createOrder(req, res) {
         const connection = await getDB().getConnection();
 
         try {
             await connection.beginTransaction();
 
+            // userId AUTORITATIVO do middleware optionalAuth (NUNCA do body)
             const userId    = req.userId || null;
-            const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
+            const sessionId = req.cookies?.sessionId || req.headers['x-session-id'] || null;
+
+            // Guest checkout precisa de sessionId
+            if (!userId && !sessionId) {
+                await connection.rollback();
+                return res.status(400).json({
+                    success: false,
+                    message: 'Sessão inválida. Recarregue a página e tente novamente.',
+                });
+            }
+
             const { shipping, payment, coupon } = req.body;
 
             const cart  = await Cart.getOrCreateCart(userId, sessionId);
@@ -207,19 +219,42 @@ class CheckoutController {
                 return res.status(400).json({ success: false, message: 'Carrinho vazio' });
             }
 
+            // ── Validação de estoque ─────────────────────────────────────────
             for (const item of items) {
-                const [stockRows] = await connection.execute('SELECT stock FROM products WHERE id = ?', [item.product_id]);
-                if (!stockRows.length || stockRows[0].stock < item.quantity) {
+                const [stockRows] = await connection.execute(
+                    'SELECT stock, status FROM products WHERE id = ?',
+                    [item.product_id]
+                );
+                if (!stockRows.length || stockRows[0].status !== 'active') {
                     await connection.rollback();
-                    return res.status(400).json({ success: false, message: `Produto "${item.name}" sem estoque suficiente.` });
+                    return res.status(400).json({
+                        success: false,
+                        message: `Produto "${item.name}" não está mais disponível.`,
+                    });
+                }
+                if (stockRows[0].stock < item.quantity) {
+                    await connection.rollback();
+                    return res.status(400).json({
+                        success: false,
+                        message: `Produto "${item.name}" sem estoque suficiente.`,
+                    });
                 }
             }
 
-            const subtotal     = items.reduce((s, i) => s + (i.final_price * i.quantity), 0);
-            const shippingCost = parseFloat(shipping?.cost) || 0;
+            // ── Cálculo de totais (server-side, autoritativo) ───────────────
+            const subtotal = items.reduce((s, i) => s + (parseFloat(i.final_price) * i.quantity), 0);
+
+            // Limite máximo absoluto pro frete (defesa contra valores absurdos vindos do client).
+            // O ideal é recalcular o frete aqui, mas o fluxo atual confia na cotação prévia.
+            const RAW_SHIPPING_MAX = 1000;
+            const shippingCost = Math.min(
+                Math.max(parseFloat(shipping?.cost) || 0, 0),
+                RAW_SHIPPING_MAX
+            );
+
+            // ── Cupom (revalidação server-side) ─────────────────────────────
             let discountAmount = 0;
             let couponData     = null;
-
             if (coupon) {
                 const [couponRows] = await connection.execute(
                     'SELECT * FROM coupons WHERE code = ? AND status = "active"',
@@ -231,7 +266,6 @@ class CheckoutController {
                     const isExhausted = couponData.max_uses && couponData.used_count >= couponData.max_uses;
                     let alreadyUsed   = false;
 
-                    // Verifica uso por usuário (max_uses = 1 OU tipo primeira compra)
                     const isPerUserCoupon = couponData.max_uses === 1 || couponData.coupon_type === 'first_purchase';
                     if (isPerUserCoupon && userId) {
                         const [usage] = await connection.execute(
@@ -241,7 +275,6 @@ class CheckoutController {
                         alreadyUsed = usage.length > 0;
                     }
 
-                    // Validação extra para cupom de primeira compra: usuário não pode ter nenhum pedido pago
                     if (!alreadyUsed && couponData.coupon_type === 'first_purchase' && userId) {
                         const [prevOrders] = await connection.execute(
                             "SELECT id FROM orders WHERE user_id = ? AND payment_status = 'approved' LIMIT 1",
@@ -251,20 +284,25 @@ class CheckoutController {
                     }
 
                     if (!isExpired && !isExhausted && !alreadyUsed) {
-                        discountAmount = couponData.discount_type === 'percentage'
-                            ? subtotal * (couponData.discount_value / 100)
-                            : parseFloat(couponData.discount_value);
+                        const minPurchase = parseFloat(couponData.min_purchase || 0);
+                        if (subtotal >= minPurchase) {
+                            discountAmount = couponData.discount_type === 'percentage'
+                                ? subtotal * (couponData.discount_value / 100)
+                                : parseFloat(couponData.discount_value);
+                            // Desconto nunca pode passar do subtotal
+                            discountAmount = Math.min(discountAmount, subtotal);
+                        }
                     }
                 }
             }
 
-            const totalAmount = subtotal + shippingCost - discountAmount;
+            const totalAmount = Math.max(0, subtotal + shippingCost - discountAmount);
             const orderNumber = 'VLT' + Date.now().toString().slice(-8);
 
             const shippingAddress = JSON.stringify({
                 name: shipping.name, street: shipping.street, number: shipping.number,
                 complement: shipping.complement || '', neighborhood: shipping.neighborhood,
-                city: shipping.city, state: shipping.state, zip_code: shipping.zip_code
+                city: shipping.city, state: shipping.state, zip_code: shipping.zip_code,
             });
 
             const [orderResult] = await connection.execute(
@@ -275,9 +313,9 @@ class CheckoutController {
                 [orderNumber, userId, shipping.name, shipping.email, shipping.phone, shipping.cpf || null,
                  totalAmount, shippingCost, discountAmount, payment.method, shippingAddress]
             );
-
             const orderId = orderResult.insertId;
 
+            // Itens com SNAPSHOT do preço atual (não confia no que veio do client)
             for (const item of items) {
                 await connection.execute(
                     `INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price)
@@ -304,20 +342,20 @@ class CheckoutController {
             await Cart.clearCart(cart.id);
             await connection.commit();
 
+            // ── Preferência Mercado Pago ────────────────────────────────────
             const mpItems = items.map(item => ({
-                id: String(item.product_id), title: item.name,
+                id: String(item.product_id),
+                title: item.name,
                 quantity: Number(item.quantity),
                 unit_price: parseFloat(parseFloat(item.final_price).toFixed(2)),
                 currency_id: 'BRL',
             }));
-
             if (shippingCost > 0) {
                 mpItems.push({
                     id: 'frete', title: `Frete — ${shipping.shipping_name || 'Entrega'}`,
                     quantity: 1, unit_price: parseFloat(shippingCost.toFixed(2)), currency_id: 'BRL',
                 });
             }
-
             if (discountAmount > 0) {
                 mpItems.push({
                     id: 'desconto', title: 'Desconto cupom',
@@ -338,51 +376,191 @@ class CheckoutController {
                 }
             });
 
+            // Prefere init_point em produção; sandbox_init_point em dev
+            const paymentUrl = process.env.NODE_ENV === 'production'
+                ? (preference.init_point || preference.sandbox_init_point)
+                : (preference.sandbox_init_point || preference.init_point);
+
             res.json({
-                success: true, orderId, orderNumber, totalAmount,
-                paymentUrl: preference.sandbox_init_point,
+                success: true,
+                orderId,
+                orderNumber,
+                totalAmount,
+                paymentUrl,
             });
 
         } catch (error) {
             await connection.rollback();
-            console.error('Erro ao criar pedido:', error);
-            res.status(500).json({ success: false, message: error.message });
+            console.error('[createOrder]', error);
+            // Não vaza error.message — pode conter detalhes internos
+            res.status(500).json({ success: false, message: 'Erro ao processar pedido. Tente novamente.' });
         } finally {
             connection.release();
         }
     }
 
-    // ── WEBHOOK ───────────────────────────────────────────────────────────────
+    // ════════════════════════════════════════════════════════════════════════
+    // WEBHOOK MERCADO PAGO — com validação de assinatura HMAC
+    // ════════════════════════════════════════════════════════════════════════
+    //
+    // O MP envia headers:
+    //   x-signature: ts=1234567890,v1=hexhash
+    //   x-request-id: <id>
+    //
+    // E nós validamos com a fórmula oficial:
+    //   manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`
+    //   hmac     = HMAC-SHA256(manifest, MP_WEBHOOK_SECRET)
+    //   hmac === v1 ?
+    //
+    // SETUP: pegue o secret em
+    //   https://www.mercadopago.com.br/developers/panel/app/{APP_ID}/webhooks
+    //   → "Sua chave secreta" → coloque em MP_WEBHOOK_SECRET no .env
+    //
+    // IMPORTANTE: o body chega como Buffer (express.raw em routes/checkout.js).
+    // ════════════════════════════════════════════════════════════════════════
+    verifyMercadoPagoSignature(req) {
+        const secret = process.env.MP_WEBHOOK_SECRET;
+
+        // Sem secret configurado → REJEITA em produção; em dev, aceita com aviso.
+        if (!secret || secret === 'COLOQUE_SEU_SECRET_AQUI') {
+            if (process.env.NODE_ENV === 'production') {
+                console.error('[webhook] MP_WEBHOOK_SECRET não configurado em produção — webhook rejeitado');
+                return false;
+            }
+            console.warn('[webhook] MP_WEBHOOK_SECRET ausente — aceitando em dev (NÃO USE EM PROD)');
+            return true;
+        }
+
+        const xSignature = req.headers['x-signature'];
+        const xRequestId = req.headers['x-request-id'];
+
+        if (!xSignature || !xRequestId) {
+            console.warn('[webhook] headers x-signature/x-request-id ausentes');
+            return false;
+        }
+
+        // x-signature vem como "ts=123,v1=abc"
+        const parts = {};
+        xSignature.split(',').forEach(p => {
+            const [k, v] = p.split('=').map(s => s.trim());
+            if (k && v) parts[k] = v;
+        });
+
+        const ts = parts.ts;
+        const v1 = parts.v1;
+        if (!ts || !v1) {
+            console.warn('[webhook] x-signature mal formatada');
+            return false;
+        }
+
+        // Proteção contra replay attack: timestamp não pode ter mais de 5 minutos
+        const tsNum = parseInt(ts);
+        if (Number.isNaN(tsNum) || Math.abs(Date.now() / 1000 - tsNum) > 300) {
+            console.warn('[webhook] timestamp fora da janela aceita (replay attack?)');
+            return false;
+        }
+
+        // dataId vem do query string (?data.id=...) ou do body parseado
+        const url = new URL(req.originalUrl || req.url, 'http://x');
+        let dataId = url.searchParams.get('data.id') || url.searchParams.get('id');
+
+        // Fallback: tenta extrair do body cru
+        if (!dataId && req.body) {
+            try {
+                const bodyStr = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body);
+                const parsed = JSON.parse(bodyStr);
+                dataId = parsed?.data?.id || parsed?.id || '';
+            } catch {}
+        }
+        if (!dataId) {
+            console.warn('[webhook] data.id não encontrado para validar assinatura');
+            return false;
+        }
+
+        const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+        const expected = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
+
+        try {
+            // timingSafeEqual exige tamanhos iguais
+            return crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(v1, 'hex'));
+        } catch {
+            return false;
+        }
+    }
+
     async handleWebhook(req, res) {
         try {
-            const { type, data } = req.body;
-            if (type === 'payment') {
+            // 1) Validar assinatura ANTES de qualquer coisa
+            if (!this.verifyMercadoPagoSignature(req)) {
+                console.warn('[webhook] assinatura inválida — rejeitando');
+                return res.sendStatus(401);
+            }
+
+            // 2) Parse manual do body (raw Buffer)
+            let parsedBody;
+            try {
+                const bodyStr = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : '';
+                parsedBody = bodyStr ? JSON.parse(bodyStr) : {};
+            } catch (e) {
+                console.error('[webhook] body inválido');
+                return res.sendStatus(400);
+            }
+
+            const { type, data } = parsedBody;
+
+            if (type === 'payment' && data?.id) {
                 const { MercadoPagoConfig, Payment } = require('mercadopago');
                 const client        = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
                 const paymentClient = new Payment(client);
                 const payment       = await paymentClient.get({ id: data.id });
-                const statusMap     = { approved: 'paid', pending: 'pending', in_process: 'pending', rejected: 'cancelled' };
-                const newStatus     = statusMap[payment.status] || 'pending';
-                const db            = getDB();
 
-                if (newStatus === 'cancelled') {
-                    const [orderRows] = await db.execute('SELECT id FROM orders WHERE order_number = ?', [payment.external_reference]);
-                    if (orderRows.length) {
-                        const [orderItems] = await db.execute('SELECT product_id, quantity FROM order_items WHERE order_id = ?', [orderRows[0].id]);
-                        for (const item of orderItems) {
-                            await db.execute(
-                                'UPDATE products SET stock = stock + ?, sales_count = GREATEST(0, sales_count - ?) WHERE id = ?',
-                                [item.quantity, item.quantity, item.product_id]
-                            );
-                        }
+                const statusMap = {
+                    approved:   'paid',
+                    pending:    'pending',
+                    in_process: 'pending',
+                    rejected:   'cancelled',
+                    cancelled:  'cancelled',
+                    refunded:   'cancelled',
+                };
+                const newStatus = statusMap[payment.status] || 'pending';
+                const db        = getDB();
+
+                // Idempotência: se já está no status final, não duplica o restock
+                const [currentRows] = await db.execute(
+                    'SELECT id, status FROM orders WHERE order_number = ?',
+                    [payment.external_reference]
+                );
+                if (!currentRows.length) {
+                    console.warn(`[webhook] order ${payment.external_reference} não encontrado`);
+                    return res.sendStatus(200);
+                }
+
+                const currentStatus = currentRows[0].status;
+                const orderId       = currentRows[0].id;
+
+                // Se já está cancelado E newStatus também é cancelado, não restock de novo
+                if (newStatus === 'cancelled' && currentStatus !== 'cancelled') {
+                    const [orderItems] = await db.execute(
+                        'SELECT product_id, quantity FROM order_items WHERE order_id = ?',
+                        [orderId]
+                    );
+                    for (const item of orderItems) {
+                        await db.execute(
+                            'UPDATE products SET stock = stock + ?, sales_count = GREATEST(0, sales_count - ?) WHERE id = ?',
+                            [item.quantity, item.quantity, item.product_id]
+                        );
                     }
                 }
-                await db.execute('UPDATE orders SET status = ?, payment_id = ? WHERE order_number = ?',
-                    [newStatus, String(data.id), payment.external_reference]);
+
+                await db.execute(
+                    'UPDATE orders SET status = ?, payment_status = ?, payment_id = ? WHERE order_number = ?',
+                    [newStatus, payment.status, String(data.id), payment.external_reference]
+                );
             }
+
             res.sendStatus(200);
         } catch (error) {
-            console.error('Erro no webhook:', error);
+            console.error('[webhook]', error);
             res.sendStatus(500);
         }
     }

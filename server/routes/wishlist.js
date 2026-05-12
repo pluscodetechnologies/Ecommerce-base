@@ -2,6 +2,8 @@ const express = require('express');
 const router  = express.Router();
 const { getDB } = require('../config/database');
 const { authMiddleware } = require('../middleware/auth');
+const { validate } = require('../middleware/validate');
+const { productIdParamSchema } = require('../schemas/checkout.schema');
 
 router.use(authMiddleware);
 
@@ -29,34 +31,37 @@ router.get('/', async (req, res) => {
 
         res.json({ success: true, data: items });
     } catch (e) {
-        console.error(e);
+        console.error('[wishlist.get]', e);
         res.status(500).json({ success: false, message: 'Erro ao buscar favoritos' });
     }
 });
 
 // POST /api/wishlist/:productId — toggle
-router.post('/:productId', async (req, res) => {
-    try {
-        const db        = getDB();
-        const productId = req.params.productId;
-        const userId    = req.userId;
+router.post('/:productId',
+    validate({ params: productIdParamSchema }),
+    async (req, res) => {
+        try {
+            const db        = getDB();
+            const productId = req.params.productId;
+            const userId    = req.userId;
 
-        const [existing] = await db.execute(
-            'SELECT id FROM wishlists WHERE user_id = ? AND product_id = ?',
-            [userId, productId]
-        );
+            const [existing] = await db.execute(
+                'SELECT id FROM wishlists WHERE user_id = ? AND product_id = ?',
+                [userId, productId]
+            );
 
-        if (existing.length) {
-            await db.execute('DELETE FROM wishlists WHERE user_id = ? AND product_id = ?', [userId, productId]);
-            res.json({ success: true, action: 'removed' });
-        } else {
-            await db.execute('INSERT INTO wishlists (user_id, product_id) VALUES (?, ?)', [userId, productId]);
-            res.json({ success: true, action: 'added' });
+            if (existing.length) {
+                await db.execute('DELETE FROM wishlists WHERE user_id = ? AND product_id = ?', [userId, productId]);
+                res.json({ success: true, action: 'removed' });
+            } else {
+                await db.execute('INSERT INTO wishlists (user_id, product_id) VALUES (?, ?)', [userId, productId]);
+                res.json({ success: true, action: 'added' });
+            }
+        } catch (e) {
+            console.error('[wishlist.toggle]', e);
+            res.status(500).json({ success: false, message: 'Erro ao atualizar favoritos' });
         }
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ success: false, message: 'Erro ao atualizar favoritos' });
     }
-});
+);
 
 module.exports = router;

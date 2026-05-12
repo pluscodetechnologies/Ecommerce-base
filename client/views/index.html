@@ -680,25 +680,9 @@ document.addEventListener('DOMContentLoaded', loadNavCategories);
                 const price = parseFloat(p.price) || 0, promo = p.promotional_price ? parseFloat(p.promotional_price) : null;
                 const img = p.main_image || (p.images?.[0]) || 'https://via.placeholder.com/400';
                 const isFav = favs.has(String(p.id));
-                return `<div class="product-card"><div class="product-image"><a href="/product?id=${p.id}"><img src="${img}" alt="${p.name}"></a>${promo ? `<span class="product-badge sale">-${Math.round((1-promo/price)*100)}%</span>` : ''}<div class="card-actions">${Wishlist.button(p.id, isFav)}<button class="quickcart-btn" title="Adicionar ao carrinho" onclick="quickAddToCart(this,${p.id})"><i class="fas fa-shopping-bag"></i></button></div></div><div class="product-info"><h3><a href="/product?id=${p.id}">${p.name}</a></h3><div class="product-price">${promo ? `<span class="old-price">R$ ${price.toFixed(2)}</span><span class="current-price">R$ ${promo.toFixed(2)}</span>` : `<span class="current-price">R$ ${price.toFixed(2)}</span>`}</div></div></div>`;
+                return `<div class="product-card"><div class="product-image"><a href="/product?id=${p.id}"><img src="${img}" alt="${p.name}"></a>${promo ? `<span class="product-badge sale">-${Math.round((1-promo/price)*100)}%</span>` : ''}<div class="card-actions">${Wishlist.button(p.id, isFav)}</div></div><div class="product-info"><h3><a href="/product?id=${p.id}">${p.name}</a></h3><div class="product-price">${promo ? `<span class="old-price">R$ ${price.toFixed(2)}</span><span class="current-price">R$ ${promo.toFixed(2)}</span>` : `<span class="current-price">R$ ${price.toFixed(2)}</span>`}</div></div></div>`;
             }).join('');
         }
-
-        window.quickAddToCart = async function(btn, productId) {
-            btn.disabled = true;
-            const ok = await addToCart(productId, 1);
-            if (ok) {
-                btn.classList.add('added');
-                btn.querySelector('i').className = 'fas fa-check';
-                setTimeout(() => {
-                    btn.classList.remove('added');
-                    btn.querySelector('i').className = 'fas fa-shopping-bag';
-                    btn.disabled = false;
-                }, 1800);
-            } else {
-                btn.disabled = false;
-            }
-        };
         
         document.addEventListener('DOMContentLoaded', function() {
             var header = document.querySelector('.header');

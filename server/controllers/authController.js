@@ -1,261 +1,409 @@
-const User = require('../models/User');
-const { getDB } = require('../config/database');
-const crypto = require('crypto');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+
+const { getDB } = require('../config/database');
+const { generateAccessToken, REFRESH_TOKEN_TTL } = require('../middleware/auth');
+const refreshTokenService = require('../services/refreshTokenService');
+const loginAttempts       = require('../services/loginAttemptService');
+
+const BCRYPT_ROUNDS = 12;   // 10 era OK em 2018; 12 é o mínimo aceitável em 2026
+
+// ────────────────────────────────────────────────────────────────────
+// Helper: configura cookie httpOnly para o refresh token
+// ────────────────────────────────────────────────────────────────────
+function setRefreshCookie(res, token, expiresAt) {
+    const isNgrok = process.env.NGROK_MODE === 'true';
+    res.cookie('refreshToken', token, {
+        httpOnly: true,
+        secure:   process.env.NODE_ENV === 'production' || isNgrok,
+        sameSite: isNgrok ? 'none' : 'lax',  // 'none' é obrigatório com secure cross-site
+        path:     '/api/auth',
+        expires:  expiresAt,
+    });
+}
+
+function clearRefreshCookie(res) {
+    res.clearCookie('refreshToken', { path: '/api/auth' });
+}
+
+function getClientIp(req) {
+    // Confiar em x-forwarded-for só se app.set('trust proxy', 1) está configurado
+    return req.ip || req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || '';
+}
 
 class AuthController {
+
+    // ════════════════════════════════════════════════════════════════
+    // REGISTER
+    // ════════════════════════════════════════════════════════════════
     async register(req, res) {
         try {
+            // Já validado pelo middleware Zod — vem limpo
             const { name, email, password, phone, cpf } = req.body;
-            
-            // Validação de senha forte
-            const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-            if (!passwordRegex.test(password)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'A senha deve ter no mínimo 8 caracteres, uma letra maiúscula, um número e um símbolo (@$!%*?&)'
-                });
-            }
-            
-            // Verificar se email já existe
+
             const db = getDB();
+
+            // Email já existe? (resposta genérica pra não vazar info)
             const [existing] = await db.execute(
                 'SELECT id FROM users WHERE email = ?',
                 [email]
             );
-            
             if (existing.length > 0) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Email já cadastrado'
+                    message: 'Não foi possível criar a conta. Verifique os dados.',
                 });
             }
-            
-            // Hash da senha
-            const hashedPassword = await bcrypt.hash(password, 10);
-            
-            // Criar usuário
+
+            const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
             const [result] = await db.execute(
-                `INSERT INTO users (name, email, password, phone, cpf, created_at) 
-                 VALUES (?, ?, ?, ?, ?, NOW())`,
+                `INSERT INTO users (name, email, password, phone, cpf, auth_provider, created_at)
+                 VALUES (?, ?, ?, ?, ?, 'local', NOW())`,
                 [name, email, hashedPassword, phone || null, cpf || null]
             );
-            
+
             res.status(201).json({
                 success: true,
                 message: 'Conta criada com sucesso!',
-                data: { userId: result.insertId }
+                data:    { userId: result.insertId },
             });
         } catch (error) {
-            console.error('Erro no registro:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Erro ao criar usuário. Tente novamente.'
-            });
+            console.error('[register]', error);
+            res.status(500).json({ success: false, message: 'Erro ao criar usuário. Tente novamente.' });
         }
     }
-    
+
+    // ════════════════════════════════════════════════════════════════
+    // LOGIN — com lockout e refresh token
+    // ════════════════════════════════════════════════════════════════
     async login(req, res) {
+        const { email, password } = req.body;
+        const ip        = getClientIp(req);
+        const userAgent = req.headers['user-agent'] || '';
+
         try {
-            const { email, password } = req.body;
-            
+            // 1) Lockout check
+            const lock = await loginAttempts.isLocked(email);
+            if (lock.locked) {
+                return res.status(429).json({
+                    success: false,
+                    message: `Muitas tentativas. Tente novamente em ${lock.remainingMinutes} minuto(s).`,
+                });
+            }
+
             const db = getDB();
             const [users] = await db.execute(
-                'SELECT * FROM users WHERE email = ?',
+                'SELECT id, name, email, password, role, token_version, auth_provider FROM users WHERE email = ?',
                 [email]
             );
-            
-            if (users.length === 0) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Email ou senha incorretos'
-                });
-            }
-            
+
+            // Resposta genérica → não revelar se o email existe
+            const genericFail = () => {
+                loginAttempts.recordAttempt(email, ip, false).catch(() => {});
+                return res.status(401).json({ success: false, message: 'Email ou senha incorretos' });
+            };
+
+            if (users.length === 0) return genericFail();
+
             const user = users[0];
-            
-            const validPassword = await bcrypt.compare(password, user.password);
-            if (!validPassword) {
+
+            // Usuário de social login sem senha local → não pode logar com email/senha
+            if (!user.password) {
                 return res.status(401).json({
                     success: false,
-                    message: 'Email ou senha incorretos'
+                    message: 'Esta conta usa login social. Entre com Google ou Facebook.',
                 });
             }
-            
-            const token = User.generateToken(user.id, user.role || 'user');
-            
+
+            const valid = await bcrypt.compare(password, user.password);
+            if (!valid) return genericFail();
+
+            // Sucesso — limpa tentativas
+            await loginAttempts.recordAttempt(email, ip, true);
+            await loginAttempts.clearAttempts(email);
+
+            // Emite access + refresh token
+            const accessToken = generateAccessToken(user);
+            const { token: refreshToken, expiresAt } =
+                await refreshTokenService.createRefreshToken(user.id, { ip, userAgent });
+
+            setRefreshCookie(res, refreshToken, expiresAt);
+
             res.json({
                 success: true,
                 data: {
-                    token,
+                    token:        accessToken,   // mantido pra compat com frontend antigo
+                    accessToken,
+                    expiresIn:    process.env.ACCESS_TOKEN_TTL || '15m',
                     user: {
-                        id: user.id,
-                        name: user.name,
+                        id:    user.id,
+                        name:  user.name,
                         email: user.email,
-                        role: user.role || 'user'
-                    }
-                }
+                        role:  user.role || 'user',
+                    },
+                },
             });
         } catch (error) {
-            console.error('Erro no login:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Erro ao fazer login'
-            });
+            console.error('[login]', error);
+            res.status(500).json({ success: false, message: 'Erro ao fazer login' });
         }
     }
 
-    async socialLogin(req, res) {
+    // ════════════════════════════════════════════════════════════════
+    // REFRESH — emite novo access token a partir do refresh
+    // ════════════════════════════════════════════════════════════════
+    async refresh(req, res) {
         try {
-            const { provider, token: socialToken, name, email, provider_id } = req.body;
+            const ip        = getClientIp(req);
+            const userAgent = req.headers['user-agent'] || '';
 
-            if (!provider || !name || !email || !provider_id) {
-                return res.status(400).json({ success: false, message: 'Dados incompletos' });
+            // Refresh token vem do cookie httpOnly (preferido) ou do body (fallback)
+            const rawToken = req.cookies?.refreshToken || req.body?.refreshToken;
+
+            if (!rawToken) {
+                return res.status(401).json({ success: false, message: 'Refresh token ausente' });
             }
 
-            const db = getDB();
+            const result = await refreshTokenService.rotateRefreshToken(rawToken, { ip, userAgent });
+            if (!result) {
+                clearRefreshCookie(res);
+                return res.status(401).json({
+                    success: false,
+                    message: 'Sessão expirada. Faça login novamente.',
+                });
+            }
 
-            // Check if user already exists by email
+            // Busca usuário pra montar novo access token (precisa de token_version atual)
+            const db = getDB();
+            const [users] = await db.execute(
+                'SELECT id, role, token_version FROM users WHERE id = ?',
+                [result.userId]
+            );
+            if (!users.length) {
+                clearRefreshCookie(res);
+                return res.status(401).json({ success: false, message: 'Usuário não encontrado' });
+            }
+
+            const accessToken = generateAccessToken(users[0]);
+            setRefreshCookie(res, result.newToken, result.expiresAt);
+
+            res.json({
+                success: true,
+                data: {
+                    token:       accessToken,
+                    accessToken,
+                    expiresIn:   process.env.ACCESS_TOKEN_TTL || '15m',
+                },
+            });
+        } catch (error) {
+            console.error('[refresh]', error);
+            res.status(500).json({ success: false, message: 'Erro ao renovar sessão' });
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // LOGOUT — revoga refresh token
+    // ════════════════════════════════════════════════════════════════
+    async logout(req, res) {
+        try {
+            const rawToken = req.cookies?.refreshToken || req.body?.refreshToken;
+            if (rawToken) await refreshTokenService.revokeRefreshToken(rawToken);
+            clearRefreshCookie(res);
+            res.json({ success: true, message: 'Logout realizado' });
+        } catch (error) {
+            console.error('[logout]', error);
+            // Logout deve ser idempotente — sempre 200
+            clearRefreshCookie(res);
+            res.json({ success: true });
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // LOGOUT ALL — revoga TODOS os tokens do usuário e incrementa version
+    // ════════════════════════════════════════════════════════════════
+    async logoutAll(req, res) {
+        try {
+            const db = getDB();
+            await refreshTokenService.revokeAllUserTokens(req.userId);
+            await db.execute('UPDATE users SET token_version = token_version + 1 WHERE id = ?', [req.userId]);
+            clearRefreshCookie(res);
+            res.json({ success: true, message: 'Todas as sessões foram encerradas' });
+        } catch (error) {
+            console.error('[logoutAll]', error);
+            res.status(500).json({ success: false, message: 'Erro ao encerrar sessões' });
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // SOCIAL LOGIN — corrigido
+    // ════════════════════════════════════════════════════════════════
+    async socialLogin(req, res) {
+        try {
+            const { provider, name, email, provider_id } = req.body;
+            const ip        = getClientIp(req);
+            const userAgent = req.headers['user-agent'] || '';
+
+            // TODO: validar o id_token do Google no backend (chamada à API do Google)
+            //       Sem isso, qualquer um pode forjar um social login enviando dados falsos.
+            //       Veja: https://developers.google.com/identity/sign-in/web/backend-auth
+
+            const db = getDB();
             const [existing] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
 
             let user;
             if (existing.length > 0) {
-                // User exists — update name if it was a social login before
                 user = existing[0];
+
+                // Se a conta local existia, NÃO permitir login social automaticamente
+                // (atacante pode fazer "takeover" criando conta google com email da vítima).
+                if (user.auth_provider === 'local' && user.password) {
+                    return res.status(409).json({
+                        success: false,
+                        message: 'Esta conta já existe com login por senha. Faça login normalmente ou redefina a senha.',
+                    });
+                }
+
+                // Atualiza nome se mudou
                 await db.execute(
-                    'UPDATE users SET name = ? WHERE id = ? AND (password IS NULL OR password = "")',
-                    [name, user.id]
+                    'UPDATE users SET name = ?, auth_provider = ? WHERE id = ?',
+                    [name, provider, user.id]
                 );
-                user.name = name;
+                user.name          = name;
+                user.auth_provider = provider;
             } else {
-                // Create new user — no password (social only)
+                // Novo usuário — password NULL (não vazio)
                 const [result] = await db.execute(
-                    `INSERT INTO users (name, email, password, phone, cpf, created_at) VALUES (?, ?, '', '', '', NOW())`,
-                    [name, email]
+                    `INSERT INTO users (name, email, password, auth_provider, created_at)
+                     VALUES (?, ?, NULL, ?, NOW())`,
+                    [name, email, provider]
                 );
-                user = { id: result.insertId, name, email, role: 'user' };
+                user = {
+                    id:            result.insertId,
+                    name,
+                    email,
+                    role:          'user',
+                    token_version: 0,
+                };
             }
 
-            const token = User.generateToken(user.id, user.role || 'user');
+            const accessToken = generateAccessToken(user);
+            const { token: refreshToken, expiresAt } =
+                await refreshTokenService.createRefreshToken(user.id, { ip, userAgent });
+
+            setRefreshCookie(res, refreshToken, expiresAt);
 
             res.json({
                 success: true,
                 data: {
-                    token,
-                    user: { id: user.id, name: user.name, email: user.email, role: user.role || 'user' }
-                }
+                    token:        accessToken,
+                    accessToken,
+                    user: { id: user.id, name: user.name, email: user.email, role: user.role || 'user' },
+                },
             });
         } catch (error) {
-            console.error('Erro no social login:', error);
+            console.error('[socialLogin]', error);
             res.status(500).json({ success: false, message: 'Erro ao fazer login social' });
         }
     }
-    
+
+    // ════════════════════════════════════════════════════════════════
+    // GET PROFILE
+    // ════════════════════════════════════════════════════════════════
     async getProfile(req, res) {
         try {
             const db = getDB();
             const [users] = await db.execute(
-                'SELECT id, name, email, phone, cpf, role, created_at FROM users WHERE id = ?',
+                // NÃO retornar password, reset_token, token_version
+                'SELECT id, name, email, phone, cpf, role, auth_provider, created_at FROM users WHERE id = ?',
                 [req.userId]
             );
-            
-            if (users.length === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Usuário não encontrado'
-                });
+
+            if (!users.length) {
+                return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
             }
-            
-            res.json({
-                success: true,
-                data: users[0]
-            });
+            res.json({ success: true, data: users[0] });
         } catch (error) {
-            console.error('Erro ao buscar perfil:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Erro ao buscar perfil'
-            });
+            console.error('[getProfile]', error);
+            res.status(500).json({ success: false, message: 'Erro ao buscar perfil' });
         }
     }
-    
+
+    // ════════════════════════════════════════════════════════════════
+    // UPDATE PROFILE
+    // ════════════════════════════════════════════════════════════════
     async updateProfile(req, res) {
         try {
             const { name, phone } = req.body;
             const db = getDB();
-            
             await db.execute(
                 'UPDATE users SET name = ?, phone = ? WHERE id = ?',
-                [name, phone, req.userId]
+                [name, phone || null, req.userId]
             );
-            
-            res.json({
-                success: true,
-                message: 'Perfil atualizado com sucesso'
-            });
+            res.json({ success: true, message: 'Perfil atualizado com sucesso' });
         } catch (error) {
-            console.error('Erro ao atualizar perfil:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Erro ao atualizar perfil'
-            });
+            console.error('[updateProfile]', error);
+            res.status(500).json({ success: false, message: 'Erro ao atualizar perfil' });
         }
     }
-    
+
+    // ════════════════════════════════════════════════════════════════
+    // CHANGE PASSWORD — invalida tokens antigos
+    // ════════════════════════════════════════════════════════════════
     async changePassword(req, res) {
         try {
             const { currentPassword, newPassword } = req.body;
             const db = getDB();
-            
+
             const [users] = await db.execute(
                 'SELECT password FROM users WHERE id = ?',
                 [req.userId]
             );
-            
-            if (users.length === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Usuário não encontrado'
-                });
+            if (!users.length || !users[0].password) {
+                return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
             }
-            
-            const validPassword = await bcrypt.compare(currentPassword, users[0].password);
-            if (!validPassword) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Senha atual incorreta'
-                });
+
+            const valid = await bcrypt.compare(currentPassword, users[0].password);
+            if (!valid) {
+                return res.status(401).json({ success: false, message: 'Senha atual incorreta' });
             }
-            
-            // Validação de senha forte
-            const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-            if (!passwordRegex.test(newPassword)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'A nova senha deve ter no mínimo 8 caracteres, uma letra maiúscula, um número e um símbolo'
-                });
-            }
-            
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
-            
+
+            const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+
+            // Atualiza senha + incrementa token_version (invalida todos os tokens antigos)
             await db.execute(
-                'UPDATE users SET password = ? WHERE id = ?',
+                'UPDATE users SET password = ?, token_version = token_version + 1 WHERE id = ?',
                 [hashedPassword, req.userId]
             );
-            
+
+            // Revoga todos os refresh tokens
+            await refreshTokenService.revokeAllUserTokens(req.userId);
+
+            // Cria novo refresh token pro próprio usuário (não desloga deste dispositivo)
+            const ip        = getClientIp(req);
+            const userAgent = req.headers['user-agent'] || '';
+            const { token: refreshToken, expiresAt } =
+                await refreshTokenService.createRefreshToken(req.userId, { ip, userAgent });
+            setRefreshCookie(res, refreshToken, expiresAt);
+
+            // Devolve um novo access token também (frontend atualiza)
+            const [u] = await db.execute('SELECT id, role, token_version FROM users WHERE id = ?', [req.userId]);
+            const accessToken = generateAccessToken(u[0]);
+
             res.json({
                 success: true,
-                message: 'Senha alterada com sucesso'
+                message: 'Senha alterada com sucesso',
+                data: { token: accessToken, accessToken },
             });
         } catch (error) {
-            console.error('Erro ao alterar senha:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Erro ao alterar senha'
-            });
+            console.error('[changePassword]', error);
+            res.status(500).json({ success: false, message: 'Erro ao alterar senha' });
         }
     }
-    
+
+    // ════════════════════════════════════════════════════════════════
+    // FORGOT PASSWORD
+    // ════════════════════════════════════════════════════════════════
     async forgotPassword(req, res) {
         try {
             const { email } = req.body;
@@ -263,13 +411,16 @@ class AuthController {
 
             const [users] = await db.execute('SELECT id FROM users WHERE email = ?', [email]);
 
-            // Sempre retorna sucesso para não revelar se o email existe
-            if (!users.length) {
-                return res.json({ success: true, message: 'Se o email existir, você receberá um link de recuperação' });
-            }
+            // Sempre retorna a mesma mensagem — não revela se email existe
+            const genericResponse = () => res.json({
+                success: true,
+                message: 'Se o email existir, você receberá um link de recuperação',
+            });
 
-            const crypto = require('crypto');
-            const token = crypto.randomBytes(32).toString('hex');
+            if (!users.length) return genericResponse();
+
+            // Token aleatório com entropia alta
+            const token   = crypto.randomBytes(32).toString('hex');
             const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
 
             await db.execute(
@@ -277,16 +428,24 @@ class AuthController {
                 [token, expires, users[0].id]
             );
 
-            const { sendClientPasswordResetEmail } = require('../services/emailService');
-            await sendClientPasswordResetEmail(email, token);
+            try {
+                const { sendClientPasswordResetEmail } = require('../services/emailService');
+                await sendClientPasswordResetEmail(email, token);
+            } catch (emailErr) {
+                // Não vaza falha de email pro atacante — apenas loga
+                console.error('[forgotPassword] erro ao enviar email:', emailErr);
+            }
 
-            res.json({ success: true, message: 'Se o email existir, você receberá um link de recuperação' });
+            return genericResponse();
         } catch (error) {
-            console.error('Erro ao recuperar senha:', error);
+            console.error('[forgotPassword]', error);
             res.status(500).json({ success: false, message: 'Erro ao processar solicitação' });
         }
     }
 
+    // ════════════════════════════════════════════════════════════════
+    // RESET PASSWORD — também invalida tokens antigos
+    // ════════════════════════════════════════════════════════════════
     async resetPassword(req, res) {
         try {
             const { token, newPassword } = req.body;
@@ -296,55 +455,63 @@ class AuthController {
                 'SELECT id FROM users WHERE reset_token = ? AND reset_expires > NOW()',
                 [token]
             );
-
             if (!users.length) {
                 return res.status(400).json({ success: false, message: 'Link inválido ou expirado' });
             }
 
-            const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-            if (!passwordRegex.test(newPassword)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'A senha deve ter no mínimo 8 caracteres, uma letra maiúscula, um número e um símbolo'
-                });
-            }
-
-            const bcrypt = require('bcrypt');
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
 
             await db.execute(
-                'UPDATE users SET password = ?, reset_token = NULL, reset_expires = NULL WHERE id = ?',
+                `UPDATE users
+                 SET password = ?, reset_token = NULL, reset_expires = NULL,
+                     token_version = token_version + 1
+                 WHERE id = ?`,
                 [hashedPassword, users[0].id]
             );
 
+            // Revoga todos os refresh tokens — quem redefine senha desloga todos
+            await refreshTokenService.revokeAllUserTokens(users[0].id);
+
             res.json({ success: true, message: 'Senha redefinida com sucesso' });
         } catch (error) {
-            console.error('Erro ao redefinir senha:', error);
+            console.error('[resetPassword]', error);
             res.status(500).json({ success: false, message: 'Erro ao redefinir senha' });
         }
     }
 
+    // ════════════════════════════════════════════════════════════════
+    // UPDATE EMAIL — agora exige senha atual
+    // ════════════════════════════════════════════════════════════════
     async updateEmail(req, res) {
         try {
-            const { newEmail } = req.body;
+            const { newEmail, password } = req.body;
             const db = getDB();
 
-            if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
-                return res.status(400).json({ success: false, message: 'Email inválido' });
+            // Reautenticação com senha
+            const [users] = await db.execute('SELECT password FROM users WHERE id = ?', [req.userId]);
+            if (!users.length || !users[0].password) {
+                return res.status(401).json({ success: false, message: 'Não autorizado' });
+            }
+            const valid = await bcrypt.compare(password, users[0].password);
+            if (!valid) {
+                return res.status(401).json({ success: false, message: 'Senha incorreta' });
             }
 
-            const [existing] = await db.execute('SELECT id FROM users WHERE email = ? AND id != ?', [newEmail, req.userId]);
+            const [existing] = await db.execute(
+                'SELECT id FROM users WHERE email = ? AND id != ?',
+                [newEmail, req.userId]
+            );
             if (existing.length) {
                 return res.status(400).json({ success: false, message: 'Este email já está em uso' });
             }
 
             await db.execute('UPDATE users SET email = ? WHERE id = ?', [newEmail, req.userId]);
-
             res.json({ success: true, message: 'Email atualizado com sucesso' });
         } catch (error) {
-            console.error('Erro ao atualizar email:', error);
+            console.error('[updateEmail]', error);
             res.status(500).json({ success: false, message: 'Erro ao atualizar email' });
         }
     }
 }
+
 module.exports = new AuthController();

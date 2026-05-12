@@ -482,6 +482,7 @@
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',   // ← envia/recebe cookie httpOnly do refresh token
                     body: JSON.stringify(data)
                 });
                 
@@ -489,16 +490,23 @@
                 
                 if (result.success) {
                     localStorage.setItem('token', result.data.token);
+                    localStorage.setItem('authToken', result.data.token);   // compat
                     localStorage.setItem('user', JSON.stringify(result.data.user));
                     
                     document.getElementById('successMessage').textContent = 'Login realizado com sucesso! Redirecionando...';
                     document.getElementById('successMessage').style.display = 'block';
                     
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1500);
+                    // Honra ?redirect=... pra voltar pra página anterior
+                    const params = new URLSearchParams(window.location.search);
+                    const redirect = params.get('redirect') || '/';
+                    setTimeout(() => { window.location.href = redirect; }, 1500);
                 } else {
-                    document.getElementById('errorMessage').textContent = result.message;
+                    // Mensagem do servidor — pode vir com errors[] do Zod
+                    let msg = result.message || 'Erro ao fazer login.';
+                    if (Array.isArray(result.errors) && result.errors.length) {
+                        msg = result.errors.map(e => e.message).join(' • ');
+                    }
+                    document.getElementById('errorMessage').textContent = msg;
                     document.getElementById('errorMessage').style.display = 'block';
                 }
             } catch (error) {
@@ -549,7 +557,11 @@
                         document.getElementById('successMessage').style.display = 'none';
                     }, 2000);
                 } else {
-                    document.getElementById('errorMessage').textContent = result.message;
+                    let msg = result.message || 'Erro ao criar conta.';
+                    if (Array.isArray(result.errors) && result.errors.length) {
+                        msg = result.errors.map(e => e.message).join(' • ');
+                    }
+                    document.getElementById('errorMessage').textContent = msg;
                     document.getElementById('errorMessage').style.display = 'block';
                 }
             } catch (error) {
@@ -596,8 +608,14 @@
                     alert('Email de recuperação enviado! Verifique sua caixa de entrada.');
                     modal.style.display = 'none';
                     document.getElementById('recoveryEmail').value = '';
+                } else if (response.status === 429) {
+                    alert('Muitas tentativas. Aguarde alguns minutos e tente novamente.');
                 } else {
-                    alert(result.message);
+                    let msg = result.message || 'Erro ao enviar email.';
+                    if (Array.isArray(result.errors) && result.errors.length) {
+                        msg = result.errors.map(e => e.message).join(' • ');
+                    }
+                    alert(msg);
                 }
             } catch (error) {
                 alert('Erro ao enviar email de recuperação');
@@ -860,6 +878,7 @@
             const res  = await fetch('/api/auth/social-login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',   // ← cookie httpOnly do refresh token
                 body: JSON.stringify({ provider, name, email, provider_id: providerId })
             });
             const data = await res.json();
