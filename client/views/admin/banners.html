@@ -1,154 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <script>// ── Aplicar tema salvo ────────────────────────────────────────────────
-        (function() {
-            if (localStorage.getItem('adminTheme') === 'dark') {
-                document.documentElement.classList.add('dark');
-            }
-        })();</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Banners - Velvet Store Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="/js/admin-auth.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: #f5f7fa; display: flex; }
-        .sidebar { width: 280px; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; position: fixed; left: 0; top: 0; padding: 20px 0; }
-        .sidebar-header { padding: 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
-        .sidebar-header h2 { color: white; font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: 2px; }
-        .sidebar-header span { color: rgba(255,255,255,0.6); font-size: 12px; text-transform: uppercase; }
-        .sidebar-menu { list-style: none; padding: 0 15px; }
-        .sidebar-menu li { margin-bottom: 5px; }
-        .sidebar-menu a { display: flex; align-items: center; padding: 14px 20px; color: rgba(255,255,255,0.7); text-decoration: none; border-radius: 12px; transition: all 0.3s ease; font-size: 15px; }
-        .sidebar-menu a i { width: 24px; margin-right: 12px; font-size: 18px; }
-        .sidebar-menu a:hover { background: rgba(255,255,255,0.1); color: white; }
-        .sidebar-menu .active { background: rgba(255,255,255,0.15); color: white; }
-        .sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 25px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .user-info { display: flex; align-items: center; margin-bottom: 15px; }
-        .user-avatar { width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 20px; }
-        .user-details h4 { color: white; font-size: 14px; margin-bottom: 2px; }
-        .user-details p { color: rgba(255,255,255,0.6); font-size: 12px; }
-        .logout-btn { display: flex; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.1); color: white; text-decoration: none; border-radius: 10px; }
-        .logout-btn:hover { background: rgba(231, 76, 60, 0.3); }
-        .logout-btn i { margin-right: 10px; }
-        .main-content { flex: 1; margin-left: 280px; padding: 30px; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .page-title h1 { font-size: 28px; color: #1a1a2e; margin-bottom: 5px; }
-        .page-title p { color: #666; font-size: 14px; }
-        .btn-primary { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .banners-list { display: flex; flex-direction: column; gap: 12px; }
-        .banner-card { display: flex; align-items: center; gap: 16px; }
-        .banner-drag-handle { color: #ccc; cursor: grab; font-size: 18px; padding: 8px; flex-shrink: 0; transition: color 0.2s; }
-        .banner-drag-handle:hover { color: #888; }
-        .banner-card.dragging { opacity: 0.4; }
-        .banner-card.drag-over { outline: 2px dashed #1a1a2e; border-radius: 16px; }
-        .banner-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .banner-image { width: 100%; height: 200px; object-fit: cover; }
-        .banner-content { padding: 20px; }
-        .banner-title { font-size: 18px; font-weight: 600; color: #1a1a2e; margin-bottom: 5px; }
-        .banner-subtitle { color: #666; font-size: 14px; margin-bottom: 15px; }
-        .banner-actions { display: flex; gap: 10px; }
-        .action-btn { flex: 1; padding: 8px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; transition: all 0.3s ease; }
-        .edit-btn { background: #e3f2fd; color: #1976d2; }
-        .delete-btn { background: #ffebee; color: #c62828; }
-        .edit-btn:hover { background: #1976d2; color: white; }
-        .delete-btn:hover { background: #c62828; color: white; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: white; border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .modal-header h3 { font-size: 20px; color: #1a1a2e; }
-        .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; }
-        .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 14px; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #1a1a2e; }
-        .link-type-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
-        .link-tab { flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; background: white; font-family: 'Poppins', sans-serif; font-size: 13px; cursor: pointer; font-weight: 500; color: #666; transition: all 0.2s; }
-        .link-tab.active { border-color: #1a1a2e; background: #1a1a2e; color: white; }
-        .product-search-box { position: relative; }
-        .product-search-input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 14px; }
-        .product-search-input:focus { outline: none; border-color: #1a1a2e; }
-        .product-dropdown { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #1a1a2e; border-top: none; border-radius: 0 0 10px 10px; max-height: 220px; overflow-y: auto; z-index: 100; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-        .product-dropdown.open { display: block; }
-        .product-option { display: flex; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background 0.15s; }
-        .product-option:last-child { border-bottom: none; }
-        .product-option:hover { background: #f5f7fa; }
-        .product-option img { width: 38px; height: 48px; object-fit: cover; border-radius: 4px; background: #eee; flex-shrink: 0; }
-        .product-option-info { flex: 1; min-width: 0; }
-        .product-option-name { font-size: 13px; font-weight: 500; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .product-option-price { font-size: 12px; color: #666; }
-        .product-selected { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f0f4ff; border: 2px solid #1a1a2e; border-radius: 10px; margin-top: 8px; }
-        .product-selected img { width: 32px; height: 40px; object-fit: cover; border-radius: 3px; }
-        .product-selected-name { flex: 1; font-size: 13px; font-weight: 500; color: #1a1a2e; }
-        .product-clear-btn { background: none; border: none; color: #999; cursor: pointer; font-size: 16px; padding: 0 4px; }
-        .product-clear-btn:hover { color: #c62828; }
-        .no-link-msg { color: #888; font-size: 13px; padding: 10px 0; }
-
-        /* ── Tema Escuro ─────────────────────────────────────────────────────── */
-        html.dark body { background: #0f0f1a; color: #e0e0e0; }
-        html.dark .sidebar { background: linear-gradient(180deg, #0a0a15 0%, #10101f 100%); }
-        html.dark .main-content { background: transparent; }
-        html.dark .card,
-        html.dark .products-panel,
-        html.dark .coupons-table,
-        html.dark .filters-bar,
-        html.dark .alert-card,
-        html.dark .banner-card,
-        html.dark .category-card,
-        html.dark .modal-content,
-        html.dark .special-card { background: #1a1a2e !important; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        html.dark .page-title h1 { color: #e0e0e0; }
-        html.dark .page-title p { color: #888; }
-        html.dark table { background: #1a1a2e; }
-        html.dark th { color: #888; border-bottom-color: #2a2a3e; }
-        html.dark td { border-bottom-color: #22223a; color: #ccc; }
-        html.dark .product-name-cell strong,
-        html.dark .panel-header-title { color: #e0e0e0; }
-        html.dark .panel-header { border-bottom-color: #2a2a3e; }
-        html.dark .cat-tab { background: #1a1a2e; border-color: #2a2a3e; color: #aaa; }
-        html.dark .cat-tab:hover { border-color: #7b6cf6; color: #e0e0e0; }
-        html.dark .cat-tab.active { background: #7b6cf6; border-color: #7b6cf6; color: white; }
-        html.dark .search-box { background: #22223a; }
-        html.dark .search-box input { color: #e0e0e0; }
-        html.dark .search-box i { color: #666; }
-        html.dark .form-group input,
-        html.dark .form-group select,
-        html.dark .form-group textarea { background: #22223a; border-color: #2a2a3e; color: #e0e0e0; }
-        html.dark .form-group label { color: #ccc; }
-        html.dark .form-group .hint { color: #666; }
-        html.dark .card-header { border-bottom-color: #2a2a3e; }
-        html.dark .card-header h2 { color: #e0e0e0; }
-        html.dark .card-icon { background: #22223a; color: #aaa; }
-        html.dark .info-box { background: #1a2535; border-left-color: #4a90d9; }
-        html.dark .info-box p { color: #a0bcd8; }
-        html.dark .alert-preview { background: #0f0f1a; }
-        html.dark .banner-image { opacity: 0.85; }
-        html.dark .status-active { background: #1a3a2a; color: #6ee7b7; }
-        html.dark .status-inactive { background: #3a1a1a; color: #fca5a5; }
-        html.dark .featured-badge { background: #3a2e0a; color: #fbbf24; }
-        html.dark .product-sku { color: #666; }
-        html.dark .empty-state { color: #555; }
-        html.dark .section-title { color: #ccc; }
-        html.dark .special-card::before { background: #2a2a3e; }
-        html.dark .special-card.enabled::before { background: linear-gradient(180deg, #7b6cf6, #4a90d9); }
-        html.dark .special-card-fields input,
-        html.dark .special-card-fields select,
-        html.dark .code-row input { background: #22223a; border-color: #2a2a3e; color: #e0e0e0; }
-        html.dark .special-status-pill.pill-active { background: #1a3a2a; color: #6ee7b7; }
-        html.dark .special-status-pill.pill-inactive { background: #22223a; color: #666; }
-        html.dark .toggle-label { color: #666; }
-        html.dark .c-body { background: #22223a; }
-        html.dark .c-header { background: #22223a !important; border-bottom-color: #2a2a3e !important; }
-        html.dark .c-name-label { color: #e0e0e0 !important; }
-        html.dark .color-block { background: #1a1a2e !important; border-color: #2a2a3e !important; }
-    </style>
+    <link rel="stylesheet" href="/css/admin-banners.css">
 </head>
+
 <body>
     <div class="sidebar">
-        <div class="sidebar-header"><h2>VELVET</h2><span>administração</span></div>
+        <div class="sidebar-header">
+            <h2>VELVET</h2><span>administração</span>
+        </div>
         <ul class="sidebar-menu">
             <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
             <li><a href="/admin/pedidos"><i class="fas fa-shopping-cart"></i> Pedidos</a></li>
@@ -162,44 +31,67 @@
             <li><a href="/admin/configuracoes"><i class="fas fa-cog"></i> Configurações</a></li>
         </ul>
         <div class="sidebar-footer">
-            <div class="user-info"><div class="user-avatar"><i class="fas fa-user"></i></div><div class="user-details"><h4 id="adminName">Administrador</h4><p>Admin</p></div></div>
-            <a href="/" target="_blank" class="logout-btn" style="margin-bottom:10px;background:rgba(255,255,255,0.07);"><i class="fas fa-store" style="margin-right:10px;"></i> Ver loja</a>
+            <div class="user-info">
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+                <div class="user-details">
+                    <h4 id="adminName">Administrador</h4>
+                    <p>Admin</p>
+                </div>
+            </div>
+            <a href="/" target="_blank" class="logout-btn"
+                style="margin-bottom:10px;background:rgba(255,255,255,0.07);"><i class="fas fa-store"
+                    style="margin-right:10px;"></i> Ver loja</a>
             <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>Sair</a>
         </div>
     </div>
-    
+
     <div class="main-content">
         <div class="top-bar">
-            <div class="page-title"><h1>Banners</h1><p>Gerencie os banners da página inicial</p></div>
+            <div class="page-title">
+                <h1>Banners</h1>
+                <p>Gerencie os banners da página inicial</p>
+            </div>
             <button class="btn-primary" id="newBannerBtn"><i class="fas fa-plus"></i>Novo Banner</button>
         </div>
         <div class="banners-list" id="bannersGrid"></div>
     </div>
-    
+
     <div class="modal" id="bannerModal">
         <div class="modal-content">
-            <div class="modal-header"><h3 id="modalTitle">Novo Banner</h3><button class="close-modal" id="closeModalBtn">&times;</button></div>
+            <div class="modal-header">
+                <h3 id="modalTitle">Novo Banner</h3><button class="close-modal" id="closeModalBtn">&times;</button>
+            </div>
             <form id="bannerForm">
                 <input type="hidden" id="bannerId">
-                <div class="form-group"><label>URL da Imagem</label><input type="text" id="bannerImage" required placeholder="https://..."></div>
-                <div class="form-group"><label>Título <span style="font-size:11px;color:#aaa;font-weight:400;">(opcional)</span></label><input type="text" id="bannerTitle" placeholder="Deixe em branco se não quiser"></div>
-                <div class="form-group"><label>Subtítulo <span style="font-size:11px;color:#aaa;font-weight:400;">(opcional)</span></label><input type="text" id="bannerSubtitle" placeholder="Deixe em branco se não quiser"></div>
+                <div class="form-group"><label>URL da Imagem</label><input type="text" id="bannerImage" required
+                        placeholder="https://..."></div>
+                <div class="form-group"><label>Título <span
+                            style="font-size:11px;color:#aaa;font-weight:400;">(opcional)</span></label><input
+                        type="text" id="bannerTitle" placeholder="Deixe em branco se não quiser"></div>
+                <div class="form-group"><label>Subtítulo <span
+                            style="font-size:11px;color:#aaa;font-weight:400;">(opcional)</span></label><input
+                        type="text" id="bannerSubtitle" placeholder="Deixe em branco se não quiser"></div>
 
                 <div class="form-group">
                     <label>Link ao clicar no banner</label>
                     <div class="link-type-tabs">
-                        <button type="button" class="link-tab active" id="tabNone"     onclick="setLinkTab('none')">Sem link</button>
-                        <button type="button" class="link-tab"        id="tabProduct"  onclick="setLinkTab('product')">Produto</button>
-                        <button type="button" class="link-tab"        id="tabCustom"   onclick="setLinkTab('custom')">URL personalizada</button>
+                        <button type="button" class="link-tab active" id="tabNone" onclick="setLinkTab('none')">Sem
+                            link</button>
+                        <button type="button" class="link-tab" id="tabProduct"
+                            onclick="setLinkTab('product')">Produto</button>
+                        <button type="button" class="link-tab" id="tabCustom" onclick="setLinkTab('custom')">URL
+                            personalizada</button>
                     </div>
 
-                    <!-- Sem link -->
-                    <div id="linkNone"><p class="no-link-msg"><i class="fas fa-info-circle"></i> O banner não terá link ao ser clicado.</p></div>
+                    <div id="linkNone">
+                        <p class="no-link-msg"><i class="fas fa-info-circle"></i> O banner não terá link ao ser clicado.
+                        </p>
+                    </div>
 
-                    <!-- Produto -->
                     <div id="linkProduct" style="display:none;">
                         <div class="product-search-box">
-                            <input type="text" class="product-search-input" id="productSearch" placeholder="Buscar produto pelo nome..." autocomplete="off">
+                            <input type="text" class="product-search-input" id="productSearch"
+                                placeholder="Buscar produto pelo nome..." autocomplete="off">
                             <div class="product-dropdown" id="productDropdown"></div>
                         </div>
                         <div id="productSelected" style="display:none;"></div>
@@ -207,293 +99,20 @@
                         <input type="hidden" id="selectedProductLink">
                     </div>
 
-                    <!-- URL personalizada -->
                     <div id="linkCustom" style="display:none;">
                         <input type="text" id="bannerLink" placeholder="Ex: /products?sale=true">
                     </div>
                 </div>
 
-                <div class="form-group"><label>Status</label><select id="bannerStatus"><option value="1">Ativo</option><option value="0">Inativo</option></select></div>
+                <div class="form-group"><label>Status</label><select id="bannerStatus">
+                        <option value="1">Ativo</option>
+                        <option value="0">Inativo</option>
+                    </select></div>
                 <button type="submit" class="btn-primary" style="width: 100%;">Salvar Banner</button>
             </form>
         </div>
     </div>
-    
-    <script>
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        document.getElementById('adminName').textContent = user.name || 'Administrador';
-        document.getElementById('logoutBtn').addEventListener('click', e => { e.preventDefault(); adminLogout(); });
-
-        const modal = document.getElementById('bannerModal');
-
-        // ── Link tabs ─────────────────────────────────────────────────────────
-        let currentLinkTab = 'none';
-        window.setLinkTab = function(tab) {
-            currentLinkTab = tab;
-            document.getElementById('linkNone').style.display    = tab === 'none'    ? 'block' : 'none';
-            document.getElementById('linkProduct').style.display = tab === 'product' ? 'block' : 'none';
-            document.getElementById('linkCustom').style.display  = tab === 'custom'  ? 'block' : 'none';
-            document.getElementById('tabNone').classList.toggle('active',    tab === 'none');
-            document.getElementById('tabProduct').classList.toggle('active', tab === 'product');
-            document.getElementById('tabCustom').classList.toggle('active',  tab === 'custom');
-        };
-
-        // ── Product search ────────────────────────────────────────────────────
-        let allProducts = [], searchTimer = null;
-
-        async function loadProducts() {
-            try {
-                const r = await adminFetch('/api/products?limit=200');
-                const d = await r.json();
-                allProducts = d.data || [];
-            } catch(e) {}
-        }
-
-        function renderProductDropdown(query) {
-            const dd = document.getElementById('productDropdown');
-            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 8);
-            if (!filtered.length) {
-                dd.innerHTML = '<div style="padding:12px 14px;color:#999;font-size:13px;">Nenhum produto encontrado</div>';
-            } else {
-                dd.innerHTML = filtered.map(p => {
-                    let imgs = []; try { imgs = JSON.parse(p.images || '[]'); } catch(e) {}
-                    const thumb = imgs[0] || p.main_image || '';
-                    const price = parseFloat(p.promotional_price || p.price).toFixed(2).replace('.', ',');
-                    return `<div class="product-option" onclick="selectProduct(${p.id}, '${p.name.replace(/'/g,"\\'")}', '${thumb}', '${price}')">
-                        <img src="${thumb}" onerror="this.style.display='none'">
-                        <div class="product-option-info">
-                            <div class="product-option-name">${p.name}</div>
-                            <div class="product-option-price">R$ ${price}</div>
-                        </div>
-                    </div>`;
-                }).join('');
-            }
-            dd.classList.add('open');
-        }
-
-        window.selectProduct = function(id, name, thumb, price) {
-            document.getElementById('selectedProductId').value = id;
-            document.getElementById('selectedProductLink').value = `/product?id=${id}`;
-            document.getElementById('productSearch').value = '';
-            document.getElementById('productDropdown').classList.remove('open');
-            document.getElementById('productSelected').style.display = 'flex';
-            document.getElementById('productSelected').innerHTML = `
-                <div class="product-selected">
-                    <img src="${thumb}" onerror="this.style.display='none'">
-                    <span class="product-selected-name">${name} — <strong>R$ ${price}</strong></span>
-                    <button type="button" class="product-clear-btn" onclick="clearProduct()" title="Remover">&times;</button>
-                </div>`;
-        };
-
-        window.clearProduct = function() {
-            document.getElementById('selectedProductId').value = '';
-            document.getElementById('selectedProductLink').value = '';
-            document.getElementById('productSelected').style.display = 'none';
-            document.getElementById('productSelected').innerHTML = '';
-        };
-
-        document.getElementById('productSearch').addEventListener('input', function() {
-            clearTimeout(searchTimer);
-            const q = this.value.trim();
-            if (!q) { document.getElementById('productDropdown').classList.remove('open'); return; }
-            searchTimer = setTimeout(() => renderProductDropdown(q), 200);
-        });
-
-        document.addEventListener('click', function(e) {
-            if (!document.getElementById('linkProduct')?.contains(e.target))
-                document.getElementById('productDropdown').classList.remove('open');
-        });
-
-        // Helper: detect link type from saved link value
-        function detectLinkTab(link) {
-            if (!link) return 'none';
-            if (link.startsWith('/product?id=')) return 'product';
-            return 'custom';
-        }
-
-        // ── Modal open/close ─────────────────────────────────────────────────
-        document.getElementById('newBannerBtn').addEventListener('click', () => {
-            document.getElementById('modalTitle').textContent = 'Novo Banner';
-            document.getElementById('bannerId').value = '';
-            document.getElementById('bannerForm').reset();
-            clearProduct();
-            setLinkTab('none');
-            modal.style.display = 'flex';
-        });
-        document.getElementById('closeModalBtn').addEventListener('click', () => modal.style.display = 'none');
-        modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-
-        // ── Load banners ─────────────────────────────────────────────────────
-        async function loadBanners() {
-            try {
-                const response = await adminFetch('/api/admin/banners');
-                const result = await response.json();
-                if (result.success) {
-                    const grid = document.getElementById('bannersGrid');
-                    grid.innerHTML = result.data.map(b => {
-                        const linkBadge = b.link
-                            ? `<span style="display:inline-block;margin-top:6px;font-size:11px;background:#e3f2fd;color:#1565c0;padding:3px 8px;border-radius:20px;"><i class="fas fa-link"></i> ${b.link.startsWith('/product?id=') ? 'Produto vinculado' : b.link}</span>`
-                            : `<span style="display:inline-block;margin-top:6px;font-size:11px;background:#f5f5f5;color:#999;padding:3px 8px;border-radius:20px;">Sem link</span>`;
-                        return `
-                        <div class="banner-card" data-id="${b.id}">
-                            <span class="banner-drag-handle" title="Arrastar para reordenar">⠿</span>
-                            <img src="${b.image_url}" class="banner-image" alt="${b.title}">
-                            <div class="banner-content" style="flex:1;">
-                                <h3 class="banner-title">${b.title}</h3>
-                                <p class="banner-subtitle">${b.subtitle || ''}</p>
-                                ${linkBadge}
-                                <div class="banner-actions" style="margin-top:12px;">
-                                    <button class="action-btn edit-btn" onclick="editBanner(${b.id})"><i class="fas fa-edit"></i> Editar</button>
-                                    <button class="action-btn delete-btn" onclick="deleteBanner(${b.id})"><i class="fas fa-trash"></i> Excluir</button>
-                                </div>
-                            </div>
-                        </div>`;
-                    }).join('');
-                    initBannerDrag();
-                }
-            } catch (error) { console.error('Erro ao carregar banners:', error); }
-        }
-
-        // ── Edit banner ──────────────────────────────────────────────────────
-        window.editBanner = async function(id) {
-            try {
-                const response = await adminFetch('/api/admin/banners');
-                const result = await response.json();
-                const b = result.data.find(x => x.id === id);
-                if (!b) return;
-
-                document.getElementById('modalTitle').textContent = 'Editar Banner';
-                document.getElementById('bannerId').value = b.id;
-                document.getElementById('bannerTitle').value = b.title;
-                document.getElementById('bannerSubtitle').value = b.subtitle || '';
-                document.getElementById('bannerImage').value = b.image_url;
-                document.getElementById('bannerStatus').value = b.is_active ? '1' : '0';
-
-                // Restore link state
-                clearProduct();
-                const tab = detectLinkTab(b.link);
-                setLinkTab(tab);
-
-                if (tab === 'product' && b.link) {
-                    const productId = parseInt(b.link.split('id=')[1]);
-                    await loadProducts(); // ensure loaded
-                    const prod = allProducts.find(p => p.id === productId);
-                    if (prod) {
-                        let imgs = []; try { imgs = JSON.parse(prod.images || '[]'); } catch(e) {}
-                        const price = parseFloat(prod.promotional_price || prod.price).toFixed(2).replace('.', ',');
-                        selectProduct(prod.id, prod.name, imgs[0] || prod.main_image || '', price);
-                    } else {
-                        // product not found in list — fallback to custom
-                        setLinkTab('custom');
-                        document.getElementById('bannerLink').value = b.link;
-                    }
-                } else if (tab === 'custom') {
-                    document.getElementById('bannerLink').value = b.link || '';
-                }
-
-                modal.style.display = 'flex';
-            } catch (error) { console.error('Erro ao editar banner:', error); }
-        };
-
-        // ── Delete banner ────────────────────────────────────────────────────
-        window.deleteBanner = async function(id) {
-            if (confirm('Tem certeza que deseja excluir este banner?')) {
-                try {
-                    await adminFetch(`/api/admin/banners/${id}`, { method: 'DELETE' });
-                    loadBanners();
-                } catch (error) { console.error('Erro ao excluir banner:', error); }
-            }
-        };
-
-        // ── Save banner ──────────────────────────────────────────────────────
-        document.getElementById('bannerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('bannerId').value;
-
-            let link = null;
-            if (currentLinkTab === 'product') {
-                link = document.getElementById('selectedProductLink').value || null;
-            } else if (currentLinkTab === 'custom') {
-                link = document.getElementById('bannerLink').value.trim() || null;
-            }
-
-            const data = {
-                title:      document.getElementById('bannerTitle').value,
-                subtitle:   document.getElementById('bannerSubtitle').value,
-                image_url:  document.getElementById('bannerImage').value,
-                link,
-                position:   'hero',
-                is_active:  document.getElementById('bannerStatus').value === '1'
-            };
-
-            try {
-                const url = id ? `/api/admin/banners/${id}` : '/api/admin/banners';
-                const method = id ? 'PUT' : 'POST';
-                await adminFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                modal.style.display = 'none';
-                loadBanners();
-            } catch (error) { console.error('Erro ao salvar banner:', error); }
-        });
-
-        loadProducts();
-        loadBanners();
-
-        // ── Drag & drop banners ───────────────────────────────────────────
-        let bannerDragSrc = null;
-        const bannersGrid = document.getElementById('bannersGrid');
-
-        function initBannerDrag() {
-            bannersGrid.addEventListener('mousedown', function(e) {
-                const handle = e.target.closest('.banner-drag-handle');
-                if (!handle) return;
-                const card = handle.closest('.banner-card');
-                if (card) card.draggable = true;
-            });
-            document.addEventListener('mouseup', function() {
-                bannersGrid.querySelectorAll('.banner-card[draggable="true"]').forEach(function(c) { c.draggable = false; });
-            });
-        }
-
-        bannersGrid.addEventListener('dragstart', function(e) {
-            const card = e.target.closest('.banner-card');
-            if (!card) return;
-            bannerDragSrc = card;
-            card.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-        });
-        bannersGrid.addEventListener('dragend', function() {
-            bannersGrid.querySelectorAll('.banner-card').forEach(function(c) { c.classList.remove('dragging', 'drag-over'); c.draggable = false; });
-            bannerDragSrc = null;
-        });
-        bannersGrid.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            const card = e.target.closest('.banner-card');
-            if (!card || !bannerDragSrc || card === bannerDragSrc) return;
-            bannersGrid.querySelectorAll('.banner-card').forEach(function(c) { c.classList.remove('drag-over'); });
-            card.classList.add('drag-over');
-        });
-        bannersGrid.addEventListener('dragleave', function(e) {
-            const card = e.target.closest('.banner-card');
-            if (card) card.classList.remove('drag-over');
-        });
-        bannersGrid.addEventListener('drop', function(e) {
-            e.preventDefault();
-            const card = e.target.closest('.banner-card');
-            if (!card || !bannerDragSrc || card === bannerDragSrc) return;
-            card.classList.remove('drag-over');
-            const cards = Array.from(bannersGrid.querySelectorAll('.banner-card'));
-            const si = cards.indexOf(bannerDragSrc), ti = cards.indexOf(card);
-            if (si < ti) bannersGrid.insertBefore(bannerDragSrc, card.nextSibling);
-            else         bannersGrid.insertBefore(bannerDragSrc, card);
-            saveBannerOrder();
-        });
-
-        async function saveBannerOrder() {
-            const cards = Array.from(bannersGrid.querySelectorAll('.banner-card'));
-            const items = cards.map(function(c, i) { return { id: parseInt(c.dataset.id), sort_order: i }; });
-            await adminFetch('/api/admin/banners/reorder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: items })
-            });
-        }
-    </script>
+    <script src="/js/admin-banners.page.js"></script>
 </body>
+
 </html>

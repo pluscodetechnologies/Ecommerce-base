@@ -1,168 +1,35 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrinho | Velvet Atelier</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --primary: #8B7355; --primary-dark: #6B5340; --dark: #1A1817; --light: #FDFCFB; --gray: #8B8581; --border-light: #E8E4E0; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Montserrat', sans-serif; color: var(--dark); background: var(--light); display: flex; flex-direction: column; min-height: 100vh; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 30px; }
-        
-        .header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: rgba(253, 252, 251, 0.98); border-bottom: 1px solid var(--border-light); }
-        .header-top { background: var(--dark); color: white; text-align: center; padding: 8px 0; font-size: 13px; }
-        .header-main { position: relative; }
-        .header-wrapper { display: flex; align-items: center; justify-content: space-between; }
-        .logo { text-decoration: none; }
-        .logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; letter-spacing: 5px; color: var(--dark); }
-        .logo span { font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: var(--primary); }
-        .nav-menu { position: static; }
-        .nav-menu > ul { position: relative; }
-        .nav-menu ul { display: flex; list-style: none; gap: 40px; }
-        .nav-menu a { text-decoration: none; color: var(--dark); font-weight: 500; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; }
-        .nav-menu a:hover, .nav-menu a.active { color: var(--primary); }
-        .header-actions { display: flex; align-items: center; gap: 20px; }
-        .header-actions a { color: var(--dark); font-size: 20px; text-decoration: none; }
-        .cart-btn { position: relative; }
-        .cart-count { position: absolute; top: -8px; right: -8px; background: var(--primary); color: white; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
-
-        .nav-menu .dropdown { position: static; }
-        .nav-menu .dropdown > a { display: flex; align-items: center; gap: 5px; }
-        .nav-menu .dropdown > a i { font-size: 12px; transition: transform 0.2s ease; }
-        .nav-menu .dropdown:hover > a i { transform: rotate(180deg); }
-        .nav-menu .dropdown-menu { position: absolute; top: 100%; left: 0; width: 100%; background: white; padding: 30px 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); opacity: 0; visibility: hidden; transition: all 0.2s ease; z-index: 1000; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); }
-        .nav-menu .dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; }
-        .dropdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px 40px; max-width: 1200px; margin: 0 auto; }
-        .dropdown-grid li { padding: 0; margin: 0; list-style: none; }
-        .dropdown-grid a { display: block; padding: 8px 0; text-transform: none; font-size: 14px; letter-spacing: 0.5px; color: var(--dark); font-weight: 400; transition: all 0.2s ease; }
-        .dropdown-grid a:hover { color: var(--primary); padding-left: 8px; background: transparent; }
-        .dropdown-grid .view-all { grid-column: 1 / -1; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-light); text-align: center; }
-        .dropdown-grid .view-all a { display: inline-block; padding: 8px 24px; background: var(--primary); color: white; border-radius: 4px; font-weight: 500; text-transform: uppercase; font-size: 12px; letter-spacing: 2px; }
-        .dropdown-grid .view-all a:hover { background: var(--primary-dark); padding-left: 24px; color: white; }
-
-        .user-menu { position: relative; display: inline-block; }
-        .user-menu-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; font-size: 15px; color: var(--dark); cursor: pointer; padding: 8px 12px; }
-        .user-menu-btn:hover { color: var(--primary); }
-        .user-dropdown { position: absolute; top: 100%; right: 0; background: white; border-radius: 4px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); min-width: 200px; padding: 10px 0; margin-top: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; z-index: 1000; }
-        .user-menu:hover .user-dropdown { opacity: 1; visibility: visible; }
-        .user-dropdown a { display: flex; align-items: center; gap: 12px; padding: 12px 18px; color: var(--dark); text-decoration: none; font-size: 14px; }
-        .user-dropdown a:hover { background: var(--light); color: var(--primary); }
-        .user-dropdown .divider { height: 1px; background: var(--border-light); margin: 8px 0; }
-        
-        .cart-page { margin-top: 120px; padding: 40px 0 60px; flex: 1; }
-        .page-title { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; margin-bottom: 30px; }
-        
-        .cart-container { display: grid; grid-template-columns: 1fr 350px; gap: 30px; }
-        .cart-items { background: white; border-radius: 8px; border: 1px solid var(--border-light); overflow: hidden; }
-        .cart-header { display: grid; grid-template-columns: 3fr 1fr 1.5fr 1fr 0.5fr; padding: 15px 20px; background: #F8F6F4; border-bottom: 1px solid var(--border-light); font-weight: 500; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
-        .cart-item { display: grid; grid-template-columns: 3fr 1fr 1.5fr 1fr 0.5fr; padding: 20px; align-items: center; border-bottom: 1px solid var(--border-light); }
-        .product-cell { display: flex; gap: 15px; align-items: center; }
-        .product-image { width: 80px; height: 100px; border-radius: 4px; overflow: hidden; background: #F5F3F1; }
-        .product-image img { width: 100%; height: 100%; object-fit: cover; }
-        .product-info h4 { font-family: 'Cormorant Garamond', serif; font-size: 16px; margin-bottom: 5px; }
-        .product-info a { color: var(--dark); text-decoration: none; }
-        .price-cell { font-weight: 500; }
-        .quantity-cell { display: flex; align-items: center; }
-        .quantity-control { display: flex; align-items: center; border: 1px solid var(--border-light); border-radius: 4px; width: 100px; background: white; }
-        .quantity-control button { width: 30px; height: 35px; border: none; background: none; cursor: pointer; font-size: 14px; }
-        .quantity-control button:hover { background: var(--primary); color: white; }
-        .quantity-control input { width: 40px; height: 35px; border: none; text-align: center; font-size: 14px; outline: none; }
-        .total-cell { font-weight: 600; color: var(--primary); }
-        .remove-cell { text-align: center; }
-        .remove-btn { background: none; border: none; color: #C45C5C; cursor: pointer; font-size: 16px; }
-        .remove-btn:hover { color: #a04040; }
-        
-        .cart-summary { background: white; border-radius: 8px; border: 1px solid var(--border-light); padding: 25px; height: fit-content; }
-        .summary-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-light); }
-        .summary-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; }
-        .summary-total { display: flex; justify-content: space-between; margin: 20px 0; padding-top: 20px; border-top: 1px solid var(--border-light); font-weight: 600; font-size: 18px; }
-
-        /* ── Calcular frete ── */
-        .shipping-calc { margin: 20px 0; }
-        .shipping-calc h4 { font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; color: var(--gray); }
-        .shipping-input { display: flex; gap: 8px; }
-        .shipping-input input { flex: 1; padding: 11px 12px; border: 1.5px solid var(--border-light); border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 13px; transition: border-color 0.2s; }
-        .shipping-input input:focus { outline: none; border-color: var(--primary); }
-        .shipping-input button { padding: 11px 14px; background: var(--dark); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; white-space: nowrap; transition: background 0.2s; }
-        .shipping-input button:hover { background: var(--primary); }
-        .shipping-input button:disabled { background: var(--gray); cursor: not-allowed; }
-
-        /* Opções de frete */
-        .shipping-option {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 12px; margin-top: 8px;
-            border: 1.5px solid var(--border-light); border-radius: 6px;
-            cursor: pointer; transition: all 0.15s; background: white;
-        }
-        .shipping-option:hover { border-color: var(--primary); }
-        .shipping-option.selected { border-color: var(--primary); background: #F8F4F0; }
-        .shipping-option input[type="radio"] { accent-color: var(--primary); margin-right: 8px; flex-shrink: 0; }
-        .shipping-option-info { flex: 1; }
-        .shipping-option-name { font-size: 13px; font-weight: 600; }
-        .shipping-option-days { font-size: 11px; color: var(--gray); margin-top: 1px; }
-        .shipping-option-price { font-size: 14px; font-weight: 600; color: var(--primary); white-space: nowrap; }
-
-        .btn-checkout { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: background 0.2s; }
-        .btn-checkout:hover { background: var(--primary-dark); }
-        .continue-link { display: block; text-align: center; margin-top: 15px; color: var(--gray); text-decoration: none; font-size: 13px; }
-        .continue-link:hover { color: var(--primary); }
-        
-        .empty-cart { text-align: center; padding: 80px 20px; background: white; border-radius: 8px; border: 1px solid var(--border-light); }
-        .empty-cart i { font-size: 60px; color: var(--border-light); margin-bottom: 20px; }
-        .empty-cart h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; margin-bottom: 10px; }
-        .empty-cart p { color: var(--gray); margin-bottom: 25px; }
-        .btn-primary { display: inline-block; padding: 14px 36px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; text-transform: uppercase; letter-spacing: 2px; font-size: 14px; }
-        
-        .footer { background: var(--dark); color: white; }
-        .footer-main { padding: 60px 0 40px; }
-        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 40px; }
-        .footer-logo h3 { font-family: 'Cormorant Garamond', serif; font-size: 30px; letter-spacing: 4px; margin-bottom: 5px; }
-        .footer-logo span { font-size: 10px; text-transform: uppercase; letter-spacing: 3px; opacity: 0.6; }
-        .footer-col p { margin: 20px 0; opacity: 0.7; font-size: 14px; }
-        .footer-col h4 { font-family: 'Cormorant Garamond', serif; font-size: 18px; margin-bottom: 20px; }
-        .footer-col ul { list-style: none; }
-        .footer-col ul li { margin-bottom: 12px; }
-        .footer-col ul li a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px; }
-        .footer-col ul li a:hover { color: white; }
-        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding: 20px 0; }
-        .footer-bottom .container { display: flex; justify-content: space-between; align-items: center; }
-        .footer-bottom p { opacity: 0.6; font-size: 13px; }
-        
-        .social-links { display: flex; gap: 15px; }
-        .social-links a { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
-        .social-links a:hover { background: var(--primary); }
-        .footer-col ul li i { margin-right: 10px; width: 18px; }
-        .payment-methods { display: flex; gap: 15px; font-size: 22px; opacity: 0.7; }
-        @media (max-width: 900px) { .cart-container { grid-template-columns: 1fr; } }
-        .mobile-menu-btn { display: none; }
-        @media (max-width: 768px) {
-            .mobile-menu-btn { display: block; font-size: 22px; background: none; border: none; cursor: pointer; color: var(--dark); }
-            .nav-menu { display: none; }
-            .nav-menu.active { display: block; position: absolute; top: 100%; left: 0; width: 100%; background: white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); padding: 20px; z-index: 999; }
-            .nav-menu.active ul { flex-direction: column; gap: 0; }
-            .nav-menu.active ul li { border-bottom: 1px solid var(--border-light); }
-            .nav-menu.active ul li a { display: block; padding: 12px 0; }
-            .cart-header { display: none; }
-            .cart-item { grid-template-columns: 1fr; gap: 15px; }
-            .quantity-control { width: 100%; }
-            .footer-grid { grid-template-columns: 1fr; }
-            .footer-bottom .container { flex-direction: column; gap: 15px; text-align: center; }
-        }
-    </style>
     <link rel="stylesheet" href="/css/mobile.css">
+    <link rel="stylesheet" href="/css/cart.css">
 </head>
+
 <body>
     <header class="header">
-        <div class="header-top" id="headerTop" style="display:none"><div class="container"><p id="headerTopText">FRETE GRÁTIS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p></div></div>
+        <div class="header-top" id="headerTop" style="display:none">
+            <div class="container">
+                <p id="headerTopText">FRETE GRÁTIS ACIMA DE R$ 299 | TROCAS EM ATÉ 30 DIAS</p>
+            </div>
+        </div>
         <div class="header-main">
             <div class="container">
                 <div class="header-wrapper">
-                    <button class="mobile-menu-btn" onclick="this.nextElementSibling.nextElementSibling.classList.toggle('active')"><i class="fas fa-bars"></i></button>
-                    <a href="/" class="logo"><h1>VELVET</h1><span>ATELIER</span></a>
+                    <button class="mobile-menu-btn"
+                        onclick="this.nextElementSibling.nextElementSibling.classList.toggle('active')"><i
+                            class="fas fa-bars"></i></button>
+                    <a href="/" class="logo">
+                        <h1>VELVET</h1><span>ATELIER</span>
+                    </a>
                     <nav class="nav-menu">
                         <ul>
                             <li><a href="/">Início</a></li>
@@ -181,21 +48,26 @@
                     </nav>
                     <div class="header-actions">
                         <div id="userMenuContainer"><a href="/login"><i class="fas fa-user"></i></a></div>
-                        <a href="/cart" class="cart-btn"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
+                        <a href="/cart" class="cart-btn"><i class="fas fa-shopping-bag"></i><span class="cart-count"
+                                id="cartCount">0</span></a>
                     </div>
                 </div>
             </div>
         </div>
     </header>
-                <div class="search-dropdown" id="searchDropdown"></div>
-            </div>
-        </div>
+    <div class="search-dropdown" id="searchDropdown"></div>
+    </div>
+    </div>
     </div>
 
     <section class="cart-page">
         <div class="container">
             <h1 class="page-title">Seu Carrinho</h1>
-            <div id="cartContent"><div class="empty-cart"><i class="fas fa-shopping-bag"></i><h3>Carregando...</h3></div></div>
+            <div id="cartContent">
+                <div class="empty-cart"><i class="fas fa-shopping-bag"></i>
+                    <h3>Carregando...</h3>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -204,7 +76,9 @@
             <div class="container">
                 <div class="footer-grid">
                     <div class="footer-col">
-                        <div class="footer-logo"><h3>VELVET</h3><span>ATELIER</span></div>
+                        <div class="footer-logo">
+                            <h3>VELVET</h3><span>ATELIER</span>
+                        </div>
                         <p>Moda feminina de luxo que celebra a individualidade e beleza de cada mulher.</p>
                         <div class="social-links">
                             <a href="#"><i class="fab fa-instagram"></i></a>
@@ -254,518 +128,31 @@
 
     <script src="/js/auth.js"></script>
     <script src="/js/cart.js"></script>
-    <script>
-        let cartData         = { items: [], subtotal: 0, totalItems: 0 };
-        let selectedShipping = null; // { price, name }
-
-        // ── Carregar carrinho ─────────────────────────────────────────────────
-        async function loadCart() {
-            try {
-                const headers = {};
-                const sessionId = localStorage.getItem('cartSessionId') || '';
-                if (sessionId) headers['X-Session-Id'] = sessionId;
-                if (window.auth && auth.isAuthenticated()) headers['Authorization'] = `Bearer ${auth.getToken()}`;
-
-                const res  = await fetch('/api/cart', { headers });
-                const data = await res.json();
-                if (data.success) {
-                    cartData = data.data;
-                    if (data.sessionId) localStorage.setItem('cartSessionId', data.sessionId);
-                    renderCart();
-                    updateCartCount();
-                } else {
-                    renderCart();
-                }
-            } catch (e) { console.error(e); renderCart(); }
-        }
-
-        function renderCart() {
-            const container = document.getElementById('cartContent');
-            if (!cartData.items || cartData.items.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-cart">
-                        <i class="fas fa-shopping-bag"></i>
-                        <h3>Seu carrinho está vazio</h3>
-                        <p>Explore nossa coleção!</p>
-                        <a href="/products" class="btn-primary">Ver Coleção</a>
-                    </div>`;
-                return;
-            }
-
-            container.innerHTML = `
-                <div class="cart-container">
-                    <div class="cart-items">
-                        <div class="cart-header">
-                            <span>Produto</span><span>Preço</span><span>Quantidade</span><span>Total</span><span></span>
-                        </div>
-                        <div id="cartItemsList"></div>
-                    </div>
-                    <div class="cart-summary">
-                        <h3 class="summary-title">Resumo</h3>
-                        <div class="summary-row">
-                            <span>Subtotal (${cartData.totalItems} itens)</span>
-                            <span>R$ ${cartData.subtotal.toFixed(2)}</span>
-                        </div>
-                        <div class="summary-row" id="shippingRow" style="display:none;">
-                            <span>Frete</span>
-                            <span id="shippingRowValue">—</span>
-                        </div>
-
-                        <div class="shipping-calc">
-                            <h4>Calcular Frete</h4>
-                            <div class="shipping-input">
-                                <input type="text" id="shippingCep" placeholder="00000-000" maxlength="9">
-                                <button type="button" id="calcShippingBtn">Calcular</button>
-                            </div>
-                            <div id="shippingResult"></div>
-                        </div>
-
-                        <!-- Cupom -->
-                        <div class="shipping-calc" style="margin-top:16px;">
-                            <h4>Cupom de Desconto</h4>
-                            <div class="shipping-input">
-                                <input type="text" id="couponInput" placeholder="CÓDIGO DO CUPOM" style="text-transform:uppercase;">
-                                <button type="button" id="applyCouponBtn">Aplicar</button>
-                            </div>
-                            <div id="couponMsg" style="font-size:12px;margin-top:6px;display:none;"></div>
-                        </div>
-
-                        <div class="summary-row" id="discountRow" style="display:none;">
-                            <span>Desconto</span>
-                            <span id="discountRowValue" style="color:#2E8B57;">—</span>
-                        </div>
-
-                        <div class="summary-total">
-                            <span>Total</span>
-                            <span id="cartTotal">R$ ${cartData.subtotal.toFixed(2)}</span>
-                        </div>
-                        <button class="btn-checkout" id="checkoutBtn">Finalizar Compra</button>
-                        <a href="/products" class="continue-link">Continuar Comprando</a>
-                    </div>
-                </div>`;
-
-            renderCartItems();
-            bindShippingEvents();
-        }
-
-        function renderCartItems() {
-            const list = document.getElementById('cartItemsList');
-            list.innerHTML = cartData.items.map(item => {
-                const varTags = [item.variation_color, item.variation_size].filter(Boolean);
-                const varHtml = varTags.length
-                    ? varTags.map(v => `<span style="display:inline-block;padding:2px 8px;border:1px solid #ddd;border-radius:20px;font-size:11px;color:#555;margin-top:4px;margin-right:4px;">${v}</span>`).join('')
-                    : '';
-                return `
-                <div class="cart-item">
-                    <div class="product-cell">
-                        <div class="product-image"><img src="${item.main_image}" alt="${item.name}"></div>
-                        <div class="product-info">
-                            <h4><a href="/product?id=${item.product_id}">${item.name}</a></h4>
-                            <div>${varHtml}</div>
-                        </div>
-                    </div>
-                    <div class="price-cell">R$ ${item.final_price.toFixed(2)}</div>
-                    <div class="quantity-cell">
-                        <div class="quantity-control">
-                            <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
-                            <input type="text" value="${item.quantity}" readonly>
-                            <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
-                        </div>
-                    </div>
-                    <div class="total-cell">R$ ${(item.final_price * item.quantity).toFixed(2)}</div>
-                    <div class="remove-cell">
-                        <button class="remove-btn" onclick="removeItem(${item.id})"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                </div>
-            `;
-            }).join('');
-        }
-
-        function bindShippingEvents() {
-            // Máscara CEP
-            document.getElementById('shippingCep').addEventListener('input', function () {
-                let v = this.value.replace(/\D/g, '');
-                if (v.length > 5) v = v.replace(/^(\d{5})(\d)/, '$1-$2');
-                this.value = v;
-            });
-
-            // Enter no CEP
-            document.getElementById('shippingCep').addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') calcShipping();
-            });
-
-            document.getElementById('calcShippingBtn').addEventListener('click', calcShipping);
-            document.getElementById('applyCouponBtn').addEventListener('click', applyCoupon);
-            document.getElementById('couponInput').addEventListener('keydown', e => { if (e.key === 'Enter') applyCoupon(); });
-            document.getElementById('checkoutBtn').addEventListener('click', () => {
-                // Redireciona para login se não estiver autenticado
-                const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-                if (!token) {
-                    window.location.href = '/login?redirect=/checkout';
-                    return;
-                }
-                // Garante que cupom está salvo no sessionStorage
-                if (appliedCoupon) {
-                    sessionStorage.setItem('cartCoupon', JSON.stringify(appliedCoupon));
-                } else {
-                    sessionStorage.removeItem('cartCoupon');
-                }
-                window.location.href = '/checkout';
-            });
-        }
-
-        // ── Cupom ────────────────────────────────────────────────────────────────
-        async function applyCoupon() {
-            const input = document.getElementById('couponInput');
-            const msg   = document.getElementById('couponMsg');
-            const btn   = document.getElementById('applyCouponBtn');
-            const code  = input.value.trim().toUpperCase();
-            if (!code) return;
-
-            btn.disabled = true; btn.textContent = '...';
-            msg.style.display = 'none';
-
-            try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                const res  = await fetch('/api/coupons/validate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, userId: user.id || null })
-                });
-                const result = await res.json();
-
-                if (result.success) {
-                    const c = result.data;
-                    if (c.min_purchase > 0 && cartData.subtotal < c.min_purchase) {
-                        msg.textContent   = `Pedido mínimo de R$ ${parseFloat(c.min_purchase).toFixed(2)} para este cupom.`;
-                        msg.style.color   = '#C45C5C';
-                        msg.style.display = 'block';
-                        appliedCoupon = null;
-                        sessionStorage.removeItem('cartCoupon');
-                    } else {
-                        appliedCoupon = c;
-                        sessionStorage.setItem('cartCoupon', JSON.stringify(c));
-                        const label = c.discount_type === 'percentage'
-                            ? `${c.discount_value}% OFF`
-                            : `R$ ${parseFloat(c.discount_value).toFixed(2)} OFF`;
-                        msg.textContent   = `✓ Cupom ${c.code} aplicado — ${label}`;
-                        msg.style.color   = '#2E8B57';
-                        msg.style.display = 'block';
-
-                        // Mostra linha de desconto
-                        const discount = calcDiscount(cartData.subtotal);
-                        const discRow  = document.getElementById('discountRow');
-                        if (discRow) {
-                            discRow.style.display = 'flex';
-                            document.getElementById('discountRowValue').textContent = `- R$ ${discount.toFixed(2)}`;
-                        }
-                        updateCartTotal();
-                    }
-                } else {
-                    appliedCoupon = null;
-                    sessionStorage.removeItem('cartCoupon');
-                    msg.textContent   = result.message || 'Cupom inválido.';
-                    msg.style.color   = '#C45C5C';
-                    msg.style.display = 'block';
-                }
-            } catch {
-                msg.textContent = 'Erro ao validar cupom.';
-                msg.style.color = '#C45C5C';
-                msg.style.display = 'block';
-            }
-            btn.disabled = false; btn.textContent = 'Aplicar';
-        }
-
-        // ── Calcular frete real ───────────────────────────────────────────────
-        async function calcShipping() {
-            const cep    = document.getElementById('shippingCep').value.replace(/\D/g, '');
-            const result = document.getElementById('shippingResult');
-            const btn    = document.getElementById('calcShippingBtn');
-
-            if (cep.length !== 8) {
-                result.innerHTML = '<span style="color:#C45C5C;font-size:12px;">CEP inválido.</span>';
-                return;
-            }
-
-            // Frete grátis acima de R$ 299
-            if (cartData.subtotal >= 299) {
-                result.innerHTML = `
-                    <div class="shipping-option selected" style="margin-top:8px;">
-                        <div class="shipping-option-info">
-                            <div class="shipping-option-name">Frete Grátis</div>
-                            <div class="shipping-option-days">Entrega normal</div>
-                        </div>
-                        <div class="shipping-option-price" style="color:#2E8B57;">Grátis</div>
-                    </div>`;
-                selectShipping(0, 'Frete Grátis');
-                return;
-            }
-
-            btn.textContent = '...';
-            btn.disabled    = true;
-            result.innerHTML = '<span style="color:#8B8581;font-size:12px;">Calculando...</span>';
-
-            try {
-                const items = (cartData.items || []).map(i => ({ quantity: i.quantity, weight: 0.3 }));
-                const res   = await fetch('/api/checkout/shipping', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({ zipcode: cep, items })
-                });
-                const data = await res.json();
-
-                if (data.success && data.data && data.data.length) {
-                    const opcoes = data.data;
-
-                    result.innerHTML = opcoes.map((opt, i) => `
-                        <div class="shipping-option${i === 0 ? ' selected' : ''}"
-                             onclick="handleShippingClick(this, ${opt.price}, '${opt.name}')">
-                            <input type="radio" name="shippingOpt" ${i === 0 ? 'checked' : ''}>
-                            <div class="shipping-option-info">
-                                <div class="shipping-option-name">${opt.name}</div>
-                                <div class="shipping-option-days">
-                                    <i class="fas fa-clock" style="margin-right:3px;opacity:0.5;"></i>${opt.days}
-                                </div>
-                            </div>
-                            <div class="shipping-option-price">R$ ${opt.price.toFixed(2)}</div>
-                        </div>
-                    `).join('');
-
-                    // Seleciona o mais barato automaticamente
-                    selectShipping(opcoes[0].price, opcoes[0].name);
-
-                } else {
-                    result.innerHTML = `<span style="color:#C45C5C;font-size:12px;">${data.message || 'Nenhuma opção disponível para este CEP.'}</span>`;
-                }
-            } catch (e) {
-                result.innerHTML = '<span style="color:#C45C5C;font-size:12px;">Erro ao calcular. Tente novamente.</span>';
-            } finally {
-                btn.textContent = 'Calcular';
-                btn.disabled    = false;
-            }
-        }
-
-        function handleShippingClick(el, price, name) {
-            // Atualiza visual
-            document.querySelectorAll('#shippingResult .shipping-option').forEach(o => {
-                o.classList.remove('selected');
-                const radio = o.querySelector('input[type="radio"]');
-                if (radio) radio.checked = false;
-            });
-            el.classList.add('selected');
-            const radio = el.querySelector('input[type="radio"]');
-            if (radio) radio.checked = true;
-
-            selectShipping(price, name);
-        }
-
-        function selectShipping(price, name) {
-            selectedShipping = { price, name };
-
-            // Persiste no sessionStorage para o checkout pré-preencher
-            const cep = (document.getElementById('shippingCep')?.value || '').replace(/\D/g, '');
-            sessionStorage.setItem('cartShipping', JSON.stringify({ price, name, cep }));
-
-            // Atualiza linha de frete no resumo
-            const shippingRow = document.getElementById('shippingRow');
-            if (shippingRow) {
-                if (price === 0) {
-                    shippingRow.style.display = 'flex';
-                    document.getElementById('shippingRowValue').innerHTML =
-                        '<span style="color:#2E8B57;font-weight:600;">Grátis</span>';
-                } else {
-                    shippingRow.style.display = 'flex';
-                    document.getElementById('shippingRowValue').textContent = `R$ ${price.toFixed(2)}`;
-                }
-            }
-
-            // Atualiza total (desconta cupom se houver)
-            const discount = appliedCoupon ? calcDiscount(cartData.subtotal) : 0;
-            const total = (cartData.subtotal || 0) + price - discount;
-            const totalEl = document.getElementById('cartTotal');
-            if (totalEl) totalEl.textContent = `R$ ${total.toFixed(2)}`;
-        }
-
-        let appliedCoupon = null;
-
-        function calcDiscount(subtotal) {
-            if (!appliedCoupon) return 0;
-            return appliedCoupon.discount_type === 'percentage'
-                ? subtotal * (appliedCoupon.discount_value / 100)
-                : parseFloat(appliedCoupon.discount_value);
-        }
-
-        function updateCartTotal() {
-            const shipping  = selectedShipping ? selectedShipping.price : 0;
-            const discount  = calcDiscount(cartData.subtotal);
-            const total     = (cartData.subtotal || 0) + shipping - discount;
-            const totalEl   = document.getElementById('cartTotal');
-            if (totalEl) totalEl.textContent = `R$ ${total.toFixed(2)}`;
-        }
-
-        // ── Atualizar quantidade ──────────────────────────────────────────────
-        async function updateQuantity(itemId, newQty) {
-            if (newQty < 1) newQty = 1;
-            if (newQty > 99) newQty = 99;
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                const sessionId = localStorage.getItem('cartSessionId') || '';
-                if (sessionId) headers['X-Session-Id'] = sessionId;
-                if (window.auth && auth.isAuthenticated()) headers['Authorization'] = `Bearer ${auth.getToken()}`;
-
-                const res  = await fetch(`/api/cart/item/${itemId}`, { method: 'PUT', headers, body: JSON.stringify({ quantity: newQty }) });
-                const data = await res.json();
-                if (data.success) { cartData = data.data; selectedShipping = null; renderCart(); updateCartCount(); }
-            } catch (e) { console.error(e); }
-        }
-
-        // ── Remover item ──────────────────────────────────────────────────────
-        async function removeItem(itemId) {
-            try {
-                const headers = {};
-                const sessionId = localStorage.getItem('cartSessionId') || '';
-                if (sessionId) headers['X-Session-Id'] = sessionId;
-                if (window.auth && auth.isAuthenticated()) headers['Authorization'] = `Bearer ${auth.getToken()}`;
-
-                const res  = await fetch(`/api/cart/item/${itemId}`, { method: 'DELETE', headers });
-                const data = await res.json();
-                if (data.success) { cartData = data.data; selectedShipping = null; renderCart(); updateCartCount(); }
-            } catch (e) { console.error(e); }
-        }
-
-        // ── Carregar categorias no dropdown ───────────────────────────────────
-        async function loadNavCategories() {
-            try {
-                const res  = await fetch('/api/categories');
-                const data = await res.json();
-                if (data.success && data.data.length > 0) {
-                    const dropdown = document.getElementById('categoriesDropdown');
-                    if (dropdown) {
-                        const active = data.data.filter(c => c.status === 'active');
-                        let html = active.map(cat =>
-                            `<li><a href="/products?category=${cat.slug}">${cat.name}</a></li>`
-                        ).join('');
-                        while (html.split('<li>').length - 1 < 8) {
-                            html += `<li><a href="#" style="visibility:hidden;"> </a></li>`;
-                        }
-                        html += `<li class="view-all"><a href="/products">Ver Todas as Categorias</a></li>`;
-                        dropdown.innerHTML = html;
-                    }
-                }
-            } catch (e) { console.error('Erro ao carregar categorias:', e); }
-        }
-
-        window.updateQuantity = updateQuantity;
-        window.removeItem     = removeItem;
-
-        document.addEventListener('DOMContentLoaded', loadNavCategories);
-
-        // Alertas rotativos no topo — só exibe se houver alertas cadastrados no admin
-        (async () => {
-            try {
-                const r = await fetch('/api/alerts');
-                const d = await r.json();
-                const headerTop = document.getElementById('headerTop');
-                const textEl = document.getElementById('headerTopText');
-                if (d.success && d.data.length) {
-                    const alerts = d.data;
-                    let idx = 0;
-                    function showAlert(a) {
-                        const text = a.title ? `${a.title} — ${a.message}` : a.message;
-                        textEl.style.opacity = '0';
-                        setTimeout(() => { if (text.length > 60) {
-                            textEl.className = 'header-top-marquee';
-                            textEl.innerHTML = '<div class="marquee-inner"><span>' + text + '</span><span>' + text + '</span></div>';
-                        } else { textEl.className=''; textEl.textContent = text; } textEl.style.opacity = '1'; }, 300);
-                    }
-                    textEl.style.transition = 'opacity 0.3s ease';
-                    headerTop.style.display = '';
-                    showAlert(alerts[0]);
-                    if (alerts.length > 1) {
-                        setInterval(() => { idx = (idx + 1) % alerts.length; showAlert(alerts[idx]); }, 5000);
-                    }
-                } else {
-                    headerTop.style.display = 'none';
-                }
-            } catch (e) {
-                document.getElementById('headerTop').style.display = 'none';
-            }
-        })();
-        loadCart();
-    </script>
-
-
-    <!-- ═══ MOBILE DRAWER (independent of .nav-menu) ═══ -->
     <div id="mobileOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:8000;"></div>
-    <div id="mobileDrawer" style="display:none;position:fixed;top:0;left:0;width:72vw;max-width:280px;height:100vh;background:#fff;z-index:8001;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,0.2);flex-direction:column;">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:#faf8f5;border-bottom:1px solid #f0ede9;">
-            <span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8B7355;">Menu</span>
-            <button id="drawerClose" style="background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
+    <div id="mobileDrawer"
+        style="display:none;position:fixed;top:0;left:0;width:72vw;max-width:280px;height:100vh;background:#fff;z-index:8001;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,0.2);flex-direction:column;">
+        <div
+            style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:#faf8f5;border-bottom:1px solid #f0ede9;">
+            <span
+                style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8B7355;">Menu</span>
+            <button id="drawerClose"
+                style="background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
         </div>
         <nav id="drawerNav" style="flex:1;"></nav>
         <div style="border-top:2px solid #f0ede9;margin-top:auto;">
-            <a href="/account" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-user" style="color:#8B7355;width:16px;"></i> Minha Conta</a>
-            <a href="/orders" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-box" style="color:#8B7355;width:16px;"></i> Meus Pedidos</a>
-            <a href="/ajuda" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;"><i class="fas fa-question-circle" style="color:#8B7355;width:16px;"></i> Ajuda</a>
+            <a href="/account"
+                style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i
+                    class="fas fa-user" style="color:#8B7355;width:16px;"></i> Minha Conta</a>
+            <a href="/orders"
+                style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i
+                    class="fas fa-box" style="color:#8B7355;width:16px;"></i> Meus Pedidos</a>
+            <a href="/ajuda"
+                style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;"><i
+                    class="fas fa-question-circle" style="color:#8B7355;width:16px;"></i> Ajuda</a>
         </div>
     </div>
-    <script>
-    (function() {
-        var overlay = document.getElementById('mobileOverlay');
-        var drawer  = document.getElementById('mobileDrawer');
-        var btn     = document.querySelector('.mobile-menu-btn');
-        var closeBtn = document.getElementById('drawerClose');
-
-        if (!btn) return;
-
-        // Copy nav links into drawer on first open
-        var navCopied = false;
-        function copyNav() {
-            if (navCopied) return;
-            navCopied = true;
-            var drawerNav = document.getElementById('drawerNav');
-            var navLinks = document.querySelectorAll('.nav-menu ul > li');
-            navLinks.forEach(function(li) {
-                var a = li.querySelector('a');
-                if (!a) return;
-                var link = document.createElement('a');
-                link.href = a.href;
-                link.textContent = a.textContent.trim().replace(/keyboard_arrow_down/, '').trim();
-                link.style.cssText = 'display:block;padding:16px 24px;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:#1a1817;text-decoration:none;border-bottom:1px solid #f0ede9;';
-                if (a.style.color) link.style.color = a.style.color;
-                drawerNav.appendChild(link);
-            });
-        }
-
-        function openDrawer() {
-            copyNav();
-            drawer.style.display  = 'flex';
-            overlay.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            btn.innerHTML = '<i class="fas fa-times"></i>';
-        }
-        function closeDrawer() {
-            drawer.style.display  = 'none';
-            overlay.style.display = 'none';
-            document.body.style.overflow = '';
-            btn.innerHTML = '<i class="fas fa-bars"></i>';
-        }
-
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (window.innerWidth > 768) return;
-            drawer.style.display === 'none' ? openDrawer() : closeDrawer();
-        });
-
-        overlay.addEventListener('click', closeDrawer);
-        closeBtn.addEventListener('click', closeDrawer);
-
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) closeDrawer();
-        });
-    })();
-    </script>
-    <!-- ═══ fim MOBILE DRAWER ═══ -->
     <script src="/js/cookies.js"></script>
+    <script src="/js/cart.page.js"></script>
 </body>
+
 </html>

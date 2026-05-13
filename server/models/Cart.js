@@ -1,34 +1,41 @@
-const { getDB } = require('../config/database');
+const { getDB } = require("../config/database");
 
 class Cart {
-    static async getOrCreateCart(userId = null, sessionId = null) {
-        const db = getDB();
-        let cart = null;
-        
-        if (userId) {
-            const [carts] = await db.execute('SELECT * FROM carts WHERE user_id = ?', [userId]);
-            if (carts.length > 0) cart = carts[0];
-        }
-        
-        if (!cart && sessionId) {
-            const [carts] = await db.execute('SELECT * FROM carts WHERE session_id = ?', [sessionId]);
-            if (carts.length > 0) cart = carts[0];
-        }
-        
-        if (!cart) {
-            const [result] = await db.execute(
-                'INSERT INTO carts (user_id, session_id) VALUES (?, ?)',
-                [userId, sessionId]
-            );
-            cart = { id: result.insertId, user_id: userId, session_id: sessionId };
-        }
-        
-        return cart;
+  static async getOrCreateCart(userId = null, sessionId = null) {
+    const db = getDB();
+    let cart = null;
+
+    if (userId) {
+      const [carts] = await db.execute(
+        "SELECT * FROM carts WHERE user_id = ?",
+        [userId],
+      );
+      if (carts.length > 0) cart = carts[0];
     }
-    
-    static async getCartItems(cartId) {
-        const db = getDB();
-        const [items] = await db.execute(`
+
+    if (!cart && sessionId) {
+      const [carts] = await db.execute(
+        "SELECT * FROM carts WHERE session_id = ?",
+        [sessionId],
+      );
+      if (carts.length > 0) cart = carts[0];
+    }
+
+    if (!cart) {
+      const [result] = await db.execute(
+        "INSERT INTO carts (user_id, session_id) VALUES (?, ?)",
+        [userId, sessionId],
+      );
+      cart = { id: result.insertId, user_id: userId, session_id: sessionId };
+    }
+
+    return cart;
+  }
+
+  static async getCartItems(cartId) {
+    const db = getDB();
+    const [items] = await db.execute(
+      `
             SELECT ci.*,
                    p.name, p.slug,
                    COALESCE(p.images, '[]') as images,
@@ -39,140 +46,174 @@ class Cart {
             JOIN products p ON ci.product_id = p.id
             LEFT JOIN product_variations pv ON ci.variation_id = pv.id
             WHERE ci.cart_id = ?
-        `, [cartId]);
-        
-        items.forEach(item => {
-            if (typeof item.images === 'string') {
-                try { item.images = JSON.parse(item.images); } catch { item.images = []; }
-            }
-            if (!Array.isArray(item.images)) item.images = [];
-            item.main_image = item.images[0] || 'https://via.placeholder.com/300x400';
-            item.final_price = item.promotional_price ? parseFloat(item.promotional_price) : parseFloat(item.price);
-        });
-        
-        return items;
-    }
-    
-    static async addItem(cartId, productId, quantity, color = null, size = null) {
-        const db = getDB();
-        
-        const [products] = await db.execute(
-            'SELECT price, promotional_price, stock FROM products WHERE id = ? AND status = "active"',
-            [productId]
-        );
-        
-        if (products.length === 0) throw new Error('Produto não encontrado');
-        
-        const product = products[0];
-        let finalPrice = product.promotional_price || product.price;
-        
-        // Buscar variation_id se cor ou tamanho foram especificados
-        let variationId = null;
-        if (color || size) {
-            const conditions = ['product_id = ?'];
-            const params = [productId];
-            if (color) { conditions.push('color = ?'); params.push(color); }
-            if (size)  { conditions.push('size = ?');  params.push(size); }
-            
-            const [vars] = await db.execute(
-                `SELECT id, stock, price_adjustment FROM product_variations WHERE ${conditions.join(' AND ')} LIMIT 1`,
-                params
-            );
-            
-            if (vars.length > 0) {
-                variationId = vars[0].id;
-                // Verificar estoque da variação específica
-                if (vars[0].stock < quantity) {
-                    throw new Error(`Estoque insuficiente para ${[color, size].filter(Boolean).join(' / ')}`);
-                }
-                // Usar preço da variação se diferente de 0
-                if (vars[0].price_adjustment && parseFloat(vars[0].price_adjustment) > 0) {
-                    finalPrice = parseFloat(vars[0].price_adjustment);
-                }
-            }
-        } else {
-            // Sem variação: verificar estoque geral do produto
-            if (product.stock < quantity) throw new Error('Estoque insuficiente');
+        `,
+      [cartId],
+    );
+
+    items.forEach((item) => {
+      if (typeof item.images === "string") {
+        try {
+          item.images = JSON.parse(item.images);
+        } catch {
+          item.images = [];
         }
-        
-        // Verificar se já existe no carrinho com a mesma variação
-        const [existing] = await db.execute(
-            `SELECT * FROM cart_items 
+      }
+      if (!Array.isArray(item.images)) item.images = [];
+      item.main_image = item.images[0] || "https://via.placeholder.com/300x400";
+      item.final_price = item.promotional_price
+        ? parseFloat(item.promotional_price)
+        : parseFloat(item.price);
+    });
+
+    return items;
+  }
+
+  static async addItem(cartId, productId, quantity, color = null, size = null) {
+    const db = getDB();
+
+    const [products] = await db.execute(
+      'SELECT price, promotional_price, stock FROM products WHERE id = ? AND status = "active"',
+      [productId],
+    );
+
+    if (products.length === 0) throw new Error("Produto não encontrado");
+
+    const product = products[0];
+    let finalPrice = product.promotional_price || product.price;
+
+    let variationId = null;
+    if (color || size) {
+      const conditions = ["product_id = ?"];
+      const params = [productId];
+      if (color) {
+        conditions.push("color = ?");
+        params.push(color);
+      }
+      if (size) {
+        conditions.push("size = ?");
+        params.push(size);
+      }
+
+      const [vars] = await db.execute(
+        `SELECT id, stock, price_adjustment FROM product_variations WHERE ${conditions.join(" AND ")} LIMIT 1`,
+        params,
+      );
+
+      if (vars.length > 0) {
+        variationId = vars[0].id;
+        if (vars[0].stock < quantity) {
+          throw new Error(
+            `Estoque insuficiente para ${[color, size].filter(Boolean).join(" / ")}`,
+          );
+        }
+        if (
+          vars[0].price_adjustment &&
+          parseFloat(vars[0].price_adjustment) > 0
+        ) {
+          finalPrice = parseFloat(vars[0].price_adjustment);
+        }
+      }
+    } else {
+      if (product.stock < quantity) throw new Error("Estoque insuficiente");
+    }
+
+    const [existing] = await db.execute(
+      `SELECT * FROM cart_items 
              WHERE cart_id = ? AND product_id = ? AND (variation_id = ? OR (variation_id IS NULL AND ? IS NULL))`,
-            [cartId, productId, variationId, variationId]
+      [cartId, productId, variationId, variationId],
+    );
+
+    if (existing.length > 0) {
+      await db.execute(
+        "UPDATE cart_items SET quantity = quantity + ? WHERE id = ?",
+        [quantity, existing[0].id],
+      );
+    } else {
+      await db.execute(
+        "INSERT INTO cart_items (cart_id, product_id, variation_id, quantity, price) VALUES (?, ?, ?, ?, ?)",
+        [cartId, productId, variationId, quantity, finalPrice],
+      );
+    }
+
+    await db.execute("UPDATE carts SET updated_at = NOW() WHERE id = ?", [
+      cartId,
+    ]);
+    return true;
+  }
+
+  static async updateItemQuantity(cartId, itemId, quantity) {
+    const db = getDB();
+    if (quantity <= 0) {
+      await db.execute("DELETE FROM cart_items WHERE id = ? AND cart_id = ?", [
+        itemId,
+        cartId,
+      ]);
+    } else {
+      await db.execute(
+        "UPDATE cart_items SET quantity = ? WHERE id = ? AND cart_id = ?",
+        [quantity, itemId, cartId],
+      );
+    }
+    await db.execute("UPDATE carts SET updated_at = NOW() WHERE id = ?", [
+      cartId,
+    ]);
+    return true;
+  }
+
+  static async removeItem(cartId, itemId) {
+    const db = getDB();
+    await db.execute("DELETE FROM cart_items WHERE id = ? AND cart_id = ?", [
+      itemId,
+      cartId,
+    ]);
+    await db.execute("UPDATE carts SET updated_at = NOW() WHERE id = ?", [
+      cartId,
+    ]);
+    return true;
+  }
+
+  static async clearCart(cartId) {
+    const db = getDB();
+    await db.execute("DELETE FROM cart_items WHERE cart_id = ?", [cartId]);
+    await db.execute("UPDATE carts SET updated_at = NOW() WHERE id = ?", [
+      cartId,
+    ]);
+    return true;
+  }
+
+  static async getCartTotal(cartId) {
+    const db = getDB();
+    const [result] = await db.execute(
+      "SELECT SUM(quantity * price) as total, SUM(quantity) as items FROM cart_items WHERE cart_id = ?",
+      [cartId],
+    );
+    return {
+      subtotal: parseFloat(result[0].total) || 0,
+      items: parseInt(result[0].items) || 0,
+    };
+  }
+
+  static async mergeCarts(userId, sessionId) {
+    const db = getDB();
+    const sessionCart = await this.getOrCreateCart(null, sessionId);
+    const userCart = await this.getOrCreateCart(userId, null);
+
+    if (sessionCart.id !== userCart.id) {
+      const sessionItems = await this.getCartItems(sessionCart.id);
+      for (const item of sessionItems) {
+        await this.addItem(
+          userCart.id,
+          item.product_id,
+          item.quantity,
+          item.variation_color,
+          item.variation_size,
         );
-        
-        if (existing.length > 0) {
-            await db.execute(
-                'UPDATE cart_items SET quantity = quantity + ? WHERE id = ?',
-                [quantity, existing[0].id]
-            );
-        } else {
-            await db.execute(
-                'INSERT INTO cart_items (cart_id, product_id, variation_id, quantity, price) VALUES (?, ?, ?, ?, ?)',
-                [cartId, productId, variationId, quantity, finalPrice]
-            );
-        }
-        
-        await db.execute('UPDATE carts SET updated_at = NOW() WHERE id = ?', [cartId]);
-        return true;
+      }
+      await db.execute("DELETE FROM carts WHERE id = ?", [sessionCart.id]);
     }
-    
-    static async updateItemQuantity(cartId, itemId, quantity) {
-        const db = getDB();
-        if (quantity <= 0) {
-            await db.execute('DELETE FROM cart_items WHERE id = ? AND cart_id = ?', [itemId, cartId]);
-        } else {
-            await db.execute(
-                'UPDATE cart_items SET quantity = ? WHERE id = ? AND cart_id = ?',
-                [quantity, itemId, cartId]
-            );
-        }
-        await db.execute('UPDATE carts SET updated_at = NOW() WHERE id = ?', [cartId]);
-        return true;
-    }
-    
-    static async removeItem(cartId, itemId) {
-        const db = getDB();
-        await db.execute('DELETE FROM cart_items WHERE id = ? AND cart_id = ?', [itemId, cartId]);
-        await db.execute('UPDATE carts SET updated_at = NOW() WHERE id = ?', [cartId]);
-        return true;
-    }
-    
-    static async clearCart(cartId) {
-        const db = getDB();
-        await db.execute('DELETE FROM cart_items WHERE cart_id = ?', [cartId]);
-        await db.execute('UPDATE carts SET updated_at = NOW() WHERE id = ?', [cartId]);
-        return true;
-    }
-    
-    static async getCartTotal(cartId) {
-        const db = getDB();
-        const [result] = await db.execute(
-            'SELECT SUM(quantity * price) as total, SUM(quantity) as items FROM cart_items WHERE cart_id = ?',
-            [cartId]
-        );
-        return {
-            subtotal: parseFloat(result[0].total) || 0,
-            items: parseInt(result[0].items) || 0
-        };
-    }
-    
-    static async mergeCarts(userId, sessionId) {
-        const db = getDB();
-        const sessionCart = await this.getOrCreateCart(null, sessionId);
-        const userCart = await this.getOrCreateCart(userId, null);
-        
-        if (sessionCart.id !== userCart.id) {
-            const sessionItems = await this.getCartItems(sessionCart.id);
-            for (const item of sessionItems) {
-                await this.addItem(userCart.id, item.product_id, item.quantity, item.variation_color, item.variation_size);
-            }
-            await db.execute('DELETE FROM carts WHERE id = ?', [sessionCart.id]);
-        }
-        
-        return userCart;
-    }
+
+    return userCart;
+  }
 }
 
 module.exports = Cart;

@@ -1,154 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout | Velvet Atelier</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #8B7355; --primary-dark: #6B5340; --primary-light: #F5F0EB;
-            --dark: #1A1817; --mid: #4A4543; --gray: #8B8581; --light-gray: #C8C4C0;
-            --light: #FDFCFB; --border: #E8E4E0;
-            --success: #2E8B57; --error: #C45C5C; --warning: #C47C2A;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Montserrat', sans-serif; color: var(--dark); background: #F7F4F1; min-height: 100vh; }
-
-        /* ── HEADER ── */
-        .header { background: var(--dark); padding: 16px 0; position: sticky; top: 0; z-index: 100; }
-        .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
-        .logo { text-decoration: none; display: flex; flex-direction: column; }
-        .logo-name { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; letter-spacing: 6px; color: #fff; line-height: 1; }
-        .logo-sub { font-size: 9px; letter-spacing: 4px; color: var(--primary); text-transform: uppercase; margin-top: 2px; }
-        .header-secure { display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.5); font-size: 12px; letter-spacing: 1px; }
-        .header-secure i { color: var(--primary); }
-        .header-steps { display: flex; align-items: center; gap: 0; }
-        .step { display: flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.3); }
-        .step.active { color: #fff; }
-        .step.done { color: var(--primary); }
-        .step-num { width: 22px; height: 22px; border-radius: 50%; border: 1px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
-        .step.done .step-num { background: var(--primary); border-color: var(--primary); color: #fff; }
-        .step-sep { width: 24px; height: 1px; background: rgba(255,255,255,0.15); }
-
-        /* ── LAYOUT ── */
-        .page { max-width: 1100px; margin: 0 auto; padding: 32px 24px 60px; display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
-
-        /* ── CARDS ── */
-        .card { background: var(--light); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
-        .card-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-        .card-header-num { width: 28px; height: 28px; border-radius: 50%; background: var(--dark); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
-        .card-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; letter-spacing: 1px; }
-        .card-body { padding: 24px; }
-
-        /* ── FORM ── */
-        .field-row { display: grid; gap: 14px; margin-bottom: 14px; }
-        .field-row.cols-2 { grid-template-columns: 1fr 1fr; }
-        .field-row.cols-3 { grid-template-columns: 1fr 1fr 100px; }
-        .field { display: flex; flex-direction: column; gap: 6px; }
-        .field label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray); }
-        .field input, .field select {
-            width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
-            border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 14px;
-            color: var(--dark); background: #fff; transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .field input:focus, .field select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(139,115,85,0.1); }
-        .field input::placeholder { color: var(--light-gray); }
-
-        /* ── SHIPPING OPTIONS ── */
-        .shipping-calc { display: flex; gap: 10px; margin-bottom: 14px; }
-        .shipping-calc input { flex: 1; }
-        .btn-calc { padding: 12px 20px; background: var(--dark); color: #fff; border: none; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
-        .btn-calc:hover { background: var(--mid); }
-        .btn-calc:disabled { background: var(--light-gray); cursor: not-allowed; }
-
-        .shipping-options { display: flex; flex-direction: column; gap: 10px; }
-        .shipping-opt { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-        .shipping-opt:hover { border-color: var(--primary); }
-        .shipping-opt.selected { border-color: var(--primary); background: var(--primary-light); }
-        .shipping-opt input[type="radio"] { accent-color: var(--primary); width: 16px; height: 16px; flex-shrink: 0; }
-        .shipping-opt-info { flex: 1; }
-        .shipping-opt-name { font-size: 13px; font-weight: 600; }
-        .shipping-opt-days { font-size: 12px; color: var(--gray); margin-top: 2px; }
-        .shipping-opt-price { font-size: 15px; font-weight: 600; color: var(--primary); }
-
-        /* ── PAYMENT ── */
-        .pay-info-banner {
-            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-            background: linear-gradient(135deg, #f0f7f0, #e8f4e8); border: 1px solid #c3e0c3;
-            border-radius: 8px; margin-bottom: 20px;
-        }
-        .pay-info-banner i { font-size: 20px; color: var(--success); flex-shrink: 0; }
-        .pay-info-banner div strong { display: block; font-size: 13px; color: #1a5e35; margin-bottom: 2px; }
-        .pay-info-banner div span { font-size: 12px; color: #2d6a4f; }
-
-        .pay-hint { font-size: 11px; color: var(--gray); text-align: center; margin-bottom: 20px; }
-
-        /* ── CUPOM ── */
-        .coupon-wrap { display: flex; gap: 10px; }
-        .coupon-wrap input { flex: 1; text-transform: uppercase; letter-spacing: 2px; font-weight: 500; }
-        .btn-coupon { padding: 12px 18px; background: transparent; border: 1.5px solid var(--dark); border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-        .btn-coupon:hover { background: var(--dark); color: #fff; }
-        .coupon-msg { font-size: 12px; margin-top: 8px; display: none; }
-
-        /* ── SUBMIT ── */
-        .btn-submit {
-            width: 100%; padding: 16px; margin-top: 24px;
-            background: var(--dark); color: #fff; border: none; border-radius: 10px;
-            font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600;
-            letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
-            transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .btn-submit:hover { background: var(--primary); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
-        .btn-submit:disabled { background: var(--light-gray); cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-submit .arrow { transition: transform 0.2s; }
-        .btn-submit:hover .arrow { transform: translateX(4px); }
-
-        /* ── ORDER SUMMARY ── */
-        .summary-sticky { position: sticky; top: 88px; }
-        .summary-items { max-height: 280px; overflow-y: auto; margin-bottom: 20px; }
-        .summary-items::-webkit-scrollbar { width: 4px; }
-        .summary-items::-webkit-scrollbar-track { background: var(--border); border-radius: 2px; }
-        .summary-items::-webkit-scrollbar-thumb { background: var(--light-gray); border-radius: 2px; }
-        .s-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0ede8; }
-        .s-item:last-child { border-bottom: none; }
-        .s-item-img { width: 56px; height: 72px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: var(--border); }
-        .s-item-info { flex: 1; min-width: 0; }
-        .s-item-info h4 { font-size: 13px; font-weight: 500; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .s-item-info p { font-size: 12px; color: var(--gray); }
-        .s-item-price { font-size: 13px; font-weight: 600; white-space: nowrap; }
-        .s-item-qty { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: var(--dark); color: #fff; border-radius: 50%; font-size: 10px; font-weight: 600; margin-left: 4px; }
-
-        .summary-lines { display: flex; flex-direction: column; gap: 10px; padding: 16px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 16px; }
-        .s-line { display: flex; justify-content: space-between; font-size: 13px; color: var(--gray); }
-        .s-line.discount { color: var(--success); font-weight: 500; }
-        .s-total { display: flex; justify-content: space-between; align-items: baseline; }
-        .s-total span:first-child { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; letter-spacing: 1px; }
-        .s-total span:last-child { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; color: var(--dark); }
-
-        .trust-badges { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
-        .trust-item { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--gray); }
-        .trust-item i { width: 16px; color: var(--primary); text-align: center; }
-
-        /* ── STATES ── */
-        .skeleton { background: linear-gradient(90deg, #f0ede8 25%, #fdfcfb 50%, #f0ede8 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-
-        /* ── RESPONSIVE ── */
-        @media (max-width: 860px) {
-            .page { grid-template-columns: 1fr; }
-            .summary-sticky { position: static; }
-            .header-steps { display: none; }
-        }
-        @media (max-width: 520px) {
-            .field-row.cols-2 { grid-template-columns: 1fr; }
-            .field-row.cols-3 { grid-template-columns: 1fr 1fr; }
-        }
-    </style>
     <link rel="stylesheet" href="/css/mobile.css">
+    <link rel="stylesheet" href="/css/checkout.css">
 </head>
+
 <body>
 
     <header class="header">
@@ -158,11 +22,17 @@
                 <span class="logo-sub">Atelier</span>
             </a>
             <div class="header-steps">
-                <div class="step done"><div class="step-num"><i class="fas fa-check" style="font-size:8px;"></i></div><span>Carrinho</span></div>
+                <div class="step done">
+                    <div class="step-num"><i class="fas fa-check" style="font-size:8px;"></i></div><span>Carrinho</span>
+                </div>
                 <div class="step-sep"></div>
-                <div class="step active"><div class="step-num">2</div><span>Checkout</span></div>
+                <div class="step active">
+                    <div class="step-num">2</div><span>Checkout</span>
+                </div>
                 <div class="step-sep"></div>
-                <div class="step"><div class="step-num">3</div><span>Confirmação</span></div>
+                <div class="step">
+                    <div class="step-num">3</div><span>Confirmação</span>
+                </div>
             </div>
             <div class="header-secure"><i class="fas fa-lock"></i> Compra Segura</div>
         </div>
@@ -170,10 +40,8 @@
 
     <div class="page">
 
-        <!-- ── COLUNA ESQUERDA ── -->
         <div style="display:flex;flex-direction:column;gap:20px;">
 
-            <!-- DADOS PESSOAIS -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-header-num">1</div>
@@ -236,15 +104,33 @@
                                 <label>UF *</label>
                                 <select id="shippingState" required>
                                     <option value="">UF</option>
-                                    <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
-                                    <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
-                                    <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
-                                    <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
-                                    <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
-                                    <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
-                                    <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
-                                    <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
-                                    <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+                                    <option value="AC">AC</option>
+                                    <option value="AL">AL</option>
+                                    <option value="AP">AP</option>
+                                    <option value="AM">AM</option>
+                                    <option value="BA">BA</option>
+                                    <option value="CE">CE</option>
+                                    <option value="DF">DF</option>
+                                    <option value="ES">ES</option>
+                                    <option value="GO">GO</option>
+                                    <option value="MA">MA</option>
+                                    <option value="MT">MT</option>
+                                    <option value="MS">MS</option>
+                                    <option value="MG">MG</option>
+                                    <option value="PA">PA</option>
+                                    <option value="PB">PB</option>
+                                    <option value="PR">PR</option>
+                                    <option value="PE">PE</option>
+                                    <option value="PI">PI</option>
+                                    <option value="RJ">RJ</option>
+                                    <option value="RN">RN</option>
+                                    <option value="RS">RS</option>
+                                    <option value="RO">RO</option>
+                                    <option value="RR">RR</option>
+                                    <option value="SC">SC</option>
+                                    <option value="SP">SP</option>
+                                    <option value="SE">SE</option>
+                                    <option value="TO">TO</option>
                                 </select>
                             </div>
                         </div>
@@ -252,7 +138,6 @@
                 </div>
             </div>
 
-            <!-- FRETE -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-header-num">2</div>
@@ -262,7 +147,7 @@
                     <div class="shipping-calc">
                         <div class="field" style="flex:1;gap:0;">
                             <input type="text" id="cepCalc" placeholder="Digite o CEP para calcular" maxlength="9"
-                                   style="border-radius:8px;border:1.5px solid var(--border);padding:12px 14px;font-family:'Montserrat',sans-serif;font-size:14px;width:100%;">
+                                style="border-radius:8px;border:1.5px solid var(--border);padding:12px 14px;font-family:'Montserrat',sans-serif;font-size:14px;width:100%;">
                         </div>
                         <button type="button" id="calcShippingBtn" class="btn-calc">
                             Calcular
@@ -277,7 +162,6 @@
                 </div>
             </div>
 
-            <!-- PAGAMENTO -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-header-num">3</div>
@@ -288,11 +172,11 @@
                         <i class="fas fa-shield-alt"></i>
                         <div>
                             <strong>Ambiente seguro — Mercado Pago</strong>
-                            <span>Você escolhe como pagar (PIX, cartão ou boleto) na próxima tela. Seus dados são protegidos com criptografia SSL.</span>
+                            <span>Você escolhe como pagar (PIX, cartão ou boleto) na próxima tela. Seus dados são
+                                protegidos com criptografia SSL.</span>
                         </div>
                     </div>
 
-                    <!-- CUPOM -->
                     <div style="padding-top:20px;border-top:1px solid var(--border);">
                         <div class="field" style="gap:6px;">
                             <label>Cupom de Desconto</label>
@@ -310,19 +194,24 @@
                         <i class="fas fa-arrow-right arrow"></i>
                     </button>
 
-                    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px;flex-wrap:wrap;">
-                        <span style="display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border:1.5px solid #ddd;border-radius:4px;font-size:10px;font-weight:700;color:#1a6fb5;letter-spacing:0.5px;font-family:Arial,sans-serif;opacity:0.75;">VISA</span>
-                        <span style="display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border:1.5px solid #ddd;border-radius:4px;font-size:10px;font-weight:700;color:#eb001b;letter-spacing:0.5px;font-family:Arial,sans-serif;opacity:0.75;">MC</span>
-                        <span style="display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border:1.5px solid #ddd;border-radius:4px;font-size:10px;font-weight:700;color:#b40027;letter-spacing:0.5px;font-family:Arial,sans-serif;opacity:0.75;">HIPER</span>
-                        <span style="display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border:1.5px solid #ddd;border-radius:4px;font-size:10px;font-weight:700;color:#00a3e0;letter-spacing:0.5px;font-family:Arial,sans-serif;opacity:0.75;">ELO</span>
-                        <span style="display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border:1.5px solid #ddd;border-radius:4px;font-size:10px;font-weight:700;color:#32bcad;letter-spacing:0.5px;font-family:Arial,sans-serif;opacity:0.75;">PIX</span>
+                    <div
+                        style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px;flex-wrap:wrap;">
+                        <span
+                            style="display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border:1.5px solid #ddd;border-radius:4px;font-size:10px;font-weight:700;color:#1a6fb5;letter-spacing:0.5px;font-family:Arial,sans-serif;opacity:0.75;">VISA</span>
+                        <span
+                            style="display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border:1.5px solid #ddd;border-radius:4px;font-size:10px;font-weight:700;color:#eb001b;letter-spacing:0.5px;font-family:Arial,sans-serif;opacity:0.75;">MC</span>
+                        <span
+                            style="display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border:1.5px solid #ddd;border-radius:4px;font-size:10px;font-weight:700;color:#b40027;letter-spacing:0.5px;font-family:Arial,sans-serif;opacity:0.75;">HIPER</span>
+                        <span
+                            style="display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border:1.5px solid #ddd;border-radius:4px;font-size:10px;font-weight:700;color:#00a3e0;letter-spacing:0.5px;font-family:Arial,sans-serif;opacity:0.75;">ELO</span>
+                        <span
+                            style="display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border:1.5px solid #ddd;border-radius:4px;font-size:10px;font-weight:700;color:#32bcad;letter-spacing:0.5px;font-family:Arial,sans-serif;opacity:0.75;">PIX</span>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- ── COLUNA DIREITA — RESUMO ── -->
         <div class="summary-sticky">
             <div class="card">
                 <div class="card-header">
@@ -360,439 +249,35 @@
             </div>
         </div>
 
-    </div><!-- end .page -->
+    </div>
 
     <script src="/js/auth.js"></script>
     <script src="/js/cart.js"></script>
-    <script>
-        // ── Estado ───────────────────────────────────────────────────────────
-        let cartData         = { items: [], subtotal: 0 };
-        let selectedShipping = null;
-        let discountAmount   = 0;
-        let appliedCoupon    = null;
-        let selectedPayment  = 'checkout_pro'; // MP exibe todas as opções na própria tela
-
-        // ── Máscaras ─────────────────────────────────────────────────────────
-        document.getElementById('shippingCep').addEventListener('input', function () {
-            let v = this.value.replace(/\D/g, '');
-            if (v.length > 5) v = v.replace(/^(\d{5})(\d)/, '$1-$2');
-            this.value = v;
-        });
-        document.getElementById('cepCalc').addEventListener('input', function () {
-            let v = this.value.replace(/\D/g, '');
-            if (v.length > 5) v = v.replace(/^(\d{5})(\d)/, '$1-$2');
-            this.value = v;
-        });
-        document.getElementById('shippingCpf').addEventListener('input', function () {
-            let v = this.value.replace(/\D/g, '');
-            if (v.length > 3)  v = v.replace(/(\d{3})(\d)/,                    '$1.$2');
-            if (v.length > 7)  v = v.replace(/(\d{3})\.(\d{3})(\d)/,          '$1.$2.$3');
-            if (v.length > 11) v = v.replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
-            this.value = v;
-        });
-
-        // ── Auto-preenche endereço ao sair do campo CEP ──────────────────────
-        async function buscaCep(cep) {
-            cep = cep.replace(/\D/g, '');
-            if (cep.length !== 8) return;
-            try {
-                const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const d = await r.json();
-                if (!d.erro) {
-                    document.getElementById('shippingStreet').value       = d.logradouro || '';
-                    document.getElementById('shippingNeighborhood').value = d.bairro     || '';
-                    document.getElementById('shippingCity').value         = d.localidade || '';
-                    document.getElementById('shippingState').value        = d.uf         || '';
-                    document.getElementById('cepCalc').value = document.getElementById('shippingCep').value;
-                    document.getElementById('shippingNumber').focus();
-                }
-            } catch {}
-        }
-        document.getElementById('shippingCep').addEventListener('blur', function () { buscaCep(this.value); });
-
-        // ── Restaurar frete e cupom do carrinho ──────────────────────────────
-        async function restoreFromCart() {
-            const savedShipping = sessionStorage.getItem('cartShipping');
-            if (savedShipping) {
-                try {
-                    const s = JSON.parse(savedShipping);
-                    selectedShipping = s;
-                    if (s.cep) {
-                        const formatted = s.cep.replace(/^(\d{5})(\d{3})$/, '$1-$2');
-                        const cepField  = document.getElementById('shippingCep');
-                        const cepCalc   = document.getElementById('cepCalc');
-                        if (cepField) cepField.value = formatted;
-                        if (cepCalc)  cepCalc.value  = formatted;
-                        if (typeof buscaCep === 'function') await buscaCep(s.cep);
-                    }
-                    const wrap = document.getElementById('shippingOptions');
-                    if (wrap) {
-                        wrap.innerHTML = `
-                            <label class="shipping-opt selected">
-                                <input type="radio" name="shippingOpt" value='${JSON.stringify(s)}' checked>
-                                <div class="shipping-opt-info">
-                                    <div class="shipping-opt-name">${s.name}</div>
-                                    <div class="shipping-opt-days" style="font-size:11px;color:#888;">Selecionado no carrinho</div>
-                                </div>
-                                <div class="shipping-opt-price">R$ ${parseFloat(s.price).toFixed(2).replace('.', ',')}</div>
-                            </label>
-                            <button type="button" onclick="recalcShipping()" style="background:none;border:none;color:#888;font-size:11px;cursor:pointer;margin-top:4px;text-decoration:underline;">Recalcular frete</button>`;
-                    }
-                    updateTotals();
-                } catch(e) { console.warn('restoreFromCart shipping:', e); }
-            }
-
-            const savedCoupon = sessionStorage.getItem('cartCoupon');
-            if (savedCoupon) {
-                try {
-                    const c = JSON.parse(savedCoupon);
-                    appliedCoupon = c;
-                    const couponField = document.getElementById('couponCode');
-                    const couponMsg   = document.getElementById('couponMessage');
-                    if (couponField) couponField.value = c.code;
-                    if (couponMsg) {
-                        const label = c.discount_type === 'percentage'
-                            ? `${c.discount_value}% OFF`
-                            : `R$ ${parseFloat(c.discount_value).toFixed(2)} OFF`;
-                        couponMsg.textContent   = `✓ Cupom ${c.code} aplicado — ${label}`;
-                        couponMsg.style.color   = 'var(--success)';
-                        couponMsg.style.display = 'block';
-                    }
-                    updateTotals();
-                } catch(e) { console.warn('restoreFromCart coupon:', e); }
-            }
-        }
-
-        window.recalcShipping = async function() {
-            const cep = (document.getElementById('cepCalc')?.value || '').replace(/\D/g, '');
-            if (cep.length !== 8) return;
-            document.getElementById('calcShippingBtn')?.click();
-        };
-
-        // ── Carregar carrinho ─────────────────────────────────────────────────
-        async function loadCart() {
-            try {
-                const headers = {};
-                const sid = localStorage.getItem('cartSessionId') || '';
-                if (sid) headers['X-Session-Id'] = sid;
-                const res  = await fetch('/api/cart', { headers });
-                const data = await res.json();
-                if (data.success) {
-                    cartData = data.data;
-                    renderSummary();
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        function fmt(v) { return 'R$ ' + parseFloat(v).toFixed(2).replace('.', ','); }
-
-        function renderSummary() {
-            const el = document.getElementById('summaryItems');
-            if (!cartData.items || !cartData.items.length) {
-                el.innerHTML = '<p style="color:var(--gray);font-size:13px;">Carrinho vazio.</p>';
-                return;
-            }
-            el.innerHTML = cartData.items.map(item => `
-                <div class="s-item">
-                    <img class="s-item-img" src="${item.main_image || '/images/placeholder.jpg'}" alt="${item.name}">
-                    <div class="s-item-info">
-                        <h4>${item.name}<span class="s-item-qty">${item.quantity}</span></h4>
-                        <p>${fmt(item.final_price)} cada</p>
-                    </div>
-                    <div class="s-item-price">${fmt(item.final_price * item.quantity)}</div>
-                </div>
-            `).join('');
-            updateTotals();
-        }
-
-        function updateTotals() {
-            const sub = parseFloat(cartData.subtotal) || 0;
-            const ship = selectedShipping ? parseFloat(selectedShipping.price) : 0;
-            document.getElementById('sSubtotal').textContent  = fmt(sub);
-            document.getElementById('sShipping').textContent  = selectedShipping ? fmt(ship) : 'A calcular';
-            if (appliedCoupon) {
-                discountAmount = appliedCoupon.discount_type === 'percentage'
-                    ? sub * (appliedCoupon.discount_value / 100)
-                    : parseFloat(appliedCoupon.discount_value);
-                document.getElementById('sDiscountRow').style.display = 'flex';
-                document.getElementById('sDiscount').textContent = '— ' + fmt(discountAmount);
-            }
-            document.getElementById('sTotal').textContent = fmt(sub + ship - discountAmount);
-        }
-
-        // ── Calcular frete ────────────────────────────────────────────────────
-        document.getElementById('calcShippingBtn').addEventListener('click', async () => {
-            const rawCep = document.getElementById('cepCalc').value;
-            const cep    = rawCep.replace(/\D/g, '');
-            if (cep.length !== 8) { showToast('Digite um CEP válido.'); return; }
-
-            document.getElementById('shippingCep').value = rawCep;
-            await buscaCep(cep);
-
-            const btn = document.getElementById('calcShippingBtn');
-            btn.textContent = '...';
-            btn.disabled    = true;
-
-            try {
-                const res  = await fetch('/api/checkout/shipping', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ zipcode: cep, items: (cartData.items||[]).map(i => ({ quantity: i.quantity, weight: 0.3 })) })
-                });
-                const data = await res.json();
-                const wrap = document.getElementById('shippingOptions');
-
-                if (data.success && data.data.length) {
-                    wrap.innerHTML = data.data.map((opt, i) => `
-                        <label class="shipping-opt${i === 0 ? ' selected' : ''}">
-                            <input type="radio" name="shippingOpt" value='${JSON.stringify(opt)}' ${i === 0 ? 'checked' : ''}>
-                            <div class="shipping-opt-info">
-                                <div class="shipping-opt-name">${opt.name}</div>
-                                <div class="shipping-opt-days"><i class="fas fa-clock" style="margin-right:4px;opacity:0.5;"></i>${opt.days}</div>
-                            </div>
-                            <div class="shipping-opt-price">${fmt(opt.price)}</div>
-                        </label>
-                    `).join('');
-
-                    selectedShipping = data.data[0];
-                    updateTotals();
-
-                    wrap.querySelectorAll('input[type="radio"]').forEach(radio => {
-                        radio.addEventListener('change', function () {
-                            wrap.querySelectorAll('.shipping-opt').forEach(l => l.classList.remove('selected'));
-                            this.closest('.shipping-opt').classList.add('selected');
-                            selectedShipping = JSON.parse(this.value);
-                            updateTotals();
-                        });
-                    });
-                } else {
-                    wrap.innerHTML = '<p style="color:var(--error);font-size:13px;">Não foi possível calcular o frete para este CEP.</p>';
-                }
-            } catch {
-                showToast('Erro de conexão ao calcular frete.');
-            } finally {
-                btn.textContent = 'Calcular';
-                btn.disabled    = false;
-            }
-        });
-
-        // ── Cupom ─────────────────────────────────────────────────────────────
-        document.getElementById('applyCouponBtn').addEventListener('click', async () => {
-            const code = document.getElementById('couponCode').value.trim().toUpperCase();
-            const msg  = document.getElementById('couponMessage');
-            const btn  = document.getElementById('applyCouponBtn');
-            if (!code) return;
-            btn.disabled = true; btn.textContent = '...';
-            try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                const res  = await fetch('/api/coupons/validate', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, userId: user.id || null })
-                });
-                const result = await res.json();
-                if (result.success) {
-                    const c = result.data;
-                    if (c.min_purchase > 0 && cartData.subtotal < c.min_purchase) {
-                        msg.textContent = `Pedido mínimo de ${fmt(c.min_purchase)} para este cupom.`;
-                        msg.style.color = 'var(--error)'; msg.style.display = 'block';
-                        appliedCoupon = null;
-                    } else {
-                        appliedCoupon = c;
-                        const label = c.discount_type === 'percentage' ? `${c.discount_value}% OFF` : `${fmt(c.discount_value)} OFF`;
-                        msg.textContent = `✓ Cupom ${c.code} aplicado — ${label}`;
-                        msg.style.color = 'var(--success)'; msg.style.display = 'block';
-                        updateTotals();
-                    }
-                } else {
-                    appliedCoupon = null;
-                    msg.textContent = result.message || 'Cupom inválido.';
-                    msg.style.color = 'var(--error)'; msg.style.display = 'block';
-                }
-            } catch {
-                msg.textContent = 'Erro ao validar cupom.'; msg.style.color = 'var(--error)'; msg.style.display = 'block';
-            }
-            btn.disabled = false; btn.textContent = 'Aplicar';
-        });
-
-        // ── Submit ────────────────────────────────────────────────────────────
-        document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!selectedShipping) {
-                showToast('Selecione uma opção de frete antes de continuar.');
-                return;
-            }
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Processando...</span>';
-
-            const shipping = {
-                name:         document.getElementById('shippingName').value.trim(),
-                email:        document.getElementById('shippingEmail').value.trim(),
-                phone:        document.getElementById('shippingPhone').value.trim(),
-                cpf:          document.getElementById('shippingCpf').value.trim(),
-                street:       document.getElementById('shippingStreet').value.trim(),
-                number:       document.getElementById('shippingNumber').value.trim(),
-                complement:   document.getElementById('shippingComplement').value.trim(),
-                neighborhood: document.getElementById('shippingNeighborhood').value.trim(),
-                city:         document.getElementById('shippingCity').value.trim(),
-                state:        document.getElementById('shippingState').value,
-                zip_code:     document.getElementById('shippingCep').value.trim(),
-                cost:         selectedShipping ? selectedShipping.price : 0
-            };
-
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                const sid = localStorage.getItem('cartSessionId') || '';
-                if (sid) headers['X-Session-Id'] = sid;
-                if (typeof auth !== 'undefined' && auth.isAuthenticated())
-                    headers['Authorization'] = `Bearer ${auth.getToken()}`;
-
-                const res  = await fetch('/api/checkout/order', {
-                    method: 'POST', headers,
-                    credentials: 'include',
-                    body: JSON.stringify({ shipping, payment: { method: selectedPayment }, coupon: appliedCoupon?.code || null })
-                });
-                const data = await res.json();
-
-                if (data.success && data.paymentUrl) {
-                    window.location.href = data.paymentUrl;
-                } else if (data.success) {
-                    window.location.href = `/checkout-success?order=${data.orderNumber}`;
-                } else {
-                    let msg = data.message || 'Erro ao processar pedido.';
-                    if (Array.isArray(data.errors) && data.errors.length) {
-                        msg = data.errors.map(e => e.message).join(' • ');
-                    }
-                    showToast(msg);
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-lock"></i><span>Ir para Pagamento</span><i class="fas fa-arrow-right arrow"></i>';
-                }
-            } catch {
-                showToast('Erro de conexão. Tente novamente.');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-lock"></i><span>Ir para Pagamento</span><i class="fas fa-arrow-right arrow"></i>';
-            }
-        });
-
-        // ── Pré-preencher campos com dados do usuário logado ─────────────────
-(async function prefillUserData() {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!user.id) return;
-
-    // Nome e email já estão no localStorage
-    if (user.name)  document.getElementById('shippingName').value  = user.name;
-    if (user.email) document.getElementById('shippingEmail').value = user.email;
-
-    // Telefone e CPF buscamos da API
-    try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/auth/profile', {
-            headers: { 'Authorization': `Bearer ${token}` },
-            credentials: 'include'
-        });
-        const data = await res.json();
-        if (data.success) {
-            if (data.data.phone) document.getElementById('shippingPhone').value = data.data.phone;
-            if (data.data.cpf)   document.getElementById('shippingCpf').value   = data.data.cpf;
-        }
-    } catch (e) {
-        // silencioso — campos ficam em branco se falhar
-    }
-})();
-
-        loadCart().then(() => {
-            restoreFromCart();
-        });
-    </script>
-
-
-    <!-- ═══ MOBILE DRAWER ═══ -->
     <div id="mobileOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:8000;"></div>
-    <div id="mobileDrawer" style="display:none;position:fixed;top:0;left:0;width:72vw;max-width:280px;height:100vh;background:#fff;z-index:8001;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,0.2);flex-direction:column;">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:#faf8f5;border-bottom:1px solid #f0ede9;">
-            <span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8B7355;">Menu</span>
-            <button id="drawerClose" style="background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
+    <div id="mobileDrawer"
+        style="display:none;position:fixed;top:0;left:0;width:72vw;max-width:280px;height:100vh;background:#fff;z-index:8001;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,0.2);flex-direction:column;">
+        <div
+            style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:#faf8f5;border-bottom:1px solid #f0ede9;">
+            <span
+                style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8B7355;">Menu</span>
+            <button id="drawerClose"
+                style="background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
         </div>
         <nav id="drawerNav" style="flex:1;"></nav>
         <div style="border-top:2px solid #f0ede9;margin-top:auto;">
-            <a href="/account" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-user" style="color:#8B7355;width:16px;"></i> Minha Conta</a>
-            <a href="/orders" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i class="fas fa-box" style="color:#8B7355;width:16px;"></i> Meus Pedidos</a>
-            <a href="/ajuda" style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;"><i class="fas fa-question-circle" style="color:#8B7355;width:16px;"></i> Ajuda</a>
+            <a href="/account"
+                style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i
+                    class="fas fa-user" style="color:#8B7355;width:16px;"></i> Minha Conta</a>
+            <a href="/orders"
+                style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;border-bottom:1px solid #f7f5f2;"><i
+                    class="fas fa-box" style="color:#8B7355;width:16px;"></i> Meus Pedidos</a>
+            <a href="/ajuda"
+                style="display:flex;align-items:center;gap:12px;padding:14px 24px;font-size:13px;color:#555;text-decoration:none;"><i
+                    class="fas fa-question-circle" style="color:#8B7355;width:16px;"></i> Ajuda</a>
         </div>
     </div>
-    <script>
-    (function() {
-        var overlay = document.getElementById('mobileOverlay');
-        var drawer  = document.getElementById('mobileDrawer');
-        var btn     = document.querySelector('.mobile-menu-btn');
-        var closeBtn = document.getElementById('drawerClose');
-
-        if (!btn) return;
-
-        var navCopied = false;
-        function copyNav() {
-            if (navCopied) return;
-            navCopied = true;
-            var drawerNav = document.getElementById('drawerNav');
-            var navLinks = document.querySelectorAll('.nav-menu ul > li');
-            navLinks.forEach(function(li) {
-                var a = li.querySelector('a');
-                if (!a) return;
-                var link = document.createElement('a');
-                link.href = a.href;
-                link.textContent = a.textContent.trim().replace(/keyboard_arrow_down/, '').trim();
-                link.style.cssText = 'display:block;padding:16px 24px;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:#1a1817;text-decoration:none;border-bottom:1px solid #f0ede9;';
-                if (a.style.color) link.style.color = a.style.color;
-                drawerNav.appendChild(link);
-            });
-        }
-
-        function openDrawer() {
-            copyNav();
-            drawer.style.display  = 'flex';
-            overlay.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            btn.innerHTML = '<i class="fas fa-times"></i>';
-        }
-        function closeDrawer() {
-            drawer.style.display  = 'none';
-            overlay.style.display = 'none';
-            document.body.style.overflow = '';
-            btn.innerHTML = '<i class="fas fa-bars"></i>';
-        }
-
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (window.innerWidth > 768) return;
-            drawer.style.display === 'none' ? openDrawer() : closeDrawer();
-        });
-
-        overlay.addEventListener('click', closeDrawer);
-        closeBtn.addEventListener('click', closeDrawer);
-
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) closeDrawer();
-        });
-    })();
-    </script>
-    <!-- ═══ fim MOBILE DRAWER ═══ -->
     <script src="/js/cookies.js"></script>
-
-<style>
-@keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-</style>
-<script>
-function showToast(message, type = 'error') {
-    const existing = document.getElementById('page-toast');
-    if (existing) existing.remove();
-    const colors = { error:'background:#C45C5C;color:#fff;', success:'background:#2E8B57;color:#fff;', info:'background:#1A1817;color:#fff;' };
-    const t = document.createElement('div');
-    t.id = 'page-toast';
-    t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);${colors[type]||colors.error}padding:12px 24px;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:500;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.2);animation:fadeInUp 0.3s ease;pointer-events:none;`;
-    t.textContent = message;
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 3500);
-}
-</script>
-
+    <script src="/js/checkout.page.js"></script>
 </body>
+
 </html>

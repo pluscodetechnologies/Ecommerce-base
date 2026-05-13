@@ -1,170 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <script>// ── Aplicar tema salvo ────────────────────────────────────────────────
-        (function() {
-            if (localStorage.getItem('adminTheme') === 'dark') {
-                document.documentElement.classList.add('dark');
-            }
-        })();</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configurações - Velvet Store Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="/js/admin-auth.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: #f5f7fa; display: flex; }
-        .sidebar { width: 280px; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; position: fixed; left: 0; top: 0; padding: 20px 0; }
-        .sidebar-header { padding: 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
-        .sidebar-header h2 { color: white; font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: 2px; }
-        .sidebar-header span { color: rgba(255,255,255,0.6); font-size: 12px; text-transform: uppercase; }
-        .sidebar-menu { list-style: none; padding: 0 15px; }
-        .sidebar-menu li { margin-bottom: 5px; }
-        .sidebar-menu a { display: flex; align-items: center; padding: 14px 20px; color: rgba(255,255,255,0.7); text-decoration: none; border-radius: 12px; transition: all 0.3s ease; font-size: 15px; }
-        .sidebar-menu a i { width: 24px; margin-right: 12px; font-size: 18px; }
-        .sidebar-menu a:hover { background: rgba(255,255,255,0.1); color: white; }
-        .sidebar-menu .active { background: rgba(255,255,255,0.15); color: white; }
-        .sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 25px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .user-info { display: flex; align-items: center; margin-bottom: 15px; }
-        .user-avatar { width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 20px; }
-        .user-details h4 { color: white; font-size: 14px; margin-bottom: 2px; }
-        .user-details p { color: rgba(255,255,255,0.6); font-size: 12px; }
-        .logout-btn { display: flex; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.1); color: white; text-decoration: none; border-radius: 10px; }
-        .logout-btn:hover { background: rgba(231, 76, 60, 0.3); }
-        .logout-btn i { margin-right: 10px; }
-        .main-content { flex: 1; margin-left: 280px; padding: 30px; max-width: 960px; }
-        .top-bar { margin-bottom: 30px; }
-        .page-title h1 { font-size: 28px; color: #1a1a2e; margin-bottom: 5px; }
-        .page-title p { color: #666; font-size: 14px; }
-
-        .card { background: white; border-radius: 16px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 24px; }
-        .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid #f0f0f0; }
-        .card-icon { width: 40px; height: 40px; background: #f0f0f7; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #1a1a2e; font-size: 16px; }
-        .card-header h2 { font-size: 17px; color: #1a1a2e; font-weight: 600; }
-        .card-header p { font-size: 13px; color: #999; margin-top: 2px; }
-
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px; }
-        .form-group input { width: 100%; padding: 13px 15px; border: 1.5px solid #e0e0e0; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 14px; outline: none; transition: border 0.2s; }
-        .form-group input:focus { border-color: #1a1a2e; }
-        .form-group .hint { font-size: 12px; color: #aaa; margin-top: 5px; }
-
-        .btn-primary { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border: none; padding: 13px 28px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Poppins', sans-serif; transition: opacity 0.2s; }
-        .btn-primary:hover { opacity: 0.88; }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .feedback { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 18px; display: none; }
-        .feedback.success { background: #d4edda; color: #155724; }
-        .feedback.error { background: #f8d7da; color: #721c24; }
-
-        .forgot-link { display: inline-block; margin-top: 6px; font-size: 13px; color: #666; text-decoration: none; }
-        .forgot-link:hover { color: #1a1a2e; text-decoration: underline; }
-
-        .divider { border: none; border-top: 1px solid #f0f0f0; margin: 20px 0; }
-
-        .current-email-display { background: #f8f8f8; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #555; margin-bottom: 16px; }
-        .current-email-display span { color: #1a1a2e; font-weight: 500; }
-
-
-        /* ── Settings rows ───────────────────────────────────────────────────── */
-        .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
-        .setting-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-        .setting-label { font-size: 14px; font-weight: 600; color: #333; }
-        .setting-desc { font-size: 13px; color: #888; line-height: 1.5; }
-
-        /* ── Theme switch ────────────────────────────────────────────────────── */
-        .theme-toggle-wrap { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-        .theme-opt { font-size: 13px; color: #aaa; font-weight: 500; transition: color 0.2s; }
-        .theme-opt.active { color: #1a1a2e; }
-        .theme-switch { position: relative; width: 52px; height: 28px; }
-        .theme-switch input { opacity: 0; width: 0; height: 0; }
-        .theme-slider { position: absolute; inset: 0; background: #e0e0e0; border-radius: 28px; cursor: pointer; transition: background 0.3s; }
-        .theme-slider::before { content: ''; position: absolute; height: 20px; width: 20px; left: 4px; bottom: 4px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
-        .theme-switch input:checked + .theme-slider { background: #1a1a2e; }
-        .theme-switch input:checked + .theme-slider::before { transform: translateX(24px); }
-
-        /* ── Dark overrides for settings page ───────────────────────────────── */
-        html.dark .setting-label { color: #e0e0e0; }
-        html.dark .setting-desc { color: #666; }
-        html.dark .theme-opt.active { color: #e0e0e0; }
-        html.dark .theme-slider { background: #2a2a3e; }
-        html.dark .theme-switch input:checked + .theme-slider { background: #7b6cf6; }
-        html.dark #lowStockLimit { background: #22223a; border-color: #2a2a3e; color: #e0e0e0; }
-        html.dark .forgot-link { color: #888; }
-        html.dark .divider { border-top-color: #2a2a3e; }
-        html.dark .current-email-display { background: #22223a; color: #aaa; }
-
-        /* ── Tema Escuro ─────────────────────────────────────────────────────── */
-        html.dark body { background: #0f0f1a; color: #e0e0e0; }
-        html.dark .sidebar { background: linear-gradient(180deg, #0a0a15 0%, #10101f 100%); }
-        html.dark .main-content { background: transparent; }
-        html.dark .card,
-        html.dark .products-panel,
-        html.dark .coupons-table,
-        html.dark .filters-bar,
-        html.dark .alert-card,
-        html.dark .banner-card,
-        html.dark .category-card,
-        html.dark .modal-content,
-        html.dark .special-card { background: #1a1a2e !important; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        html.dark .page-title h1 { color: #e0e0e0; }
-        html.dark .page-title p { color: #888; }
-        html.dark table { background: #1a1a2e; }
-        html.dark th { color: #888; border-bottom-color: #2a2a3e; }
-        html.dark td { border-bottom-color: #22223a; color: #ccc; }
-        html.dark .product-name-cell strong,
-        html.dark .panel-header-title { color: #e0e0e0; }
-        html.dark .panel-header { border-bottom-color: #2a2a3e; }
-        html.dark .cat-tab { background: #1a1a2e; border-color: #2a2a3e; color: #aaa; }
-        html.dark .cat-tab:hover { border-color: #7b6cf6; color: #e0e0e0; }
-        html.dark .cat-tab.active { background: #7b6cf6; border-color: #7b6cf6; color: white; }
-        html.dark .search-box { background: #22223a; }
-        html.dark .search-box input { color: #e0e0e0; }
-        html.dark .search-box i { color: #666; }
-        html.dark .form-group input,
-        html.dark .form-group select,
-        html.dark .form-group textarea { background: #22223a; border-color: #2a2a3e; color: #e0e0e0; }
-        html.dark .form-group label { color: #ccc; }
-        html.dark .form-group .hint { color: #666; }
-        html.dark .card-header { border-bottom-color: #2a2a3e; }
-        html.dark .card-header h2 { color: #e0e0e0; }
-        html.dark .card-icon { background: #22223a; color: #aaa; }
-        html.dark .info-box { background: #1a2535; border-left-color: #4a90d9; }
-        html.dark .info-box p { color: #a0bcd8; }
-        html.dark .alert-preview { background: #0f0f1a; }
-        html.dark .banner-image { opacity: 0.85; }
-        html.dark .status-active { background: #1a3a2a; color: #6ee7b7; }
-        html.dark .status-inactive { background: #3a1a1a; color: #fca5a5; }
-        html.dark .featured-badge { background: #3a2e0a; color: #fbbf24; }
-        html.dark .product-sku { color: #666; }
-        html.dark .empty-state { color: #555; }
-        html.dark .section-title { color: #ccc; }
-        html.dark .special-card::before { background: #2a2a3e; }
-        html.dark .special-card.enabled::before { background: linear-gradient(180deg, #7b6cf6, #4a90d9); }
-        html.dark .special-card-fields input,
-        html.dark .special-card-fields select,
-        html.dark .code-row input { background: #22223a; border-color: #2a2a3e; color: #e0e0e0; }
-        html.dark .special-status-pill.pill-active { background: #1a3a2a; color: #6ee7b7; }
-        html.dark .special-status-pill.pill-inactive { background: #22223a; color: #666; }
-        html.dark .toggle-label { color: #666; }
-        html.dark .c-body { background: #22223a; }
-        html.dark .c-header { background: #22223a !important; border-bottom-color: #2a2a3e !important; }
-        html.dark .c-name-label { color: #e0e0e0 !important; }
-        /* ── 2FA ── */
-        .qr-wrap { text-align: center; margin: 20px 0; }
-        .qr-wrap img { border: 8px solid white; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); max-width: 200px; }
-        .secret-box { background: #f5f7fa; border-radius: 8px; padding: 10px 14px; font-family: monospace; font-size: 13px; letter-spacing: 2px; text-align: center; color: #333; margin: 12px 0; word-break: break-all; }
-        .totp-code-input { text-align: center; letter-spacing: 8px; font-size: 22px; font-weight: 700; }
-        .badge-2fa-on  { display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;background:#d4edda;color:#155724; }
-        .badge-2fa-off { display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;background:#f8d7da;color:#721c24; }
-        html.dark .secret-box { background: #22223a; color: #ccc; }
-        html.dark .qr-wrap img { border-color: #22223a; }
-
-        html.dark .color-block { background: #1a1a2e !important; border-color: #2a2a3e !important; }
-    </style>
+    <link rel="stylesheet" href="/css/admin-configuracoes.css">
 </head>
+
 <body>
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -191,7 +39,9 @@
                     <p>Administrador</p>
                 </div>
             </div>
-            <a href="/" target="_blank" class="logout-btn" style="margin-bottom:10px;background:rgba(255,255,255,0.07);"><i class="fas fa-store" style="margin-right:10px;"></i> Ver loja</a>
+            <a href="/" target="_blank" class="logout-btn"
+                style="margin-bottom:10px;background:rgba(255,255,255,0.07);"><i class="fas fa-store"
+                    style="margin-right:10px;"></i> Ver loja</a>
             <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</a>
         </div>
     </aside>
@@ -206,59 +56,59 @@
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
 
-        <!-- Card: Aparência -->
-        <div class="card" style="margin-bottom:0;">
-            <div class="card-header">
-                <div class="card-icon"><i class="fas fa-palette"></i></div>
-                <div>
-                    <h2>Aparência</h2>
-                    <p>Personalize o visual do painel administrativo</p>
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-palette"></i></div>
+                    <div>
+                        <h2>Aparência</h2>
+                        <p>Personalize o visual do painel administrativo</p>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">Tema do painel</span>
+                        <span class="setting-desc">Alterna entre o tema claro e escuro. A preferência fica salva no seu
+                            navegador.</span>
+                    </div>
+                    <div class="theme-toggle-wrap">
+                        <span class="theme-opt" id="labelLight"><i class="fas fa-sun"></i> Claro</span>
+                        <label class="theme-switch">
+                            <input type="checkbox" id="themeToggle">
+                            <span class="theme-slider"></span>
+                        </label>
+                        <span class="theme-opt" id="labelDark"><i class="fas fa-moon"></i> Escuro</span>
+                    </div>
                 </div>
             </div>
-            <div class="setting-row">
-                <div class="setting-info">
-                    <span class="setting-label">Tema do painel</span>
-                    <span class="setting-desc">Alterna entre o tema claro e escuro. A preferência fica salva no seu navegador.</span>
+
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-boxes"></i></div>
+                    <div>
+                        <h2>Estoque</h2>
+                        <p>Configure o limite de alerta de estoque baixo</p>
+                    </div>
                 </div>
-                <div class="theme-toggle-wrap">
-                    <span class="theme-opt" id="labelLight"><i class="fas fa-sun"></i> Claro</span>
-                    <label class="theme-switch">
-                        <input type="checkbox" id="themeToggle">
-                        <span class="theme-slider"></span>
-                    </label>
-                    <span class="theme-opt" id="labelDark"><i class="fas fa-moon"></i> Escuro</span>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">Limite de estoque baixo</span>
+                        <span class="setting-desc">Produtos com estoque igual ou abaixo deste valor exibem um ícone de
+                            aviso <i class="fas fa-exclamation-triangle" style="color:#f59e0b;font-size:12px;"></i> na
+                            lista de produtos.</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                        <input type="number" id="lowStockLimit" min="1" max="100" value="5"
+                            style="width:80px;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-family:'Poppins',sans-serif;font-size:15px;text-align:center;outline:none;">
+                        <span style="font-size:13px;color:#888;">unidades</span>
+                    </div>
+                </div>
+                <div style="margin-top:20px;">
+                    <button class="btn-primary" id="saveLowStockBtn">Salvar</button>
                 </div>
             </div>
+
         </div>
 
-        <!-- Card: Estoque -->
-        <div class="card" style="margin-bottom:0;">
-            <div class="card-header">
-                <div class="card-icon"><i class="fas fa-boxes"></i></div>
-                <div>
-                    <h2>Estoque</h2>
-                    <p>Configure o limite de alerta de estoque baixo</p>
-                </div>
-            </div>
-            <div class="setting-row">
-                <div class="setting-info">
-                    <span class="setting-label">Limite de estoque baixo</span>
-                    <span class="setting-desc">Produtos com estoque igual ou abaixo deste valor exibem um ícone de aviso <i class="fas fa-exclamation-triangle" style="color:#f59e0b;font-size:12px;"></i> na lista de produtos.</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
-                    <input type="number" id="lowStockLimit" min="1" max="100" value="5"
-                        style="width:80px;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-family:'Poppins',sans-serif;font-size:15px;text-align:center;outline:none;">
-                    <span style="font-size:13px;color:#888;">unidades</span>
-                </div>
-            </div>
-            <div style="margin-top:20px;">
-                <button class="btn-primary" id="saveLowStockBtn">Salvar</button>
-            </div>
-        </div>
-
-        </div><!-- end side-by-side grid -->
-
-        <!-- Card: Senha -->
         <div class="card">
             <div class="card-header">
                 <div class="card-icon"><i class="fas fa-lock"></i></div>
@@ -288,7 +138,6 @@
             <button class="btn-primary" id="savePasswordBtn">Salvar senha</button>
         </div>
 
-        <!-- Card: 2FA -->
         <div class="card" id="card2fa">
             <div class="card-header">
                 <div class="card-icon"><i class="fas fa-mobile-alt"></i></div>
@@ -300,289 +149,73 @@
 
             <div class="feedback" id="twoFaFeedback"></div>
 
-            <!-- Status atual -->
             <div class="setting-row" style="margin-bottom:20px;">
                 <div class="setting-info">
                     <span class="setting-label">Status atual</span>
-                    <span class="setting-desc">Quando ativo, um código do Google Authenticator é exigido a cada login.</span>
+                    <span class="setting-desc">Quando ativo, um código do Google Authenticator é exigido a cada
+                        login.</span>
                 </div>
-                <div id="twoFaStatusBadge"><span class="badge-2fa-off"><i class="fas fa-times-circle"></i> Inativo</span></div>
+                <div id="twoFaStatusBadge"><span class="badge-2fa-off"><i class="fas fa-times-circle"></i>
+                        Inativo</span></div>
             </div>
 
-            <!-- Setup: quando desativado -->
             <div id="twoFaSetupSection">
                 <hr style="border:none;border-top:1px solid #f0f0f0;margin:0 0 20px;">
                 <p style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;">
                     Para ativar, clique em <strong>Configurar</strong>. Você precisará escanear um QR code com o app
                     <strong>Google Authenticator</strong> (disponível no
-                    <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" style="color:#1a1a2e;">Android</a> e
-                    <a href="https://apps.apple.com/app/google-authenticator/id388497605" target="_blank" style="color:#1a1a2e;">iOS</a>).
+                    <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2"
+                        target="_blank" style="color:#1a1a2e;">Android</a> e
+                    <a href="https://apps.apple.com/app/google-authenticator/id388497605" target="_blank"
+                        style="color:#1a1a2e;">iOS</a>).
                 </p>
                 <button class="btn-primary" id="btn2faSetup" onclick="setup2FA()">
                     <i class="fas fa-qrcode" style="margin-right:8px;"></i>Configurar 2FA
                 </button>
             </div>
 
-            <!-- QR code + verificação: após clicar em Configurar -->
             <div id="twoFaQrSection" style="display:none;">
                 <hr style="border:none;border-top:1px solid #f0f0f0;margin:0 0 20px;">
-                <p style="font-size:13px;color:#555;margin-bottom:4px;"><strong>Passo 1:</strong> Abra o Google Authenticator e escaneie o QR code abaixo.</p>
+                <p style="font-size:13px;color:#555;margin-bottom:4px;"><strong>Passo 1:</strong> Abra o Google
+                    Authenticator e escaneie o QR code abaixo.</p>
                 <div class="qr-wrap"><img id="qrCodeImg" src="" alt="QR Code 2FA"></div>
-                <p style="font-size:12px;color:#888;text-align:center;margin-bottom:6px;">Ou digite o código manualmente no app:</p>
+                <p style="font-size:12px;color:#888;text-align:center;margin-bottom:6px;">Ou digite o código manualmente
+                    no app:</p>
                 <div class="secret-box" id="totpSecretDisplay"></div>
                 <hr style="border:none;border-top:1px solid #f0f0f0;margin:20px 0;">
-                <p style="font-size:13px;color:#555;margin-bottom:12px;"><strong>Passo 2:</strong> Digite o código de 6 dígitos gerado pelo app para confirmar.</p>
+                <p style="font-size:13px;color:#555;margin-bottom:12px;"><strong>Passo 2:</strong> Digite o código de 6
+                    dígitos gerado pelo app para confirmar.</p>
                 <div class="form-group">
-                    <input type="text" id="verifyTotpInput" class="totp-code-input" placeholder="000000" maxlength="6" inputmode="numeric">
+                    <input type="text" id="verifyTotpInput" class="totp-code-input" placeholder="000000" maxlength="6"
+                        inputmode="numeric">
                 </div>
                 <div style="display:flex;gap:12px;flex-wrap:wrap;">
                     <button class="btn-primary" id="btnVerifyTotp" onclick="verifyAndEnable2FA()">
                         <i class="fas fa-check" style="margin-right:8px;"></i>Confirmar e Ativar
                     </button>
-                    <button onclick="cancelSetup2FA()" style="padding:13px 20px;background:#f5f7fa;color:#555;border:1.5px solid #e0e0e0;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;cursor:pointer;">Cancelar</button>
+                    <button onclick="cancelSetup2FA()"
+                        style="padding:13px 20px;background:#f5f7fa;color:#555;border:1.5px solid #e0e0e0;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;cursor:pointer;">Cancelar</button>
                 </div>
             </div>
 
-            <!-- Desativar: quando ativo -->
             <div id="twoFaDisableSection" style="display:none;">
                 <hr style="border:none;border-top:1px solid #f0f0f0;margin:0 0 20px;">
-                <p style="font-size:13px;color:#555;margin-bottom:12px;">Para desativar, confirme com o código atual do seu autenticador.</p>
+                <p style="font-size:13px;color:#555;margin-bottom:12px;">Para desativar, confirme com o código atual do
+                    seu autenticador.</p>
                 <div class="form-group">
                     <label>Código de verificação</label>
-                    <input type="text" id="disableTotpInput" class="totp-code-input" placeholder="000000" maxlength="6" inputmode="numeric">
+                    <input type="text" id="disableTotpInput" class="totp-code-input" placeholder="000000" maxlength="6"
+                        inputmode="numeric">
                 </div>
-                <button class="btn-primary" id="btnDisableTotp" onclick="disable2FA()" style="background:linear-gradient(135deg,#c0392b,#a93226);">
+                <button class="btn-primary" id="btnDisableTotp" onclick="disable2FA()"
+                    style="background:linear-gradient(135deg,#c0392b,#a93226);">
                     <i class="fas fa-times" style="margin-right:8px;"></i>Desativar 2FA
                 </button>
             </div>
         </div>
 
     </div>
-
-    <script>
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        document.getElementById('adminName').textContent = user.name || 'Administrador';
-        document.getElementById('logoutBtn').addEventListener('click', e => { e.preventDefault(); adminLogout(); });
-
-        function showFeedback(id, message, type) {
-            const el = document.getElementById(id);
-            el.textContent = message;
-            el.className = 'feedback ' + type;
-            el.style.display = 'block';
-            setTimeout(function() { el.style.display = 'none'; }, 5000);
-        }
-
-        // ── Tema claro/escuro ─────────────────────────────────────────────────
-        const themeToggle = document.getElementById('themeToggle');
-        const isDark = localStorage.getItem('adminTheme') === 'dark';
-        themeToggle.checked = isDark;
-        updateThemeLabels(isDark);
-
-        themeToggle.addEventListener('change', function() {
-            const dark = this.checked;
-            if (dark) {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('adminTheme', 'dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('adminTheme', 'light');
-            }
-            updateThemeLabels(dark);
-        });
-
-        function updateThemeLabels(dark) {
-            document.getElementById('labelLight').classList.toggle('active', !dark);
-            document.getElementById('labelDark').classList.toggle('active', dark);
-        }
-
-        // ── Estoque baixo ─────────────────────────────────────────────────────
-        const savedLimit = localStorage.getItem('lowStockLimit') || '5';
-        document.getElementById('lowStockLimit').value = savedLimit;
-
-        document.getElementById('saveLowStockBtn').addEventListener('click', function() {
-            const val = parseInt(document.getElementById('lowStockLimit').value) || 5;
-            localStorage.setItem('lowStockLimit', String(val));
-            const btn = this;
-            btn.textContent = '✓ Salvo!';
-            setTimeout(function() { btn.textContent = 'Salvar'; }, 2000);
-        });
-
-        // ── Alterar senha
-        document.getElementById('savePasswordBtn').addEventListener('click', async () => {
-            const currentPassword = document.getElementById('currentPassword').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const btn = document.getElementById('savePasswordBtn');
-
-            if (!currentPassword || !newPassword || !confirmPassword)
-                return showFeedback('passwordFeedback', 'Preencha todos os campos.', 'error');
-            if (newPassword !== confirmPassword)
-                return showFeedback('passwordFeedback', 'As senhas não coincidem.', 'error');
-
-            btn.disabled = true;
-            btn.textContent = 'Salvando...';
-
-            try {
-                const res = await adminFetch('/api/auth/change-password', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currentPassword, newPassword })
-                });
-                const result = await res.json();
-
-                if (result.success) {
-                    document.getElementById('currentPassword').value = '';
-                    document.getElementById('newPassword').value = '';
-                    document.getElementById('confirmPassword').value = '';
-                    showFeedback('passwordFeedback', 'Senha alterada com sucesso!', 'success');
-                } else {
-                    showFeedback('passwordFeedback', result.message, 'error');
-                }
-            } catch (e) {
-                showFeedback('passwordFeedback', 'Erro ao alterar senha.', 'error');
-            }
-
-            btn.disabled = false;
-            btn.textContent = 'Salvar senha';
-        });
-
-        // ── 2FA ──────────────────────────────────────────────────────────────
-        async function load2FAStatus() {
-            try {
-                const res  = await adminFetch('/api/admin/2fa/status');
-                const data = await res.json();
-                if (!data.success) return;
-                update2FAUI(data.data.enabled);
-            } catch {}
-        }
-
-        function update2FAUI(enabled) {
-            const badge    = document.getElementById('twoFaStatusBadge');
-            const setup    = document.getElementById('twoFaSetupSection');
-            const disable  = document.getElementById('twoFaDisableSection');
-            const qrSec    = document.getElementById('twoFaQrSection');
-
-            badge.innerHTML = enabled
-                ? '<span class="badge-2fa-on"><i class="fas fa-check-circle"></i> Ativo</span>'
-                : '<span class="badge-2fa-off"><i class="fas fa-times-circle"></i> Inativo</span>';
-
-            setup.style.display   = enabled ? 'none' : 'block';
-            disable.style.display = enabled ? 'block' : 'none';
-            qrSec.style.display   = 'none';
-        }
-
-        async function setup2FA() {
-            const btn = document.getElementById('btn2faSetup');
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Gerando QR...';
-            try {
-                const res  = await adminFetch('/api/admin/2fa/setup');
-                const data = await res.json();
-                if (!data.success) {
-                    showFeedback('twoFaFeedback', data.message || 'Erro ao gerar QR code', 'error'); return;
-                }
-                document.getElementById('qrCodeImg').src        = data.data.qrCode;
-                document.getElementById('totpSecretDisplay').textContent = data.data.secret;
-                document.getElementById('twoFaSetupSection').style.display = 'none';
-                document.getElementById('twoFaQrSection').style.display    = 'block';
-            } catch {
-                showFeedback('twoFaFeedback', 'Erro ao configurar 2FA', 'error');
-            } finally {
-                btn.disabled = false; btn.innerHTML = '<i class="fas fa-qrcode" style="margin-right:8px;"></i>Configurar 2FA';
-            }
-        }
-
-        function cancelSetup2FA() {
-            document.getElementById('twoFaQrSection').style.display    = 'none';
-            document.getElementById('twoFaSetupSection').style.display = 'block';
-            document.getElementById('verifyTotpInput').value = '';
-        }
-
-        async function verifyAndEnable2FA() {
-            const code = document.getElementById('verifyTotpInput').value.replace(/\D/g, '');
-            const btn  = document.getElementById('btnVerifyTotp');
-            if (code.length < 6) { showFeedback('twoFaFeedback', 'Digite o código de 6 dígitos.', 'error'); return; }
-
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Ativando...';
-            try {
-                const res  = await adminFetch('/api/admin/2fa/verify', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showFeedback('twoFaFeedback', '2FA ativado com sucesso! Ele será exigido no próximo login.', 'success');
-                    update2FAUI(true);
-                    document.getElementById('verifyTotpInput').value = '';
-                } else {
-                    showFeedback('twoFaFeedback', data.message || 'Código inválido.', 'error');
-                    document.getElementById('verifyTotpInput').value = '';
-                    document.getElementById('verifyTotpInput').focus();
-                }
-            } catch {
-                showFeedback('twoFaFeedback', 'Erro ao verificar código.', 'error');
-            } finally {
-                btn.disabled = false; btn.innerHTML = '<i class="fas fa-check" style="margin-right:8px;"></i>Confirmar e Ativar';
-            }
-        }
-
-        async function disable2FA() {
-            const code = document.getElementById('disableTotpInput').value.replace(/\D/g, '');
-            const btn  = document.getElementById('btnDisableTotp');
-            if (code.length < 6) { showFeedback('twoFaFeedback', 'Digite o código atual do autenticador.', 'error'); return; }
-
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Desativando...';
-            try {
-                const res  = await adminFetch('/api/admin/2fa/disable', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showFeedback('twoFaFeedback', '2FA desativado.', 'success');
-                    update2FAUI(false);
-                    document.getElementById('disableTotpInput').value = '';
-                } else {
-                    showFeedback('twoFaFeedback', data.message || 'Código inválido.', 'error');
-                }
-            } catch {
-                showFeedback('twoFaFeedback', 'Erro ao desativar.', 'error');
-            } finally {
-                btn.disabled = false; btn.innerHTML = '<i class="fas fa-times" style="margin-right:8px;"></i>Desativar 2FA';
-            }
-        }
-
-        // Auto-submit com 6 dígitos
-        ['verifyTotpInput', 'disableTotpInput'].forEach(function(id) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.addEventListener('input', function() {
-                this.value = this.value.replace(/\D/g, '');
-                if (this.value.length === 6) {
-                    if (id === 'verifyTotpInput') verifyAndEnable2FA();
-                    else disable2FA();
-                }
-            });
-        });
-
-        load2FAStatus();
-
-        // Esqueceu a senha
-        document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('forgotPasswordLink');
-            btn.textContent = 'Enviando...';
-
-            try {
-                const res = await fetch('/api/auth/forgot-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: user.email })
-                });
-                const result = await res.json();
-                showFeedback('passwordFeedback', `Link de redefinição enviado para ${user.email}`, 'success');
-            } catch (e) {
-                showFeedback('passwordFeedback', 'Erro ao enviar email.', 'error');
-            }
-
-            btn.innerHTML = '<i class="fas fa-question-circle"></i> Esqueceu sua senha?';
-        });
-    </script>
+    <script src="/js/admin-configuracoes.page.js"></script>
 </body>
+
 </html>
