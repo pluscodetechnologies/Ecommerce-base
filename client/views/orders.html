@@ -85,6 +85,10 @@
         .btn-track:hover { background:var(--primary-dark); }
         .btn-track i { font-size:13px; }
         .btn-help { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; background:white; color:var(--dark); border:1.5px solid var(--border-light); border-radius:4px; font-family:'Montserrat',sans-serif; font-size:12px; font-weight:500; cursor:pointer; text-decoration:none; transition:all .2s; }
+        .return-policy-note { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--gray); flex:1; }
+        .return-policy-note i { color:var(--primary); flex-shrink:0; }
+        .return-policy-note a { color:var(--primary); text-decoration:none; font-weight:600; white-space:nowrap; }
+        .return-policy-note a:hover { text-decoration:underline; }
         .btn-help:hover { border-color:var(--primary); color:var(--primary); }
 
         /* ── Progress bar ── */
@@ -309,6 +313,10 @@
             <div class="order-items">${items}</div>
             <div class="order-footer">
                 ${trackingInfo}
+                <div class="return-policy-note">
+                    <i class="fas fa-undo-alt"></i>
+                    <span>Você tem <strong>30 dias</strong> para troca ou devolução. <a href="/ajuda#troca" target="_blank">Saiba mais →</a></span>
+                </div>
                 <div class="order-actions">
                     ${trackBtn}
                     <a class="btn-help" href="/ajuda"><i class="fas fa-question-circle"></i> Ajuda</a>

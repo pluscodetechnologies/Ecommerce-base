@@ -21,6 +21,21 @@ const upload = multer({
     }
 });
 
+// Magic bytes das imagens suportadas
+const IMAGE_MAGIC = [
+    { bytes: [0xFF, 0xD8, 0xFF],             type: 'jpeg' },
+    { bytes: [0x89, 0x50, 0x4E, 0x47],       type: 'png'  },
+    { bytes: [0x47, 0x49, 0x46],             type: 'gif'  },
+    { bytes: [0x52, 0x49, 0x46, 0x46],       type: 'webp' }, // RIFF....WEBP
+];
+
+function isValidImageBuffer(buffer) {
+    if (!buffer || buffer.length < 4) return false;
+    return IMAGE_MAGIC.some(({ bytes }) =>
+        bytes.every((b, i) => buffer[i] === b)
+    );
+}
+
 // POST /api/uploads/review-image — requer login
 router.post('/review-image',
     authMiddleware,
@@ -28,6 +43,11 @@ router.post('/review-image',
     async (req, res) => {
         try {
             if (!req.file) return res.status(400).json({ success: false, message: 'Nenhuma imagem enviada' });
+
+            // Valida magic bytes (MIME type do browser pode ser forjado)
+            if (!isValidImageBuffer(req.file.buffer)) {
+                return res.status(400).json({ success: false, message: 'Arquivo inválido. Envie uma imagem JPG, PNG, GIF ou WEBP.' });
+            }
 
             const filename = `review_${Date.now()}_${Math.random().toString(36).slice(2)}.webp`;
             const filepath = path.join(uploadDir, filename);

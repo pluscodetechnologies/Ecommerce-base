@@ -6,6 +6,7 @@ const { getDB } = require('../config/database');
 const { generateAccessToken, REFRESH_TOKEN_TTL } = require('../middleware/auth');
 const refreshTokenService = require('../services/refreshTokenService');
 const loginAttempts       = require('../services/loginAttemptService');
+// emailService importado inline para não quebrar o servidor se houver problema
 
 const BCRYPT_ROUNDS = 12;   // 10 era OK em 2018; 12 é o mínimo aceitável em 2026
 
@@ -128,6 +129,7 @@ class AuthController {
 
             const valid = await bcrypt.compare(password, user.password);
             if (!valid) return genericFail();
+
 
             // Sucesso — limpa tentativas
             await loginAttempts.recordAttempt(email, ip, true);

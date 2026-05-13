@@ -8,6 +8,9 @@ const cookieParser = require('cookie-parser');
 
 dotenv.config();
 
+// Logger precisa vir antes de qualquer uso
+const logger = require('./config/logger');
+
 // ────────────────────────────────────────────────────────────────────
 // VALIDAÇÃO DE AMBIENTE — falha rápido se faltar variável crítica
 // ────────────────────────────────────────────────────────────────────
@@ -24,8 +27,7 @@ if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
 }
 
 // ────────────────────────────────────────────────────────────────────
-const { connectDB } = require('./config/database');
-const logger        = require('./config/logger');
+const { connectDB, getDB } = require('./config/database');
 const { apiLimiter, adminLoginLimiter, adminApiLimiter } = require('./middleware/rateLimits');
 const { adminProtect, adminRecordFailure } = require('./middleware/adminProtect');
 
@@ -182,17 +184,25 @@ app.use('/api', apiLimiter);
 // ────────────────────────────────────────────────────────────────────
 // Rotas da API
 // ────────────────────────────────────────────────────────────────────
-const authRoutes      = require('./routes/auth');
-const adminRoutes     = require('./routes/admin');
-const cartRoutes      = require('./routes/cart');
-const checkoutRoutes  = require('./routes/checkout');
-const reviewRoutes    = require('./routes/reviews');
-const orderRoutes     = require('./routes/orders');
-const wishlistRoutes  = require('./routes/wishlist');
-const addressRoutes   = require('./routes/addresses');
-const trackingRoutes  = require('./routes/tracking');
-const variationRoutes = require('./routes/variations');
-const colorRoutes     = require('./routes/colors');
+let authRoutes, adminRoutes, cartRoutes, checkoutRoutes, reviewRoutes,
+    orderRoutes, wishlistRoutes, addressRoutes, trackingRoutes, variationRoutes, colorRoutes;
+try {
+    authRoutes      = require('./routes/auth');
+    adminRoutes     = require('./routes/admin');
+    cartRoutes      = require('./routes/cart');
+    checkoutRoutes  = require('./routes/checkout');
+    reviewRoutes    = require('./routes/reviews');
+    orderRoutes     = require('./routes/orders');
+    wishlistRoutes  = require('./routes/wishlist');
+    addressRoutes   = require('./routes/addresses');
+    trackingRoutes  = require('./routes/tracking');
+    variationRoutes = require('./routes/variations');
+    colorRoutes     = require('./routes/colors');
+} catch(e) {
+    console.error('ERRO ao carregar rota:', e.message);
+    console.error(e.stack);
+    process.exit(1);
+}
 
 app.use('/api/auth',       authRoutes);
 app.use('/api/admin',      adminRoutes);
@@ -261,7 +271,9 @@ app.get('/api/products', async (req, res) => {
 
         let query = `SELECT p.*, c.name as category_name, c.slug as category_slug, COALESCE(p.images, '[]') as images,
                      (SELECT COUNT(*) FROM product_variations pv WHERE pv.product_id = p.id) as variation_count
-                     FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.status = 'active'`;
+                     FROM products p LEFT JOIN categories c ON p.category_id = c.id
+                     WHERE p.status = 'active'
+                     AND (p.stock > 0 OR EXISTS (SELECT 1 FROM product_variations pv WHERE pv.product_id = p.id AND pv.stock > 0))`;
         const params = [];
 
         if (category && !['novidades','mais-vendidos'].includes(category)) { query += ' AND c.slug = ?'; params.push(category); }
@@ -379,6 +391,60 @@ app.get('/account',              v('../client/views/account.html'));
 app.get('/rastreamento',         v('../client/views/rastreamento.html'));
 app.get('/orders',               v('../client/views/orders.html'));
 app.get('/ajuda',                v('../client/views/ajuda.html'));
+app.get('/verify-email',         v('../client/views/verify-email.html'));
+
+// ── API: verificar email ─────────────────────────────────────────────────────
+app.get('/api/auth/verify-email', async (req, res) => {
+    try {
+        const { token } = req.query;
+        if (!token) return res.status(400).json({ success: false, message: 'Token inválido' });
+
+        const db = require('./config/database').getDB();
+        const [users] = await db.execute(
+            'SELECT id FROM users WHERE email_verify_token = ? AND email_verify_expires > NOW()',
+            [token]
+        );
+
+        if (!users.length) {
+            return res.status(400).json({ success: false, message: 'Link inválido ou expirado. Faça login para receber um novo.' });
+        }
+
+        await db.execute(
+            'UPDATE users SET email_verified = 1, email_verify_token = NULL, email_verify_expires = NULL WHERE id = ?',
+            [users[0].id]
+        );
+
+        res.json({ success: true, message: 'E-mail confirmado com sucesso! Você já pode fazer login.' });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Erro ao verificar e-mail' });
+    }
+});
+
+// ── API: reenviar verificação de email ───────────────────────────────────────
+app.post('/api/auth/resend-verification', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ success: false, message: 'E-mail obrigatório' });
+
+        const db = require('./config/database').getDB();
+        const [users] = await db.execute('SELECT id, name, email_verified FROM users WHERE email = ?', [email]);
+        if (!users.length || users[0].email_verified) {
+            return res.json({ success: true, message: 'Se o e-mail existir e não estiver verificado, você receberá um novo link.' });
+        }
+
+        const crypto = require('crypto');
+        const { sendEmailVerificationEmail } = require('./services/emailService');
+        const token   = crypto.randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        await db.execute('UPDATE users SET email_verify_token = ?, email_verify_expires = ? WHERE id = ?', [token, expires, users[0].id]);
+        sendEmailVerificationEmail(email, users[0].name, token).catch(() => {});
+
+        res.json({ success: true, message: 'Novo link de verificação enviado para seu e-mail.' });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Erro ao reenviar verificação' });
+    }
+});
 
 // ── SEO: robots.txt e sitemap.xml ────────────────────────────────────────────
 const BASE_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -449,7 +515,13 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.use((req, res) => res.status(404).json({ success: false, message: 'Rota não encontrada' }));
+app.use((req, res) => {
+    // API requests get JSON, browser requests get the 404 page
+    if (req.path.startsWith('/api/') || req.headers.accept?.includes('application/json')) {
+        return res.status(404).json({ success: false, message: 'Rota não encontrada' });
+    }
+    res.status(404).sendFile(path.join(__dirname, '../client/views/404.html'));
+});
 
 // ────────────────────────────────────────────────────────────────────
 // Start

@@ -221,9 +221,40 @@ async function sendOrderShippedEmail(toEmail, order) {
     });
 }
 
+// ─── Verificação de email ────────────────────────────────────────────────────
+async function sendEmailVerificationEmail(toEmail, userName, verifyToken) {
+    const verifyUrl = `${FRONTEND}/verify-email?token=${verifyToken}`;
+    await resend.emails.send({
+        from: FROM_CLIENT,
+        to:   toEmail,
+        subject: 'Confirme seu e-mail — Velvet Atelier',
+        html: wrapEmail(`
+            ${headerHtml('Confirme seu cadastro')}
+            <div style="padding:36px 40px;">
+                <h2 style="font-family:Georgia,serif;font-size:22px;margin:0 0 16px;">Olá, ${userName}!</h2>
+                <p style="color:#555;font-size:14px;line-height:1.7;margin:0 0 24px;">
+                    Obrigada por se cadastrar na Velvet Atelier. Para ativar sua conta e começar a comprar, 
+                    confirme seu e-mail clicando no botão abaixo.
+                </p>
+                <div style="text-align:center;margin:32px 0;">
+                    <a href="${verifyUrl}" style="display:inline-block;background:#8B7355;color:white;padding:14px 36px;text-decoration:none;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;border-radius:2px;">
+                        Confirmar E-mail
+                    </a>
+                </div>
+                <p style="color:#999;font-size:12px;text-align:center;margin:0;">
+                    Este link expira em 24 horas.<br>
+                    Se você não criou uma conta, ignore este e-mail.
+                </p>
+            </div>
+            ${footerHtml()}
+        `)
+    });
+}
+
 module.exports = {
     sendPasswordResetEmail,
     sendClientPasswordResetEmail,
     sendOrderConfirmationEmail,
     sendOrderShippedEmail,
+    sendEmailVerificationEmail,
 };

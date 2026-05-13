@@ -46,9 +46,10 @@ class AdminController {
             const db = getDB();
             const status = req.query.status || null;
             const includeItems = req.query.include_items === '1';
+            const exportCsv = req.query.export === 'csv';
             const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 20;
-            const offset = (page - 1) * limit;
+            const limit = exportCsv ? 9999 : (parseInt(req.query.limit) || 20);
+            const offset = exportCsv ? 0 : (page - 1) * limit;
 
             let query = 'SELECT * FROM orders';
             const params = [];
@@ -56,6 +57,42 @@ class AdminController {
             query += ' ORDER BY created_at DESC LIMIT ' + limit + ' OFFSET ' + offset;
 
             const [orders] = await db.execute(query, params);
+
+            // ── Exportação CSV ────────────────────────────────────────────────
+            if (exportCsv) {
+                // Ponto e vírgula como separador — padrão do Excel em pt-BR
+                const SEP = ';';
+                const escapeStr = v => {
+                    const s = String(v ?? '');
+                    // Aspas só se tiver ponto e vírgula, aspas ou quebra de linha
+                    return s.includes(SEP) || s.includes('"') || s.includes('\n')
+                        ? `"${s.replace(/"/g, '""')}"` : s;
+                };
+                const fmtMoney = v => parseFloat(v || 0).toFixed(2).replace('.', ',');
+                const statusLabel = { pending:'Aguardando', paid:'Pago', processing:'Preparando', shipped:'Enviado', delivered:'Entregue', cancelled:'Cancelado' };
+                const payLabel = { checkout_pro:'Mercado Pago', pix:'PIX', boleto:'Boleto', manual:'Manual' };
+
+                const headers = ['Pedido','Data','Cliente','E-mail','Telefone','CPF','Status','Pagamento','Total (R$)','Frete (R$)','Desconto (R$)','Rastreio'];
+                const rows = orders.map(o => [
+                    o.order_number,
+                    new Date(o.created_at).toLocaleDateString('pt-BR'),
+                    o.customer_name,
+                    o.customer_email,
+                    o.customer_phone || '',
+                    o.customer_document || '',
+                    statusLabel[o.status] || o.status,
+                    payLabel[o.payment_method] || o.payment_method || '',
+                    fmtMoney(o.total_amount),
+                    fmtMoney(o.shipping_amount),
+                    fmtMoney(o.discount_amount),
+                    o.shipping_tracking || '',
+                ].map(escapeStr).join(SEP));
+
+                const csv = [headers.join(SEP), ...rows].join('\r\n');
+                res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+                res.setHeader('Content-Disposition', `attachment; filename="pedidos_${new Date().toISOString().slice(0,10)}.csv"`);
+                return res.send('\uFEFF' + csv);
+            }
             const [total]  = await db.execute('SELECT COUNT(*) as count FROM orders' + (status ? ' WHERE status = ?' : ''), status ? [status] : []);
 
             if (includeItems && orders.length > 0) {

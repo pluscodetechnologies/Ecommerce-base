@@ -514,8 +514,9 @@
                     if (Array.isArray(result.errors) && result.errors.length) {
                         msg = result.errors.map(e => e.message).join(' • ');
                     }
-                    document.getElementById('errorMessage').textContent = msg;
-                    document.getElementById('errorMessage').style.display = 'block';
+                    const errEl = document.getElementById('errorMessage');
+                    errEl.textContent = msg;
+                    errEl.style.display = 'block';
                 }
             } catch (error) {
                 document.getElementById('errorMessage').textContent = 'Erro ao fazer login. Tente novamente.';
@@ -554,7 +555,7 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    document.getElementById('successMessage').textContent = 'Conta criada com sucesso! Você já pode fazer login.';
+                    document.getElementById('successMessage').textContent = 'Conta criada! Verifique seu e-mail para ativar sua conta antes de fazer login.';
                     document.getElementById('successMessage').style.display = 'block';
                     document.getElementById('errorMessage').style.display = 'none';
                     

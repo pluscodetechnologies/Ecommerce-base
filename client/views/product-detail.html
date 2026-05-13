@@ -474,7 +474,7 @@
                         </div>
                         <p class="stock-warning" id="stockWarning"></p>
                         <button class="btn-add-cart" id="addToCartBtn" ${stock === 0 ? 'disabled' : ''}>
-                            <i class="fas fa-shopping-bag"></i> Adicionar ao Carrinho
+                            ${stock === 0 ? '<i class="fas fa-ban"></i> Esgotado' : '<i class="fas fa-shopping-bag"></i> Adicionar ao Carrinho'}
                         </button>
                         <button class="btn-wishlist" id="wishlistBtn">
                             <i class="far fa-heart"></i> Adicionar aos Favoritos
@@ -757,9 +757,11 @@
             }
 
             if (totalStock === 0) {
+                addBtn.innerHTML = '<i class="fas fa-ban"></i> Esgotado';
                 warning.textContent = 'Esta combinação está esgotada.';
                 warning.classList.add('visible');
             } else {
+                addBtn.innerHTML = '<i class="fas fa-shopping-bag"></i> Adicionar ao Carrinho';
                 warning.classList.remove('visible');
             }
         }
