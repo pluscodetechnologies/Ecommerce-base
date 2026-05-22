@@ -476,33 +476,6 @@ class CheckoutController {
       await Cart.clearCart(cart.id);
       await connection.commit();
 
-      try {
-        const {
-          sendOrderConfirmationEmail,
-        } = require("../services/emailService");
-        const orderForEmail = {
-          order_number: orderNumber,
-          customer_name: shipping.name,
-          total_amount: totalAmount,
-          shipping_amount: shippingCost,
-          discount_amount: discountAmount,
-          payment_method: payment.method,
-          shipping_address: shippingAddress,
-          items: items.map((i) => ({
-            product_name: i.name,
-            quantity: i.quantity,
-            unit_price: parseFloat(i.final_price),
-            color: i.color || null,
-            size: i.size || null,
-          })),
-        };
-        sendOrderConfirmationEmail(shipping.email, orderForEmail).catch((err) =>
-          logger.error("[email] confirmacao de pedido falhou:", err),
-        );
-      } catch (emailErr) {
-        logger.error("[email] erro ao importar emailService:", emailErr);
-      }
-
       if (userId) {
         try {
           const db = getDB();
