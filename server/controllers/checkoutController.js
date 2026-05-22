@@ -777,6 +777,52 @@ class CheckoutController {
             payment.external_reference,
           ],
         );
+
+        if (newStatus === "processing" && currentStatus !== "processing") {
+          try {
+            const [orderRows] = await db.execute(
+              `SELECT o.order_number, o.customer_name, o.customer_email,
+                      o.total_amount, o.shipping_amount, o.discount_amount,
+                      o.payment_method, o.shipping_address
+               FROM orders o WHERE o.id = ?`,
+              [orderId],
+            );
+            const [itemRows] = await db.execute(
+              `SELECT oi.product_name, oi.quantity, oi.unit_price
+               FROM order_items oi WHERE oi.order_id = ?`,
+              [orderId],
+            );
+            if (orderRows.length && orderRows[0].customer_email) {
+              const { sendOrderPaidEmail } = require("../services/emailService");
+              sendOrderPaidEmail(orderRows[0].customer_email, {
+                ...orderRows[0],
+                items: itemRows,
+              }).catch((err) => logger.error("[email] pedido pago falhou:", err));
+            }
+          } catch (emailErr) {
+            logger.error("[email] erro ao enviar email de pagamento:", emailErr);
+          }
+        }
+
+        if (newStatus === "cancelled" && currentStatus !== "cancelled") {
+          try {
+            const [orderRows] = await db.execute(
+              "SELECT order_number, customer_name, customer_email, total_amount FROM orders WHERE id = ?",
+              [orderId],
+            );
+            if (orderRows.length && orderRows[0].customer_email) {
+              const { sendOrderCancelledEmail } = require("../services/emailService");
+              sendOrderCancelledEmail(orderRows[0].customer_email, {
+                order_number: orderRows[0].order_number,
+                customer_name: orderRows[0].customer_name,
+                total_amount: orderRows[0].total_amount,
+                reason: "Pagamento não aprovado",
+              }).catch((err) => logger.error("[email] pedido cancelado falhou:", err));
+            }
+          } catch (emailErr) {
+            logger.error("[email] erro ao enviar email de cancelamento:", emailErr);
+          }
+        }
       }
 
       res.sendStatus(200);

@@ -194,59 +194,163 @@ document
 
 const modal = document.getElementById("forgotPasswordModal");
 
+let fpPendingToken = null;
+let fpResetToken = null;
+
+function fpShowStep(step) {
+  document.getElementById("fpStep1").style.display = step === 1 ? "" : "none";
+  document.getElementById("fpStep2").style.display = step === 2 ? "" : "none";
+  document.getElementById("fpStep3").style.display = step === 3 ? "" : "none";
+}
+
+function fpReset() {
+  fpPendingToken = null;
+  fpResetToken = null;
+  document.getElementById("recoveryEmail").value = "";
+  document.getElementById("totpCode").value = "";
+  document.getElementById("newPassword").value = "";
+  document.getElementById("confirmNewPassword").value = "";
+  fpShowStep(1);
+  modal.style.display = "none";
+}
+
 document.getElementById("forgotPasswordLink").addEventListener("click", (e) => {
   e.preventDefault();
+  fpReset();
   modal.style.display = "flex";
 });
 
-document.getElementById("closeModalBtn").addEventListener("click", () => {
-  modal.style.display = "none";
+document.getElementById("closeModalBtn").addEventListener("click", fpReset);
+document.getElementById("backToStep1Btn").addEventListener("click", () => {
+  document.getElementById("totpCode").value = "";
+  fpPendingToken = null;
+  fpShowStep(1);
 });
+document.getElementById("cancelStep3Btn").addEventListener("click", fpReset);
 
 modal.addEventListener("click", (e) => {
-  if (e.target === modal) {
-    modal.style.display = "none";
-  }
+  if (e.target === modal) fpReset();
 });
 
-document
-  .getElementById("sendRecoveryBtn")
-  .addEventListener("click", async () => {
-    const email = document.getElementById("recoveryEmail").value;
+document.getElementById("totpCode").addEventListener("input", (e) => {
+  let v = e.target.value.replace(/\D/g, "").slice(0, 6);
+  if (v.length > 3) v = v.slice(0, 3) + " " + v.slice(3);
+  e.target.value = v;
+});
 
-    if (!email) {
-      showToast("Digite seu email");
+document.getElementById("sendRecoveryBtn").addEventListener("click", async () => {
+  const email = document.getElementById("recoveryEmail").value.trim();
+  if (!email) { showToast("Digite seu e-mail"); return; }
+
+  const btn = document.getElementById("sendRecoveryBtn");
+  btn.disabled = true;
+  btn.textContent = "Aguarde...";
+
+  try {
+    const response = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      const msg = result.errors?.map(e => e.message).join(" • ") || result.message || "Erro ao processar.";
+      showToast(msg, "error");
       return;
     }
 
-    try {
-      const response = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        showToast("Email enviado! Verifique sua caixa de entrada.", "success");
-        setTimeout(() => {
-          modal.style.display = "none";
-          document.getElementById("recoveryEmail").value = "";
-        }, 2000);
-      } else if (response.status === 429) {
-        showToast("Muitas tentativas. Aguarde alguns minutos.", "error");
-      } else {
-        let msg = result.message || "Erro ao enviar email.";
-        if (Array.isArray(result.errors) && result.errors.length) {
-          msg = result.errors.map((e) => e.message).join(" • ");
-        }
-        showToast(msg);
-      }
-    } catch (error) {
-      showToast("Erro ao enviar email. Tente novamente.");
+    if (result.method === "totp") {
+      fpPendingToken = result.pendingToken;
+      fpShowStep(2);
+      setTimeout(() => document.getElementById("totpCode").focus(), 100);
+    } else {
+      showToast("E-mail enviado! Verifique sua caixa de entrada.", "success");
+      setTimeout(fpReset, 2500);
     }
-  });
+  } catch {
+    showToast("Erro de conexão. Tente novamente.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Continuar";
+  }
+});
+
+document.getElementById("verifyTotpBtn").addEventListener("click", async () => {
+  const raw = document.getElementById("totpCode").value.replace(/\s/g, "");
+  if (raw.length !== 6) { showToast("O código deve ter 6 dígitos"); return; }
+
+  const btn = document.getElementById("verifyTotpBtn");
+  btn.disabled = true;
+  btn.textContent = "Verificando...";
+
+  try {
+    const response = await fetch("/api/auth/verify-totp-reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pendingToken: fpPendingToken, code: raw }),
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      showToast(result.message || "Código inválido.", "error");
+      document.getElementById("totpCode").value = "";
+      document.getElementById("totpCode").focus();
+      return;
+    }
+
+    fpResetToken = result.resetToken;
+    fpShowStep(3);
+    setTimeout(() => document.getElementById("newPassword").focus(), 100);
+  } catch {
+    showToast("Erro de conexão. Tente novamente.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Verificar";
+  }
+});
+
+document.getElementById("saveNewPasswordBtn").addEventListener("click", async () => {
+  const newPwd = document.getElementById("newPassword").value;
+  const confirmPwd = document.getElementById("confirmNewPassword").value;
+  const STRONG = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  if (!newPwd || !confirmPwd) { showToast("Preencha os dois campos"); return; }
+  if (newPwd !== confirmPwd) { showToast("As senhas não coincidem", "error"); return; }
+  if (!STRONG.test(newPwd)) {
+    showToast("A senha deve ter mínimo 8 caracteres, letra maiúscula, número e símbolo (@$!%*?&)", "error");
+    return;
+  }
+
+  const btn = document.getElementById("saveNewPasswordBtn");
+  btn.disabled = true;
+  btn.textContent = "Salvando...";
+
+  try {
+    const response = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: fpResetToken, newPassword: newPwd }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      showToast("Senha redefinida com sucesso! Faça login.", "success");
+      setTimeout(fpReset, 2500);
+    } else {
+      const msg = result.errors?.map(e => e.message).join(" • ") || result.message || "Erro ao redefinir senha.";
+      showToast(msg, "error");
+    }
+  } catch {
+    showToast("Erro de conexão. Tente novamente.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Salvar senha";
+  }
+});
 
 (async () => {
   try {

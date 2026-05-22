@@ -271,10 +271,209 @@ async function sendEmailVerificationEmail(toEmail, userName, verifyToken) {
   });
 }
 
+async function sendWelcomeEmail(toEmail, userName) {
+  await resend.emails.send({
+    from: FROM_CLIENT,
+    to: [toEmail],
+    subject: "Bem-vinda à Velvet Atelier!",
+    html: wrapEmail(`
+      ${headerHtml("Bem-vinda!")}
+      <div style="padding:36px 40px;">
+        <h2 style="font-family:Georgia,serif;font-size:22px;margin:0 0 16px;color:#1A1817;">Olá, ${userName}!</h2>
+        <p style="color:#555;font-size:14px;line-height:1.8;margin:0 0 20px;">
+          É um prazer ter você na Velvet Atelier. Sua conta foi criada com sucesso e você já pode explorar nossa coleção.
+        </p>
+        <div style="text-align:center;margin:28px 0;">
+          <a href="${FRONTEND}/products" style="display:inline-block;background:#8B7355;color:white;text-decoration:none;padding:14px 36px;border-radius:4px;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;">
+            Explorar Coleção
+          </a>
+        </div>
+        <p style="color:#999;font-size:12px;line-height:1.7;margin:0;text-align:center;">
+          Dúvidas? Acesse nossa <a href="${FRONTEND}/ajuda" style="color:#8B7355;text-decoration:none;">Central de Ajuda</a>.
+        </p>
+      </div>
+      ${footerHtml()}
+    `),
+  });
+}
+
+async function sendOrderPaidEmail(toEmail, order) {
+  const {
+    order_number,
+    customer_name,
+    total_amount,
+    shipping_amount,
+    discount_amount,
+    payment_method,
+    items = [],
+    shipping_address = {},
+  } = order;
+
+  const addr =
+    typeof shipping_address === "string"
+      ? JSON.parse(shipping_address)
+      : shipping_address || {};
+
+  const paymentLabel =
+    {
+      checkout_pro: "Mercado Pago",
+      pix: "PIX",
+      boleto: "Boleto Bancário",
+      credit_card: "Cartão de Crédito",
+      manual: "Pagamento Manual",
+    }[payment_method] || "Mercado Pago";
+
+  const subtotal =
+    parseFloat(total_amount) -
+    parseFloat(shipping_amount || 0) +
+    parseFloat(discount_amount || 0);
+
+  const itemsHtml = items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding:12px 0;border-bottom:1px solid #f0ede8;">
+          <div style="font-size:14px;font-weight:500;color:#1A1817;">${item.product_name}</div>
+          ${item.color || item.size ? `<div style="font-size:12px;color:#8B8581;margin-top:2px;">${[item.color, item.size].filter(Boolean).join(" · ")}</div>` : ""}
+        </td>
+        <td style="padding:12px 0;border-bottom:1px solid #f0ede8;text-align:center;font-size:14px;color:#4A4543;">${item.quantity}x</td>
+        <td style="padding:12px 0;border-bottom:1px solid #f0ede8;text-align:right;font-size:14px;font-weight:500;color:#1A1817;">${fmt(item.unit_price * item.quantity)}</td>
+      </tr>
+    `,
+    )
+    .join("");
+
+  const trackingUrl = `${FRONTEND}/rastreamento?order=${order_number}`;
+
+  await resend.emails.send({
+    from: FROM_CLIENT,
+    to: [toEmail],
+    subject: `Pagamento confirmado! #${order_number} — Velvet Atelier`,
+    html: wrapEmail(`
+      ${headerHtml("Pagamento Confirmado")}
+      <div style="padding:36px 40px 0;">
+        <div style="background:#e8f5e9;border:1px solid #c8e6c9;border-radius:8px;padding:18px 24px;margin-bottom:28px;text-align:center;">
+          <p style="color:#2e7d32;font-size:13px;font-weight:600;margin:0 0 4px;letter-spacing:0.5px;">✓ PAGAMENTO APROVADO</p>
+          <p style="color:#1A1817;font-size:24px;font-weight:700;font-family:Georgia,serif;margin:0;letter-spacing:2px;">#${order_number}</p>
+        </div>
+        <p style="color:#4A4543;font-size:15px;line-height:1.7;margin:0 0 28px;">
+          Olá, <strong>${customer_name}</strong>! Seu pagamento foi confirmado e seu pedido já está sendo preparado.
+        </p>
+        <h3 style="color:#1A1817;font-size:14px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 12px;">Itens do Pedido</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          ${itemsHtml}
+        </table>
+        <table style="width:100%;margin-top:16px;">
+          <tr>
+            <td style="padding:5px 0;font-size:13px;color:#8B8581;">Subtotal</td>
+            <td style="padding:5px 0;font-size:13px;color:#4A4543;text-align:right;">${fmt(subtotal)}</td>
+          </tr>
+          <tr>
+            <td style="padding:5px 0;font-size:13px;color:#8B8581;">Frete</td>
+            <td style="padding:5px 0;font-size:13px;color:#4A4543;text-align:right;">${parseFloat(shipping_amount) > 0 ? fmt(shipping_amount) : "Grátis"}</td>
+          </tr>
+          ${parseFloat(discount_amount) > 0 ? `
+          <tr>
+            <td style="padding:5px 0;font-size:13px;color:#2E8B57;">Desconto</td>
+            <td style="padding:5px 0;font-size:13px;color:#2E8B57;text-align:right;">— ${fmt(discount_amount)}</td>
+          </tr>` : ""}
+          <tr>
+            <td style="padding:12px 0 5px;font-size:15px;font-weight:700;color:#1A1817;border-top:2px solid #e8e4e0;">Total</td>
+            <td style="padding:12px 0 5px;font-size:18px;font-weight:700;color:#8B7355;text-align:right;border-top:2px solid #e8e4e0;">${fmt(total_amount)}</td>
+          </tr>
+        </table>
+        <div style="display:flex;gap:20px;margin-top:28px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;background:#f7f5f2;border-radius:8px;padding:18px 20px;">
+            <p style="color:#8B8581;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 8px;">Pagamento</p>
+            <p style="color:#1A1817;font-size:13px;font-weight:500;margin:0;">${paymentLabel}</p>
+          </div>
+          <div style="flex:1;min-width:200px;background:#f7f5f2;border-radius:8px;padding:18px 20px;">
+            <p style="color:#8B8581;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 8px;">Entregar em</p>
+            <p style="color:#1A1817;font-size:13px;font-weight:500;margin:0;">${addr.street || ""}, ${addr.number || ""}</p>
+            <p style="color:#4A4543;font-size:12px;margin:2px 0 0;">${addr.city || ""} — ${addr.state || ""}, ${addr.zip_code || ""}</p>
+          </div>
+        </div>
+        <div style="text-align:center;margin:32px 0 8px;">
+          <a href="${trackingUrl}" style="display:inline-block;background:#1A1817;color:white;text-decoration:none;padding:14px 36px;border-radius:4px;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;">Acompanhar Pedido</a>
+        </div>
+      </div>
+      ${footerHtml()}
+    `),
+  });
+}
+
+async function sendOrderCancelledEmail(toEmail, order) {
+  const { order_number, customer_name, total_amount, reason } = order;
+
+  await resend.emails.send({
+    from: FROM_CLIENT,
+    to: [toEmail],
+    subject: `Pedido cancelado #${order_number} — Velvet Atelier`,
+    html: wrapEmail(`
+      ${headerHtml()}
+      <div style="padding:36px 40px;">
+        <div style="background:#fff3f3;border:1px solid #f5c6cb;border-radius:8px;padding:18px 24px;margin-bottom:28px;text-align:center;">
+          <p style="color:#721c24;font-size:13px;font-weight:600;margin:0 0 4px;letter-spacing:0.5px;">PEDIDO CANCELADO</p>
+          <p style="color:#1A1817;font-size:24px;font-weight:700;font-family:Georgia,serif;margin:0;letter-spacing:2px;">#${order_number}</p>
+        </div>
+        <p style="color:#4A4543;font-size:15px;line-height:1.7;margin:0 0 16px;">
+          Olá, <strong>${customer_name}</strong>. Seu pedido no valor de <strong>${fmt(total_amount)}</strong> foi cancelado.
+        </p>
+        ${reason ? `<p style="color:#8B8581;font-size:13px;line-height:1.7;margin:0 0 24px;">Motivo: ${reason}</p>` : ""}
+        <p style="color:#4A4543;font-size:14px;line-height:1.7;margin:0 0 28px;">
+          Caso o pagamento tenha sido processado, o estorno será realizado conforme a política da sua operadora de cartão ou banco. Dúvidas? Fale conosco.
+        </p>
+        <div style="text-align:center;">
+          <a href="${FRONTEND}/products" style="display:inline-block;background:#8B7355;color:white;text-decoration:none;padding:14px 36px;border-radius:4px;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;">Continuar Comprando</a>
+        </div>
+      </div>
+      ${footerHtml()}
+    `),
+  });
+}
+
+async function sendOrderDeliveredEmail(toEmail, order) {
+  const { order_number, customer_name } = order;
+  const reviewUrl = `${FRONTEND}/orders`;
+
+  await resend.emails.send({
+    from: FROM_CLIENT,
+    to: [toEmail],
+    subject: `Pedido entregue! #${order_number} — Velvet Atelier`,
+    html: wrapEmail(`
+      ${headerHtml("Pedido Entregue!")}
+      <div style="padding:36px 40px;">
+        <div style="background:#f0f7f0;border:1px solid #c3e0c3;border-radius:8px;padding:18px 24px;margin-bottom:28px;text-align:center;">
+          <p style="color:#2d6a4f;font-size:22px;margin:0;">✓</p>
+          <p style="color:#2d6a4f;font-size:13px;font-weight:600;margin:4px 0 0;letter-spacing:0.5px;">ENTREGUE COM SUCESSO</p>
+        </div>
+        <p style="color:#4A4543;font-size:15px;line-height:1.7;margin:0 0 16px;">
+          Olá, <strong>${customer_name}</strong>! Seu pedido <strong>#${order_number}</strong> foi marcado como entregue. Esperamos que você tenha adorado!
+        </p>
+        <p style="color:#4A4543;font-size:14px;line-height:1.7;margin:0 0 28px;">
+          Que tal avaliar os produtos que você recebeu? Sua opinião ajuda outras clientes a escolherem melhor.
+        </p>
+        <div style="text-align:center;margin-bottom:16px;">
+          <a href="${reviewUrl}" style="display:inline-block;background:#8B7355;color:white;text-decoration:none;padding:14px 36px;border-radius:4px;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;">Avaliar Produtos</a>
+        </div>
+        <p style="color:#999;font-size:12px;text-align:center;margin:20px 0 0;line-height:1.7;">
+          Prazo para trocas e devoluções: até 30 dias após o recebimento.<br>
+          <a href="${FRONTEND}/ajuda" style="color:#8B7355;text-decoration:none;">Ver política de trocas →</a>
+        </p>
+      </div>
+      ${footerHtml()}
+    `),
+  });
+}
+
 module.exports = {
   sendPasswordResetEmail,
   sendClientPasswordResetEmail,
   sendOrderConfirmationEmail,
   sendOrderShippedEmail,
   sendEmailVerificationEmail,
+  sendWelcomeEmail,
+  sendOrderPaidEmail,
+  sendOrderCancelledEmail,
+  sendOrderDeliveredEmail,
 };

@@ -86,6 +86,11 @@ class AuthController {
         [name, email, hashedPassword, phone || null, cpf || null],
       );
 
+      try {
+        const { sendWelcomeEmail } = require("../services/emailService");
+        sendWelcomeEmail(email, name).catch(() => {});
+      } catch {}
+
       res.status(201).json({
         success: true,
         message: "Conta criada com sucesso!",
@@ -461,24 +466,48 @@ class AuthController {
       const { email } = req.body;
       const db = getDB();
 
-      const [users] = await db.execute("SELECT id FROM users WHERE email = ?", [
-        email,
-      ]);
+      const [users] = await db.execute(
+        "SELECT id, totp_enabled FROM users WHERE email = ? AND auth_provider = 'local'",
+        [email],
+      );
 
-      const genericResponse = () =>
+      // Resposta genérica para não revelar se o e-mail existe
+      const genericEmailResponse = () =>
         res.json({
           success: true,
+          method: "email",
           message: "Se o email existir, você receberá um link de recuperação",
         });
 
-      if (!users.length) return genericResponse();
+      if (!users.length) return genericEmailResponse();
 
+      const user = users[0];
+
+      // --- Usuário tem 2FA ativo: usa TOTP em vez de e-mail ---
+      if (user.totp_enabled) {
+        const pendingToken = crypto.randomBytes(32).toString("hex");
+        const pendingExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+
+        await db.execute(
+          "UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?",
+          ["pwd_2fa_" + pendingToken, pendingExpires, user.id],
+        );
+
+        return res.json({
+          success: true,
+          method: "totp",
+          pendingToken,
+          message: "Confirme sua identidade com o Google Authenticator",
+        });
+      }
+
+      // --- Usuário sem 2FA: fluxo normal por e-mail ---
       const token = crypto.randomBytes(32).toString("hex");
       const expires = new Date(Date.now() + 60 * 60 * 1000);
 
       await db.execute(
         "UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?",
-        [token, expires, users[0].id],
+        [token, expires, user.id],
       );
 
       try {
@@ -490,7 +519,7 @@ class AuthController {
         logger.error("[forgotPassword] erro ao enviar email:", emailErr);
       }
 
-      return genericResponse();
+      return genericEmailResponse();
     } catch (error) {
       logger.error("[forgotPassword]", error);
       res
@@ -499,10 +528,80 @@ class AuthController {
     }
   }
 
+  // Valida o código TOTP e troca o pendingToken por um resetToken de uso único
+  async verifyTotpForReset(req, res) {
+    try {
+      const { pendingToken, code } = req.body;
+
+      if (!pendingToken || !code) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Dados incompletos" });
+      }
+
+      const speakeasy = require("speakeasy");
+      const db = getDB();
+
+      const [rows] = await db.execute(
+        `SELECT id, totp_secret
+         FROM users
+         WHERE reset_token = ? AND reset_expires > NOW()`,
+        ["pwd_2fa_" + pendingToken],
+      );
+
+      if (!rows.length) {
+        return res.status(401).json({
+          success: false,
+          message: "Sessão expirada. Inicie o processo novamente.",
+        });
+      }
+
+      const user = rows[0];
+
+      const valid = speakeasy.totp.verify({
+        secret: user.totp_secret,
+        encoding: "base32",
+        token: code.replace(/\s/g, ""),
+        window: 1,
+      });
+
+      if (!valid) {
+        return res
+          .status(401)
+          .json({ success: false, message: "Código inválido. Tente novamente." });
+      }
+
+      // Troca o pendingToken por um resetToken limpo (sem prefixo) de 15 min
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const resetExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+      await db.execute(
+        "UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?",
+        [resetToken, resetExpires, user.id],
+      );
+
+      return res.json({
+        success: true,
+        resetToken,
+        message: "Identidade confirmada. Defina sua nova senha.",
+      });
+    } catch (error) {
+      logger.error("[verifyTotpForReset]", error);
+      res.status(500).json({ success: false, message: "Erro na verificação" });
+    }
+  }
+
   async resetPassword(req, res) {
     try {
       const { token, newPassword } = req.body;
       const db = getDB();
+
+      // Rejeita tokens com prefixo (pendingTokens ainda não validados)
+      if (token.startsWith("pwd_2fa_") || token.startsWith("2fa_")) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Token inválido" });
+      }
 
       const [users] = await db.execute(
         "SELECT id FROM users WHERE reset_token = ? AND reset_expires > NOW()",
@@ -518,9 +617,9 @@ class AuthController {
 
       await db.execute(
         `UPDATE users
-                 SET password = ?, reset_token = NULL, reset_expires = NULL,
-                     token_version = token_version + 1
-                 WHERE id = ?`,
+         SET password = ?, reset_token = NULL, reset_expires = NULL,
+             token_version = token_version + 1
+         WHERE id = ?`,
         [hashedPassword, users[0].id],
       );
 

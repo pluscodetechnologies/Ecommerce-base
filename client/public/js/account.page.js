@@ -1,13 +1,12 @@
 if (!auth.isAuthenticated()) window.location.href = "/login";
 
 window.showTab = function (tab, link) {
-  ["dados", "pedidos", "favoritos"].forEach((t) => {
+  ["dados", "pedidos", "favoritos", "seguranca"].forEach((t) => {
     document.getElementById(
       "section" + t.charAt(0).toUpperCase() + t.slice(1),
     ).style.display = "none";
-    document
-      .getElementById("tab" + t.charAt(0).toUpperCase() + t.slice(1))
-      .classList.remove("active");
+    const tabEl = document.getElementById("tab" + t.charAt(0).toUpperCase() + t.slice(1));
+    if (tabEl) tabEl.classList.remove("active");
   });
   document.getElementById(
     "section" + tab.charAt(0).toUpperCase() + tab.slice(1),
@@ -16,6 +15,7 @@ window.showTab = function (tab, link) {
   if (tab === "pedidos") loadOrders();
   if (tab === "favoritos") loadFavoritos();
   if (tab === "dados") loadProfile();
+  if (tab === "seguranca") loadSecurity();
 };
 
 let profileData = null;
@@ -361,6 +361,195 @@ async function savePassword() {
     }
   } catch (e) {
     errEl.textContent = "Erro de conexão. Tente novamente.";
+    errEl.style.display = "block";
+  }
+}
+
+async function loadSecurity() {
+  const el = document.getElementById("securityContent");
+  el.innerHTML = "Carregando...";
+  try {
+    const res = await auth.fetchWithAuth("/api/auth/2fa/status");
+    const data = await res.json();
+    if (!data.success) { el.innerHTML = "Erro ao carregar."; return; }
+    render2FAPanel(data.data.enabled);
+  } catch (e) {
+    el.innerHTML = "Erro ao carregar.";
+  }
+}
+
+function render2FAPanel(enabled) {
+  const el = document.getElementById("securityContent");
+  el.innerHTML = `
+    <style>
+      .security-card { border:1px solid var(--border-light); border-radius:8px; padding:24px; margin-bottom:20px; }
+      .security-card h3 { font-size:15px; font-weight:600; margin:0 0 6px; color:var(--dark); }
+      .security-card p { font-size:13px; color:var(--gray); margin:0 0 18px; line-height:1.6; }
+      .badge-on  { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; background:#d4edda; color:#155724; margin-bottom:14px; }
+      .badge-off { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; background:#f8d7da; color:#721c24; margin-bottom:14px; }
+      .btn-primary-sm { padding:9px 22px; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Montserrat',sans-serif; font-size:13px; font-weight:500; }
+      .btn-primary-sm:hover { background:var(--primary-dark); }
+      .btn-danger-sm  { padding:9px 22px; background:transparent; color:#c0392b; border:1px solid #c0392b; border-radius:4px; cursor:pointer; font-family:'Montserrat',sans-serif; font-size:13px; }
+      .btn-danger-sm:hover { background:#fff5f5; }
+      .totp-input { width:100%; max-width:220px; padding:11px 14px; border:1px solid var(--border-light); border-radius:4px; font-size:22px; letter-spacing:6px; text-align:center; font-family:'Montserrat',sans-serif; outline:none; }
+      .totp-input:focus { border-color:var(--primary); }
+      .sec-msg-ok  { background:#d4edda; color:#155724; padding:10px 14px; border-radius:4px; font-size:13px; margin-top:14px; display:none; }
+      .sec-msg-err { background:#f8d7da; color:#721c24; padding:10px 14px; border-radius:4px; font-size:13px; margin-top:14px; display:none; }
+      .qr-wrap { text-align:center; margin:16px 0; }
+      .qr-wrap img { width:180px; height:180px; border:1px solid var(--border-light); border-radius:4px; }
+      .secret-box { background:#f5f4f2; border:1px solid var(--border-light); border-radius:4px; padding:10px 14px; font-size:12px; font-family:monospace; letter-spacing:2px; word-break:break-all; margin:8px 0 16px; }
+      .setup-steps { font-size:13px; color:var(--gray); line-height:1.8; margin-bottom:16px; padding-left:16px; }
+    </style>
+
+    <div class="security-card">
+      <h3>Autenticação de Dois Fatores (2FA)</h3>
+      <span class="${enabled ? "badge-on" : "badge-off"}">${enabled ? "✓ Ativo" : "✗ Inativo"}</span>
+      <p>${enabled
+        ? "Sua conta está protegida com o Google Authenticator. A cada login você precisará do código gerado pelo app."
+        : "Adicione uma camada extra de segurança. Ao ativar, você precisará do Google Authenticator para fazer login e recuperar a senha."
+      }</p>
+      ${enabled
+        ? `<button class="btn-danger-sm" onclick="show2FADisable()">Desativar 2FA</button>`
+        : `<button class="btn-primary-sm" onclick="start2FASetup()">Ativar 2FA</button>`
+      }
+    </div>
+
+    <div id="sec2FASetup" style="display:none;" class="security-card">
+      <h3>Configurar Google Authenticator</h3>
+      <ol class="setup-steps">
+        <li>Instale o <strong>Google Authenticator</strong> no seu celular</li>
+        <li>Toque em <strong>+</strong> e escolha "Ler QR code"</li>
+        <li>Aponte para o código abaixo</li>
+        <li>Digite o código de 6 dígitos gerado para confirmar</li>
+      </ol>
+      <div class="qr-wrap"><img id="qrCodeImg" src="" alt="QR Code"></div>
+      <p style="font-size:12px;color:var(--gray);margin-bottom:4px;">Ou insira manualmente:</p>
+      <div class="secret-box" id="totpSecretBox"></div>
+      <input type="text" class="totp-input" id="setupTotpCode" placeholder="000 000" maxlength="7" inputmode="numeric" autocomplete="one-time-code">
+      <div id="setupMsg" class="sec-msg-ok"></div>
+      <div id="setupErr" class="sec-msg-err"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <button class="btn-primary-sm" onclick="confirm2FASetup()">Confirmar</button>
+        <button style="padding:9px 20px;background:transparent;color:var(--gray);border:1px solid var(--border-light);border-radius:4px;cursor:pointer;font-size:13px;font-family:'Montserrat',sans-serif;" onclick="cancel2FASetup()">Cancelar</button>
+      </div>
+    </div>
+
+    <div id="sec2FADisable" style="display:none;" class="security-card">
+      <h3>Desativar 2FA</h3>
+      <p>Para confirmar, insira o código atual do Google Authenticator.</p>
+      <input type="text" class="totp-input" id="disableTotpCode" placeholder="000 000" maxlength="7" inputmode="numeric" autocomplete="one-time-code">
+      <div id="disableMsg" class="sec-msg-ok"></div>
+      <div id="disableErr" class="sec-msg-err"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <button class="btn-danger-sm" onclick="confirm2FADisable()">Desativar</button>
+        <button style="padding:9px 20px;background:transparent;color:var(--gray);border:1px solid var(--border-light);border-radius:4px;cursor:pointer;font-size:13px;font-family:'Montserrat',sans-serif;" onclick="cancel2FADisable()">Cancelar</button>
+      </div>
+    </div>`;
+
+  ["setupTotpCode", "disableTotpCode"].forEach((id) => {
+    const inp = document.getElementById(id);
+    if (inp) inp.addEventListener("input", (e) => {
+      let v = e.target.value.replace(/\D/g, "").slice(0, 6);
+      if (v.length > 3) v = v.slice(0, 3) + " " + v.slice(3);
+      e.target.value = v;
+    });
+  });
+}
+
+async function start2FASetup() {
+  const btn = document.querySelector("#securityContent .btn-primary-sm");
+  if (btn) { btn.disabled = true; btn.textContent = "Aguarde..."; }
+  try {
+    const res = await auth.fetchWithAuth("/api/auth/2fa/setup", { method: "POST" });
+    const data = await res.json();
+    if (!data.success) {
+      if (btn) { btn.disabled = false; btn.textContent = "Ativar 2FA"; }
+      alert(data.message || "Erro ao iniciar setup.");
+      return;
+    }
+    document.getElementById("qrCodeImg").src = data.data.qrCode;
+    document.getElementById("totpSecretBox").textContent = data.data.secret;
+    document.getElementById("sec2FASetup").style.display = "block";
+    document.getElementById("setupTotpCode").focus();
+  } catch (e) {
+    alert("Erro de conexão.");
+  }
+  if (btn) { btn.disabled = false; btn.textContent = "Ativar 2FA"; }
+}
+
+function cancel2FASetup() {
+  document.getElementById("sec2FASetup").style.display = "none";
+  document.getElementById("setupTotpCode").value = "";
+}
+
+async function confirm2FASetup() {
+  const code = document.getElementById("setupTotpCode").value.replace(/\s/g, "");
+  const errEl = document.getElementById("setupErr");
+  const msgEl = document.getElementById("setupMsg");
+  errEl.style.display = "none";
+  msgEl.style.display = "none";
+
+  if (code.length !== 6) { errEl.textContent = "O código deve ter 6 dígitos."; errEl.style.display = "block"; return; }
+
+  try {
+    const res = await auth.fetchWithAuth("/api/auth/2fa/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      msgEl.textContent = "2FA ativado com sucesso!";
+      msgEl.style.display = "block";
+      setTimeout(() => render2FAPanel(true), 1500);
+    } else {
+      errEl.textContent = data.message || "Código inválido.";
+      errEl.style.display = "block";
+      document.getElementById("setupTotpCode").value = "";
+    }
+  } catch (e) {
+    errEl.textContent = "Erro de conexão.";
+    errEl.style.display = "block";
+  }
+}
+
+function show2FADisable() {
+  document.getElementById("sec2FADisable").style.display = "block";
+  document.getElementById("disableTotpCode").focus();
+}
+
+function cancel2FADisable() {
+  document.getElementById("sec2FADisable").style.display = "none";
+  document.getElementById("disableTotpCode").value = "";
+}
+
+async function confirm2FADisable() {
+  const code = document.getElementById("disableTotpCode").value.replace(/\s/g, "");
+  const errEl = document.getElementById("disableErr");
+  const msgEl = document.getElementById("disableMsg");
+  errEl.style.display = "none";
+  msgEl.style.display = "none";
+
+  if (code.length !== 6) { errEl.textContent = "O código deve ter 6 dígitos."; errEl.style.display = "block"; return; }
+
+  try {
+    const res = await auth.fetchWithAuth("/api/auth/2fa/disable", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      msgEl.textContent = "2FA desativado.";
+      msgEl.style.display = "block";
+      setTimeout(() => render2FAPanel(false), 1500);
+    } else {
+      errEl.textContent = data.message || "Código inválido.";
+      errEl.style.display = "block";
+      document.getElementById("disableTotpCode").value = "";
+    }
+  } catch (e) {
+    errEl.textContent = "Erro de conexão.";
     errEl.style.display = "block";
   }
 }

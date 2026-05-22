@@ -173,16 +173,58 @@
     <div id="forgotPasswordModal"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
         <div style="background: white; padding: 40px; border-radius: 20px; max-width: 400px; width: 90%;">
-            <h3 style="margin-bottom: 20px; color: #8B4513;">Recuperar senha</h3>
-            <p style="margin-bottom: 20px; color: #6B4226;">Digite seu email para receber o link de recuperação.</p>
-            <input type="email" id="recoveryEmail" placeholder="seu@email.com"
-                style="width: 100%; padding: 14px; border: 2px solid #E8D5C4; border-radius: 10px; margin-bottom: 20px;">
-            <div style="display: flex; gap: 10px;">
-                <button id="sendRecoveryBtn"
-                    style="padding: 14px; background: #8B4513; color: white; border: none; border-radius: 10px; cursor: pointer; flex: 1;">Enviar</button>
-                <button id="closeModalBtn"
-                    style="padding: 14px 20px; background: #FDF8F5; border: none; border-radius: 10px; cursor: pointer;">Cancelar</button>
+
+            <div id="fpStep1">
+                <h3 style="margin-bottom: 20px; color: #8B4513;">Recuperar senha</h3>
+                <p style="margin-bottom: 20px; color: #6B4226;">Digite seu e-mail cadastrado para continuar.</p>
+                <input type="email" id="recoveryEmail" placeholder="seu@email.com"
+                    style="width: 100%; padding: 14px; border: 2px solid #E8D5C4; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box;">
+                <div style="display: flex; gap: 10px;">
+                    <button id="sendRecoveryBtn"
+                        style="padding: 14px; background: #8B4513; color: white; border: none; border-radius: 10px; cursor: pointer; flex: 1;">Continuar</button>
+                    <button id="closeModalBtn"
+                        style="padding: 14px 20px; background: #FDF8F5; border: none; border-radius: 10px; cursor: pointer;">Cancelar</button>
+                </div>
             </div>
+
+            <div id="fpStep2" style="display: none;">
+                <h3 style="margin-bottom: 12px; color: #8B4513;">Autenticação de dois fatores</h3>
+                <p style="margin-bottom: 8px; color: #6B4226; font-size: 14px; line-height: 1.5;">
+                    Abra o <strong>Google Authenticator</strong> e digite o código de 6 dígitos da sua conta Velvet Store.
+                </p>
+                <input type="text" id="totpCode" placeholder="000 000" maxlength="7" inputmode="numeric"
+                    autocomplete="one-time-code"
+                    style="width: 100%; padding: 14px; border: 2px solid #E8D5C4; border-radius: 10px; margin-bottom: 20px; font-size: 22px; letter-spacing: 6px; text-align: center; box-sizing: border-box;">
+                <div style="display: flex; gap: 10px;">
+                    <button id="verifyTotpBtn"
+                        style="padding: 14px; background: #8B4513; color: white; border: none; border-radius: 10px; cursor: pointer; flex: 1;">Verificar</button>
+                    <button id="backToStep1Btn"
+                        style="padding: 14px 20px; background: #FDF8F5; border: none; border-radius: 10px; cursor: pointer;">Voltar</button>
+                </div>
+            </div>
+
+            <div id="fpStep3" style="display: none;">
+                <h3 style="margin-bottom: 12px; color: #8B4513;">Nova senha</h3>
+                <p style="margin-bottom: 20px; color: #6B4226; font-size: 14px;">Identidade confirmada. Escolha uma nova senha.</p>
+                <div style="position: relative; margin-bottom: 10px;">
+                    <input type="password" id="newPassword" placeholder="Nova senha"
+                        style="width: 100%; padding: 14px; border: 2px solid #E8D5C4; border-radius: 10px; box-sizing: border-box;">
+                </div>
+                <div style="position: relative; margin-bottom: 8px;">
+                    <input type="password" id="confirmNewPassword" placeholder="Confirme a nova senha"
+                        style="width: 100%; padding: 14px; border: 2px solid #E8D5C4; border-radius: 10px; box-sizing: border-box;">
+                </div>
+                <small style="color: #999; font-size: 11px; display: block; margin-bottom: 20px;">
+                    Mínimo 8 caracteres, letra maiúscula, número e símbolo (@$!%*?&)
+                </small>
+                <div style="display: flex; gap: 10px;">
+                    <button id="saveNewPasswordBtn"
+                        style="padding: 14px; background: #8B4513; color: white; border: none; border-radius: 10px; cursor: pointer; flex: 1;">Salvar senha</button>
+                    <button id="cancelStep3Btn"
+                        style="padding: 14px 20px; background: #FDF8F5; border: none; border-radius: 10px; cursor: pointer;">Cancelar</button>
+                </div>
+            </div>
+
         </div>
     </div>
 

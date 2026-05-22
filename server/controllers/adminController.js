@@ -354,6 +354,43 @@ class AdminController {
         }
       }
 
+      if (status === "delivered") {
+        try {
+          const [rows] = await db.execute(
+            "SELECT order_number, customer_name, customer_email FROM orders WHERE id = ?",
+            [id],
+          );
+          if (rows.length && rows[0].customer_email) {
+            const { sendOrderDeliveredEmail } = require("../services/emailService");
+            sendOrderDeliveredEmail(rows[0].customer_email, {
+              order_number: rows[0].order_number,
+              customer_name: rows[0].customer_name,
+            }).catch((err) => logger.error("[email] pedido entregue falhou:", err));
+          }
+        } catch (emailErr) {
+          logger.error("[email] erro ao enviar email de entrega:", emailErr);
+        }
+      }
+
+      if (status === "cancelled") {
+        try {
+          const [rows] = await db.execute(
+            "SELECT order_number, customer_name, customer_email, total_amount FROM orders WHERE id = ?",
+            [id],
+          );
+          if (rows.length && rows[0].customer_email) {
+            const { sendOrderCancelledEmail } = require("../services/emailService");
+            sendOrderCancelledEmail(rows[0].customer_email, {
+              order_number: rows[0].order_number,
+              customer_name: rows[0].customer_name,
+              total_amount: rows[0].total_amount,
+            }).catch((err) => logger.error("[email] pedido cancelado falhou:", err));
+          }
+        } catch (emailErr) {
+          logger.error("[email] erro ao enviar email de cancelamento:", emailErr);
+        }
+      }
+
       res.json({ success: true, message: "Status atualizado com sucesso" });
     } catch (error) {
       logger.error("Erro ao atualizar status:", error);
