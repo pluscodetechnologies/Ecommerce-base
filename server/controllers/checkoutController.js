@@ -4,7 +4,7 @@ const https = require("https");
 
 const { getDB } = require("../config/database");
 const Cart = require("../models/Cart");
-const { createPreference } = require("../services/mercadoPagoService");
+const { createPreference } = require("../services/mercadopagoService");
 
 const CEP_ORIGEM = process.env.CEP_ORIGEM || "01310100";
 
