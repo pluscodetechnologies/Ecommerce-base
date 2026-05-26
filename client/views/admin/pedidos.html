@@ -6,10 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedidos - Velvet Store Admin</title>
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="/js/admin-auth.js"></script>
+    <link rel="stylesheet" href="/css/admin-shared.css">
     <link rel="stylesheet" href="/css/admin-pedidos.css">
 </head>
 
@@ -65,9 +66,11 @@
                 <option value="delivered">Entregue</option>
                 <option value="cancelled">Cancelado</option>
             </select>
-            <button onclick="exportOrders()"
-                style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:#2E8B57;color:white;border:none;border-radius:4px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">
+            <button onclick="exportOrders()" class="btn-export-csv">
                 <i class="fas fa-file-csv"></i> Exportar CSV
+            </button>
+            <button onclick="exportOrdersPDF()" class="btn-export-pdf">
+                <i class="fas fa-file-pdf"></i> Exportar PDF
             </button>
         </div>
         <div class="orders-table">

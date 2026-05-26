@@ -44,7 +44,14 @@ async function loadAlerts() {
     const result = await res.json();
     const list = document.getElementById("alertsList");
 
-    if (!result.success || !result.data.length) {
+    console.log("[alertas] status:", res.status, "result:", JSON.stringify(result));
+
+    if (!result.success) {
+      list.innerHTML = `<div class="empty-state"><i class="fas fa-bell-slash"></i><p>Erro ao buscar alertas: ${result.message || "desconhecido"}</p></div>`;
+      return;
+    }
+
+    if (!result.data || !result.data.length) {
       list.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-bell-slash"></i>
@@ -92,7 +99,7 @@ document.getElementById("saveAlertBtn").addEventListener("click", async () => {
 
   try {
     await adminFetch("/api/admin/alerts", {
-      method: "PUT",
+      method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, message }),
     });

@@ -29,6 +29,7 @@ async function loadOrders(status = "") {
     const result = await response.json();
 
     if (result.success) {
+      window._lastOrders = result.data.orders || [];
       document.getElementById("ordersTableBody").innerHTML = result.data.orders
         .map((order) => {
           const customerName = order.customer_name || "Cliente";
@@ -266,6 +267,126 @@ async function exportOrders() {
   }
 }
 window.exportOrders = exportOrders;
+
+window.exportOrdersPDF = async function () {
+  const orders = window._lastOrders || [];
+  if (!orders.length) { alert("Nenhum pedido para exportar."); return; }
+
+  const statusLabel = { pending:"Pendente", paid:"Pago", processing:"Preparando", shipped:"Enviado", delivered:"Entregue", cancelled:"Cancelado" };
+  const statusColor = { pending:"#92400e", paid:"#065f46", processing:"#6b21a8", shipped:"#1e40af", delivered:"#065f46", cancelled:"#991b1b" };
+  const statusBg = { pending:"#fffbeb", paid:"#ecfdf5", processing:"#f3e8ff", shipped:"#eff6ff", delivered:"#ecfdf5", cancelled:"#fef2f2" };
+
+  const rows = orders.map(o => {
+    const s = o.status || "pending";
+    const label = statusLabel[s] || s;
+    const bg = statusBg[s] || "#f1f5f9";
+    const color = statusColor[s] || "#334155";
+    const items = o.items ? o.items.slice(0,2).map(i => i.product_name + (i.quantity > 1 ? " x"+i.quantity:"")).join(", ") + (o.items.length > 2 ? ` +${o.items.length-2}`:""): "—";
+    return `<tr>
+      <td style="font-weight:600;color:#6366f1">#${o.order_number || o.id}</td>
+      <td>${new Date(o.created_at).toLocaleDateString("pt-BR")}</td>
+      <td>${o.customer_name || "—"}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${items}</td>
+      <td style="text-align:right;font-weight:600">R$ ${parseFloat(o.total || 0).toFixed(2)}</td>
+      <td style="text-align:center"><span style="background:${bg};color:${color};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${label}</span></td>
+    </tr>`;
+  }).join("");
+
+  const total = orders.reduce((s,o) => s + parseFloat(o.total || 0), 0);
+  const statusFilter = document.getElementById("statusFilter").value;
+  const filterLabel = statusFilter ? (statusLabel[statusFilter] || statusFilter) : "Todos";
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Pedidos - Velvet Store</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; color:#0f172a; background:white; }
+
+  .header { background:#0f172a; color:white; padding:28px 36px; display:flex; justify-content:space-between; align-items:flex-end; }
+  .brand { font-size:26px; font-weight:800; letter-spacing:5px; }
+  .brand-sub { font-size:10px; letter-spacing:2px; opacity:0.45; text-transform:uppercase; margin-top:4px; }
+  .header-right { text-align:right; }
+  .header-right h2 { font-size:17px; font-weight:700; }
+  .header-right p { font-size:11px; opacity:0.55; margin-top:3px; }
+  .accent-bar { height:4px; background:linear-gradient(90deg,#6366f1,#8b5cf6,#a78bfa); }
+
+  .body { padding:30px 36px; }
+
+  .meta-row { display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
+  .badge { display:inline-flex; align-items:center; gap:5px; padding:5px 13px; border-radius:20px; font-size:11.5px; font-weight:600; }
+  .badge-purple { background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; }
+  .badge-gray { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
+
+  .summary-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:28px; }
+  .sc { background:#f8fafc; border:1px solid #e2e8f0; border-radius:11px; padding:16px 18px; position:relative; overflow:hidden; }
+  .sc::before { content:''; position:absolute; top:0;left:0;right:0; height:3px; background:linear-gradient(90deg,#6366f1,#8b5cf6); }
+  .sv { font-size:22px; font-weight:700; letter-spacing:-0.3px; color:#0f172a; margin-bottom:3px; }
+  .sl { font-size:11.5px; color:#64748b; font-weight:500; }
+
+  table { width:100%; border-collapse:collapse; }
+  thead tr { background:#0f172a; }
+  th { padding:10px 14px; color:rgba(255,255,255,0.65); font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.7px; text-align:left; }
+  th:nth-child(5) { text-align:right; }
+  th:nth-child(6) { text-align:center; }
+  tbody tr:nth-child(even) { background:#f8fafc; }
+  td { padding:11px 14px; font-size:13px; border-bottom:1px solid #f1f5f9; color:#334155; vertical-align:middle; }
+  tbody tr:last-child td { border-bottom:none; }
+
+  tfoot td { padding:11px 14px; font-size:13px; font-weight:700; color:#4338ca; background:#eef2ff; border-top:2px solid #c7d2fe; }
+  tfoot td:nth-child(5) { text-align:right; }
+
+  .footer { margin-top:32px; padding-top:16px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; }
+  .footer p { font-size:10.5px; color:#94a3b8; }
+  .footer-brand { font-weight:700; letter-spacing:2px; color:#64748b; font-size:11px; }
+
+  @media print {
+    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .header { background:#0f172a !important; }
+    thead tr { background:#0f172a !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div><div class="brand">VELVET</div><div class="brand-sub">administração</div></div>
+    <div class="header-right"><h2>Relatório de Pedidos</h2><p>Gerado em ${new Date().toLocaleString("pt-BR")}</p></div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="body">
+    <div class="meta-row">
+      <span class="badge badge-purple">📦 ${orders.length} pedido${orders.length !== 1 ? "s" : ""}</span>
+      <span class="badge badge-gray">Filtro: ${filterLabel}</span>
+    </div>
+    <div class="summary-grid">
+      <div class="sc"><div class="sv">${orders.length}</div><div class="sl">Total de Pedidos</div></div>
+      <div class="sc"><div class="sv">R$ ${total.toLocaleString("pt-BR",{minimumFractionDigits:2})}</div><div class="sl">Faturamento Total</div></div>
+      <div class="sc"><div class="sv">R$ ${orders.length ? (total/orders.length).toLocaleString("pt-BR",{minimumFractionDigits:2}) : "0,00"}</div><div class="sl">Ticket Médio</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Pedido</th><th>Data</th><th>Cliente</th><th>Produtos</th><th>Total</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td colspan="4">Total</td><td>R$ ${total.toLocaleString("pt-BR",{minimumFractionDigits:2})}</td><td></td></tr></tfoot>
+    </table>
+    <div class="footer">
+      <p>Velvet Store Admin · Relatório confidencial</p>
+      <div class="footer-brand">VELVET</div>
+    </div>
+  </div>
+  <script>window.onload = () => window.print();</script>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank");
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+};
+
+
 
 document
   .getElementById("statusFilter")
