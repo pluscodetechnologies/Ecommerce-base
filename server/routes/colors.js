@@ -2,8 +2,10 @@ const express = require("express");
 const router = express.Router();
 const { getDB } = require("../config/database");
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
+const { validate } = require("../middleware/validate");
+const { productIdParamSchema } = require("../schemas/checkout.schema");
 
-router.get("/:productId", async (req, res) => {
+router.get("/:productId", validate({ params: productIdParamSchema }), async (req, res) => {
   try {
     const db = getDB();
     let colors;

@@ -83,6 +83,17 @@ const productIdParamSchema = z.object({
   productId: z.coerce.number().int().positive("ID de produto inválido"),
 });
 
+const addressSchema = z.object({
+  street: z.string().trim().min(2, "Rua obrigatória").max(200),
+  number: z.string().trim().min(1, "Número obrigatório").max(20),
+  complement: z.string().trim().max(100).optional().or(z.literal("")).nullable(),
+  neighborhood: z.string().trim().min(2, "Bairro obrigatório").max(100),
+  city: z.string().trim().min(2, "Cidade obrigatória").max(100),
+  state: z.string().trim().length(2, "UF inválida"),
+  zip_code: z.string().regex(CEP_REGEX, "CEP inválido"),
+  is_default: z.boolean().optional().default(false),
+});
+
 module.exports = {
   addItemSchema,
   updateItemSchema,
@@ -92,4 +103,5 @@ module.exports = {
   createReviewSchema,
   idParamSchema,
   productIdParamSchema,
+  addressSchema,
 };

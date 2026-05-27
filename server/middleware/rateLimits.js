@@ -89,6 +89,30 @@ const adminApiLimiter = rateLimit({
   handler,
 });
 
+const couponLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler,
+});
+
+const trackingLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler,
+});
+
+const resendVerificationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler,
+});
+
 module.exports = {
   loginLimiter,
   registerLimiter,
@@ -100,4 +124,7 @@ module.exports = {
   uploadLimiter,
   adminLoginLimiter,
   adminApiLimiter,
+  couponLimiter,
+  trackingLimiter,
+  resendVerificationLimiter,
 };

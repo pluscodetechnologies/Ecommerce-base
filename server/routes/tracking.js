@@ -13,6 +13,12 @@ router.get("/:orderNumber", async (req, res) => {
         .json({ success: false, message: "Número do pedido obrigatório" });
     }
 
+    if (!email) {
+      return res
+        .status(400)
+        .json({ success: false, message: "E-mail obrigatório para rastrear o pedido" });
+    }
+
     const db = getDB();
     const [orders] = await db.execute(
       `SELECT id, order_number, status, payment_status, shipping_tracking,
@@ -30,24 +36,10 @@ router.get("/:orderNumber", async (req, res) => {
 
     const order = orders[0];
 
-    if (email && order.customer_email.toLowerCase() !== email.toLowerCase()) {
+    if (order.customer_email.toLowerCase() !== email.toLowerCase()) {
       return res
         .status(403)
         .json({ success: false, message: "Email não confere com o pedido" });
-    }
-    if (!email) {
-      return res.json({
-        success: true,
-        data: {
-          order_number: order.order_number,
-          status: order.status,
-          payment_status: order.payment_status,
-          shipping_tracking: order.shipping_tracking,
-          created_at: order.created_at,
-          updated_at: order.updated_at,
-          requires_email: true,
-        },
-      });
     }
 
     let shippingAddress = {};

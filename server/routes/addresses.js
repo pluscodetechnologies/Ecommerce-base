@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const { getDB } = require("../config/database");
 const { authMiddleware } = require("../middleware/auth");
+const { validate } = require("../middleware/validate");
+const { addressSchema } = require("../schemas/checkout.schema");
 
 router.use(authMiddleware);
 
@@ -22,7 +24,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", validate({ body: addressSchema }), async (req, res) => {
   try {
     const {
       street,
@@ -34,14 +36,6 @@ router.post("/", async (req, res) => {
       zip_code,
       is_default,
     } = req.body;
-    if (!street || !number || !city || !state || !zip_code) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Preencha todos os campos obrigatórios",
-        });
-    }
     const db = getDB();
     if (is_default) {
       await db.execute(

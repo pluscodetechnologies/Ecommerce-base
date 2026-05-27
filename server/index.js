@@ -31,6 +31,9 @@ const {
   apiLimiter,
   adminLoginLimiter,
   adminApiLimiter,
+  couponLimiter,
+  trackingLimiter,
+  resendVerificationLimiter,
 } = require("./middleware/rateLimits");
 const {
   adminProtect,
@@ -220,7 +223,7 @@ app.use("/api/uploads", require("./routes/uploads"));
 app.use("/api/orders", orderRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/addresses", addressRoutes);
-app.use("/api/tracking", trackingRoutes);
+app.use("/api/tracking", trackingLimiter, trackingRoutes);
 app.use("/api/variations", variationRoutes);
 app.use("/api/colors", colorRoutes);
 
@@ -409,6 +412,7 @@ const { validate } = require("./middleware/validate");
 const { validateCouponSchema } = require("./schemas/checkout.schema");
 app.post(
   "/api/coupons/validate",
+  couponLimiter,
   validate({ body: validateCouponSchema }),
   async (req, res) => {
     try {
@@ -540,7 +544,7 @@ app.get("/api/auth/verify-email", async (req, res) => {
   }
 });
 
-app.post("/api/auth/resend-verification", async (req, res) => {
+app.post("/api/auth/resend-verification", resendVerificationLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     if (!email)
