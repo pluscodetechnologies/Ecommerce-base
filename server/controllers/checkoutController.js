@@ -442,24 +442,8 @@ class CheckoutController {
             item.final_price * item.quantity,
           ],
         );
-        if (item.variation_id) {
-          await connection.execute(
-            "UPDATE product_variations SET stock = GREATEST(0, stock - ?) WHERE id = ?",
-            [item.quantity, item.variation_id],
-          );
-          await connection.execute(
-            `UPDATE products SET
-                            stock = (SELECT COALESCE(SUM(pv.stock), 0) FROM product_variations pv WHERE pv.product_id = ?),
-                            sales_count = sales_count + ?
-                         WHERE id = ?`,
-            [item.product_id, item.quantity, item.product_id],
-          );
-        } else {
-          await connection.execute(
-            "UPDATE products SET stock = stock - ?, sales_count = sales_count + ? WHERE id = ?",
-            [item.quantity, item.quantity, item.product_id],
-          );
-        }
+        // Estoque NÃO é decrementado aqui.
+        // O decremento acontece apenas quando o pagamento for confirmado (webhook approved).
       }
 
       if (couponData && discountAmount > 0 && userId) {
@@ -714,32 +698,38 @@ class CheckoutController {
         const currentStatus = currentRows[0].status;
         const orderId = currentRows[0].id;
 
-        if (newStatus === "cancelled" && currentStatus !== "cancelled") {
-          const [orderItems] = await db.execute(
-            "SELECT product_id, quantity FROM order_items WHERE order_id = ?",
-            [orderId],
-          );
+        // Busca os itens do pedido (com variation_id) para manipular estoque
+        const [orderItems] = await db.execute(
+          "SELECT product_id, variation_id, quantity FROM order_items WHERE order_id = ?",
+          [orderId],
+        );
+
+        // Pagamento aprovado -> decrementa estoque (unica vez)
+        if (newStatus === "processing" && currentStatus !== "processing") {
           for (const item of orderItems) {
             if (item.variation_id) {
               await db.execute(
-                "UPDATE product_variations SET stock = stock + ? WHERE id = ?",
+                "UPDATE product_variations SET stock = GREATEST(0, stock - ?) WHERE id = ?",
                 [item.quantity, item.variation_id],
               );
               await db.execute(
                 `UPDATE products SET
-                                    stock = (SELECT COALESCE(SUM(pv.stock), 0) FROM product_variations pv WHERE pv.product_id = ?),
-                                    sales_count = GREATEST(0, sales_count - ?)
-                                 WHERE id = ?`,
+                   stock = (SELECT COALESCE(SUM(pv.stock), 0) FROM product_variations pv WHERE pv.product_id = ?),
+                   sales_count = sales_count + ?
+                 WHERE id = ?`,
                 [item.product_id, item.quantity, item.product_id],
               );
             } else {
               await db.execute(
-                "UPDATE products SET stock = stock + ?, sales_count = GREATEST(0, sales_count - ?) WHERE id = ?",
+                "UPDATE products SET stock = GREATEST(0, stock - ?), sales_count = sales_count + ? WHERE id = ?",
                 [item.quantity, item.quantity, item.product_id],
               );
             }
           }
         }
+
+        // Pagamento cancelado/rejeitado: nao ha nada a restaurar
+        // (estoque nunca foi decrementado; isso so ocorre no approved acima)
 
         await db.execute(
           "UPDATE orders SET status = ?, payment_status = ?, payment_id = ? WHERE order_number = ?",

@@ -265,6 +265,12 @@ async function loadHeroBanners() {
     slides = Array.from(slider.querySelectorAll(".slide"));
     dots = Array.from(dotsContainer.querySelectorAll(".dot"));
     slide = 0;
+
+    // Esconde setas e dots quando só há 1 banner
+    const onlyOne = slides.length <= 1;
+    document.getElementById("prevSlide").style.display = onlyOne ? "none" : "";
+    document.getElementById("nextSlide").style.display = onlyOne ? "none" : "";
+    dotsContainer.style.display = onlyOne ? "none" : "";
   } catch (e) {
     console.error("Erro ao carregar banners:", e);
   }

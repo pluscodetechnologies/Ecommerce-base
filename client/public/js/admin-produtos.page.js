@@ -619,6 +619,7 @@ document.getElementById("addColorRow").addEventListener("click", function () {
 });
 
 async function loadVariationsAdmin(productId) {
+  document.getElementById("colorsContainer").innerHTML = "";
   try {
     const [varRes, colRes] = await Promise.all([
       adminFetch("/api/variations/" + productId),

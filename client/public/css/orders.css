@@ -653,3 +653,58 @@ body {
   color: var(--gray);
   line-height: 1;
 }
+
+/* ── Avaliação ─────────────────────────────────────────── */
+.btn-review {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  background: #fff8e1;
+  color: #92400e;
+  border: 1.5px solid #f59e0b;
+  border-radius: 4px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-review:hover {
+  background: #f59e0b;
+  color: #fff;
+}
+.review-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0ede9;
+}
+.review-item:last-child { border-bottom: none; }
+.review-item-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1817;
+  flex: 1;
+}
+.review-stars {
+  display: flex;
+  gap: 5px;
+}
+.rev-star {
+  font-size: 22px;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.15s, transform 0.1s;
+}
+.rev-star:hover,
+.rev-star.active {
+  color: #f59e0b;
+}
+.rev-star:hover {
+  transform: scale(1.15);
+}

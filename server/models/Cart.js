@@ -50,20 +50,38 @@ class Cart {
       [cartId],
     );
 
-    items.forEach((item) => {
+    for (const item of items) {
       if (typeof item.images === "string") {
-        try {
-          item.images = JSON.parse(item.images);
-        } catch {
-          item.images = [];
-        }
+        try { item.images = JSON.parse(item.images); } catch { item.images = []; }
       }
       if (!Array.isArray(item.images)) item.images = [];
-      item.main_image = item.images[0] || "https://via.placeholder.com/300x400";
+
+      // Busca a imagem da cor selecionada diretamente em product_colors
+      let colorImage = null;
+      if (item.variation_color) {
+        try {
+          const [colorRows] = await db.execute(
+            "SELECT images FROM product_colors WHERE product_id = ? AND name = ? LIMIT 1",
+            [item.product_id, item.variation_color],
+          );
+          if (colorRows.length && colorRows[0].images) {
+            let colorImgs = colorRows[0].images;
+            if (typeof colorImgs === "string") {
+              colorImgs = JSON.parse(colorImgs);
+            }
+            if (Array.isArray(colorImgs) && colorImgs.length) {
+              colorImage = colorImgs[0];
+            }
+          }
+        } catch { /* segue com fallback */ }
+      }
+
+      item.main_image = colorImage || item.images[0] || "https://via.placeholder.com/300x400";
+
       item.final_price = item.promotional_price
         ? parseFloat(item.promotional_price)
         : parseFloat(item.price);
-    });
+    }
 
     return items;
   }

@@ -71,8 +71,7 @@ class AdminController {
         query += " WHERE status = ?";
         params.push(status);
       }
-      query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
-      params.push(limit, offset);
+      query += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
 
       const [orders] = await db.execute(query, params);
 
@@ -429,8 +428,7 @@ class AdminController {
         params.push(`%${search}%`, `%${search}%`);
       }
 
-      query += " ORDER BY p.created_at DESC LIMIT ? OFFSET ?";
-      params.push(limit, offset);
+      query += ` ORDER BY p.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
 
       const [products] = await db.execute(query, params);
       const [total] = await db.execute(
@@ -760,8 +758,7 @@ class AdminController {
         params.push(`%${search}%`, `%${search}%`);
       }
 
-      query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
-      params.push(limit, offset);
+      query += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
 
       const [customers] = await db.execute(query, params);
       const [total] = await db.execute(

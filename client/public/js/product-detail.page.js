@@ -994,3 +994,13 @@ if (typeof _origLoadReviews === "function") {
     await _origLoadReviews();
   };
 }
+
+// Scroll automático para seção de avaliações quando URL tem #reviews
+if (window.location.hash === "#reviews") {
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      const section = document.querySelector(".reviews-section");
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 600); // aguarda o carregamento dinâmico das avaliações
+  });
+}

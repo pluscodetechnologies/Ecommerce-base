@@ -74,11 +74,12 @@ async function loadOrders(status = "") {
                                     <select class="status-change"
                                         onchange="updateStatus(${order.id}, this.value, this, '${order.customer_email || ""}', '${order.order_number}')"
                                         style="padding:5px 10px;border-radius:5px;border:1px solid #ddd;">
-                                        <option value="pending"   ${order.status === "pending" ? "selected" : ""}>Pendente</option>
-                                        <option value="paid"      ${order.status === "paid" ? "selected" : ""}>Pago</option>
-                                        <option value="shipped"   ${order.status === "shipped" ? "selected" : ""}>Enviado</option>
-                                        <option value="delivered" ${order.status === "delivered" ? "selected" : ""}>Entregue</option>
-                                        <option value="cancelled" ${order.status === "cancelled" ? "selected" : ""}>Cancelado</option>
+                                        <option value="pending"    ${order.status === "pending"    ? "selected" : ""}>Pendente</option>
+                                        <option value="paid"       ${order.status === "paid"       ? "selected" : ""}>Pago</option>
+                                        <option value="processing" ${order.status === "processing" ? "selected" : ""}>Preparando</option>
+                                        <option value="shipped"    ${order.status === "shipped"    ? "selected" : ""}>Enviado</option>
+                                        <option value="delivered"  ${order.status === "delivered"  ? "selected" : ""}>Entregue</option>
+                                        <option value="cancelled"  ${order.status === "cancelled"  ? "selected" : ""}>Cancelado</option>
                                     </select>
                                 </td>
                             </tr>`;
@@ -287,12 +288,12 @@ window.exportOrdersPDF = async function () {
       <td>${new Date(o.created_at).toLocaleDateString("pt-BR")}</td>
       <td>${o.customer_name || "—"}</td>
       <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${items}</td>
-      <td style="text-align:right;font-weight:600">R$ ${parseFloat(o.total || 0).toFixed(2)}</td>
+      <td style="text-align:right;font-weight:600">R$ ${parseFloat(o.total_amount || o.total || 0).toFixed(2)}</td>
       <td style="text-align:center"><span style="background:${bg};color:${color};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${label}</span></td>
     </tr>`;
   }).join("");
 
-  const total = orders.reduce((s,o) => s + parseFloat(o.total || 0), 0);
+  const total = orders.reduce((s,o) => s + parseFloat(o.total_amount || o.total || 0), 0);
   const statusFilter = document.getElementById("statusFilter").value;
   const filterLabel = statusFilter ? (statusLabel[statusFilter] || statusFilter) : "Todos";
 

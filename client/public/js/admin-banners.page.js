@@ -142,14 +142,17 @@ async function loadBanners() {
           const linkBadge = b.link
             ? `<span style="display:inline-block;margin-top:6px;font-size:11px;background:#e3f2fd;color:#1565c0;padding:3px 8px;border-radius:20px;"><i class="fas fa-link"></i> ${b.link.startsWith("/product?id=") ? "Produto vinculado" : b.link}</span>`
             : `<span style="display:inline-block;margin-top:6px;font-size:11px;background:#f5f5f5;color:#999;padding:3px 8px;border-radius:20px;">Sem link</span>`;
+          const inactiveBadge = !b.is_active
+            ? `<span style="display:inline-block;margin-top:6px;margin-left:6px;font-size:11px;background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:20px;"><i class="fas fa-eye-slash"></i> Inativo</span>`
+            : "";
           return `
-                        <div class="banner-card" data-id="${b.id}">
+                        <div class="banner-card" data-id="${b.id}" style="${!b.is_active ? "opacity:0.5;" : ""}">
                             <span class="banner-drag-handle" title="Arrastar para reordenar">⠿</span>
                             <img src="${b.image_url}" class="banner-image" alt="${b.title}">
                             <div class="banner-content" style="flex:1;">
                                 <h3 class="banner-title">${b.title}</h3>
                                 <p class="banner-subtitle">${b.subtitle || ""}</p>
-                                ${linkBadge}
+                                ${linkBadge}${inactiveBadge}
                                 <div class="banner-actions" style="margin-top:12px;">
                                     <button class="action-btn edit-btn" onclick="editBanner(${b.id})"><i class="fas fa-edit"></i> Editar</button>
                                     <button class="action-btn delete-btn" onclick="deleteBanner(${b.id})"><i class="fas fa-trash"></i> Excluir</button>

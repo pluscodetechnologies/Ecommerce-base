@@ -131,6 +131,7 @@ function buildOrderCard(o) {
                 ${trackingInfo}
                 <div class="order-actions">
                     ${trackBtn}
+                    ${o.status === "delivered" && o.items && o.items.length ? o.items.map(i => i.product_id ? `<a class="btn-review" href="/product?id=${i.product_id}#reviews"><i class="fas fa-star"></i> Avaliar ${o.items.length > 1 ? i.product_name.split(" ").slice(0,2).join(" ") : "Pedido"}</a>` : "").join("") : ""}
                     <a class="btn-help" href="/ajuda"><i class="fas fa-question-circle"></i> Ajuda</a>
                 </div>
             </div>

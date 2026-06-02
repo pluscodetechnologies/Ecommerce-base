@@ -25,7 +25,9 @@ router.get("/", async (req, res) => {
     for (const order of orders) {
       const [items] = await db.execute(
         `
-                SELECT oi.product_name, oi.quantity, oi.unit_price, oi.total_price, p.images
+                SELECT oi.product_id, oi.product_name, oi.quantity, oi.unit_price, oi.total_price,
+                       oi.color, oi.size, oi.variation_id,
+                       p.images, p.slug
                 FROM order_items oi
                 LEFT JOIN products p ON p.id = oi.product_id
                 WHERE oi.order_id = ?
@@ -33,17 +35,30 @@ router.get("/", async (req, res) => {
         [order.id],
       );
 
-      items.forEach((i) => {
+      for (const i of items) {
+        // Tenta buscar a imagem da cor selecionada em product_colors
+        let colorImage = null;
+        if (i.color && i.product_id) {
+          try {
+            const [colorRows] = await db.execute(
+              "SELECT images FROM product_colors WHERE product_id = ? AND name = ? LIMIT 1",
+              [i.product_id, i.color],
+            );
+            if (colorRows.length && colorRows[0].images) {
+              let colorImgs = typeof colorRows[0].images === "string"
+                ? JSON.parse(colorRows[0].images)
+                : colorRows[0].images || [];
+              if (Array.isArray(colorImgs) && colorImgs.length) colorImage = colorImgs[0];
+            }
+          } catch {}
+        }
         let imgs = [];
         try {
-          imgs =
-            typeof i.images === "string"
-              ? JSON.parse(i.images)
-              : i.images || [];
+          imgs = typeof i.images === "string" ? JSON.parse(i.images) : i.images || [];
         } catch {}
-        i.image = imgs[0] || null;
+        i.image = colorImage || imgs[0] || null;
         delete i.images;
-      });
+      }
       order.items = items;
     }
 
